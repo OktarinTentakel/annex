@@ -15,7 +15,7 @@
 
 	"type" : "module",
 	"directories": {
-		"doc": "./doc",
+		"docs": "./docs",
 		"test": "./test",
 		"examples" : "./examples"
 	},

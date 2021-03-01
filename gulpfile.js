@@ -24,7 +24,7 @@ const
 	SOURCE_DIR = './source',
 	DIST_DIR = './dist',
 	EXAMPLES_DIR = './examples',
-	DOC_DIR = './doc',
+	DOCS_DIR = './docs',
 	PACKAGE_CONFIG = JSON.parse(fs.readFileSync('./package.json', {encoding : 'utf-8'}))
 ;
 
@@ -122,8 +122,8 @@ function serveExamples(done){
 					return next();
 				},
 				serveStatic({
-					path: DOC_DIR,
-					url: '/doc',
+					path: DOCS_DIR,
+					url: '/docs',
 					// otherwise connect produces a content encoding error
 					gzip : false
 				})
@@ -169,7 +169,7 @@ gulp.task('watch', function(done){
 	done();
 });
 
-gulp.task('doc', shell.task([`rm -r ${DOC_DIR}/*`, 'jsdoc -c jsdoc.config.json --verbose']));
+gulp.task('doc', shell.task([`rm -rf ${DOCS_DIR}`, 'jsdoc -c jsdoc.config.json --verbose']));
 
 gulp.task('test', shell.task('npm test'));
 gulp.task('test-dist', shell.task('npm run test-dist'));

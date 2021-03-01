@@ -114,7 +114,7 @@
 			}
 		</style>
 
-		<script src="./lib/handle-version-switching.js" defer></script>
+		<script defer src="./lib/handle-version-switching.js"></script>
 		<script>
 			function setup(loop, isInViewport, scrollTo){
 				loop(250, function(){
@@ -209,7 +209,6 @@
 				});
 			}
 		</script>
-		<script src="./lib/annex/dist/es5-monolith.js"></script>
 		<script type="module">
 			if( window.__ANNEX_VERSION__ !== 'es5' ){
 				(async () => {
@@ -222,14 +221,14 @@
 				});
 			}
 		</script>
+		<script defer src="./lib/annex/dist/es5-monolith.js"></script>
 		<script defer>
 			(function(){
-				var versionPoll = window.setInterval(function(){
-					if( window.__ANNEX_VERSION__ ){
-						window.clearInterval(versionPoll);
+				var annexPoll = window.setInterval(function(){
+					if( window.__ANNEX_VERSION__ && window.annex ){
+						window.clearInterval(annexPoll);
 
 						if( window.__ANNEX_VERSION__ === 'es5' ){
-							console.log('hier', window.__ANNEX_VERSION__ );
 							setup(
 								window.annex.timers.loop,
 								window.annex.viewport.isInViewport,

@@ -2,4 +2,4 @@
 
 cd "${0%/*}" && \
 ./build.sh && \
-./doc.sh
+./docs.sh

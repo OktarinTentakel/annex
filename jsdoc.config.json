@@ -2,7 +2,7 @@
 	"opts": {
 		"template": "doc-templates/default",
 		"encoding": "utf8",
-		"destination": "./doc/",
+		"destination": "./docs/",
 		"recurse": true,
 		"//tutorials": "path/to/tutorials",
 		"readme" : "readme.md"

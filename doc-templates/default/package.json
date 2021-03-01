@@ -1,0 +1,7 @@
+{
+	"name": "jsdoc-default-template",
+	"version": "1.0.0",
+	"private": true,
+	"main": "publish.js",
+	"license": "MIT"
+}

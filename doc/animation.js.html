@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: animation.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: animation.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*!
+ * Module Animation
+ */
+
+/**
+ * @namespace Animation
+ */
+
+
+
+/**
+ * @namespace Animation:EasingFunctions
+ */
+
+/**
+ * A collection of all basic easing functions to be used in animations.
+ * All functions here take a float parameter between 0 and 1 and return a mapped value between 0 and 1.
+ *
+ * Taken from: https://gist.github.com/gre/1650294
+ *
+ * Available functions:
+ * - linear
+ * - easeInQuad
+ * - easeOutQuad
+ * - easeInOutQuad
+ * - easeInCubic
+ * - easeOutCubic
+ * - easeInOutCubic
+ * - easeInQuart
+ * - easeOutQuart
+ * - easeInOutQuart
+ * - easeInQuint
+ * - easeOutQuint
+ * - easeInOutQuint
+ *
+ * @memberof Animation:EasingFunctions
+ * @name EasingFunctions
+ * @example
+ * scrollTo(window, 1000, 0, EasingFunctions.easeInOutQuint);
+ */
+export const EasingFunctions = {
+	// no easing, no acceleration
+	linear: t => t,
+	// accelerating from zero velocity
+	easeInQuad: t => t*t,
+	// decelerating to zero velocity
+	easeOutQuad: t => t*(2-t),
+	// acceleration until halfway, then deceleration
+	easeInOutQuad: t => t&lt;.5 ? 2*t*t : -1+(4-2*t)*t,
+	// accelerating from zero velocity
+	easeInCubic: t => t*t*t,
+	// decelerating to zero velocity
+	easeOutCubic: t => (--t)*t*t+1,
+	// acceleration until halfway, then deceleration
+	easeInOutCubic: t => t&lt;.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1,
+	// accelerating from zero velocity
+	easeInQuart: t => t*t*t*t,
+	// decelerating to zero velocity
+	easeOutQuart: t => 1-(--t)*t*t*t,
+	// acceleration until halfway, then deceleration
+	easeInOutQuart: t => t&lt;.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t,
+	// accelerating from zero velocity
+	easeInQuint: t => t*t*t*t*t,
+	// decelerating to zero velocity
+	easeOutQuint: t => 1+(--t)*t*t*t*t,
+	// acceleration until halfway, then deceleration
+	easeInOutQuint: t => t&lt;.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Mon Mar 01 2021 12:39:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

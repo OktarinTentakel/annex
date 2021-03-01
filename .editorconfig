@@ -1,0 +1,16 @@
+# for all options and documentation go to: http://editorconfig.org
+
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[*.{html,tpl,ejs,js,mjs,css,scss,sass,styl,json,yml}]
+charset = utf-8
+indent_style = tab
+tab_width = 4
+trim_trailing_whitespace = true
+
+[*.{sass,styl,yml}]
+tab_width = 3

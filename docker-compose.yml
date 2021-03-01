@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+   annex:
+      build:
+         context: .
+         dockerfile: ./docker/annex/dockerfile
+      image: oktarintentakel/annex
+      volumes:
+         - .:/project:delegated
+      ports:
+         - 3000:3000
+         - 3001:3001
+      working_dir: /project
+      environment:
+         - TERM=xterm-256color
+      command: bash -c "HOME=/tmp yarn; gulp --color examples"

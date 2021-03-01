@@ -1,0 +1,27 @@
+{
+	"opts": {
+		"template": "doc-templates/default",
+		"encoding": "utf8",
+		"destination": "./doc/",
+		"recurse": true,
+		"//tutorials": "path/to/tutorials",
+		"readme" : "readme.md"
+	},
+	"tags": {
+		"allowUnknownTags": true
+	},
+	"source": {
+		"include" : ["source"],
+		"includePattern": ".+\\.js(doc|x)?$",
+		"excludePattern": "(^|\\/|\\\\)_"
+	},
+	"sourceType" : "module",
+	"plugins": [],
+	"templates": {
+		"cleverLinks": false,
+		"monospaceLinks": false,
+		"default": {
+			"outputSourceFiles": true
+		}
+	}
+}

@@ -79,7 +79,7 @@ Is This Documented Somewhere?
 -----------------------------
 Yes, that as well.
 
-Visit the documentation on [GitHub](https://oktarintentakel.github.io/annex/) or open `/doc/index.html` locally
+Visit the documentation on [GitHub](https://oktarintentakel.github.io/annex/) or open `/docs/index.html` locally
 after checking out the repo.
 
 

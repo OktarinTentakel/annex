@@ -23,8 +23,8 @@ import rollupIncludePaths from 'rollup-plugin-includepaths';
 const
 	SOURCE_DIR = './source',
 	DIST_DIR = './dist',
-	EXAMPLES_DIR = './examples',
-	DOCS_DIR = './docs',
+	EXAMPLES_DIR = './docs/examples',
+	DOCUMENTATION_DIR = './docs/documentation',
 	PACKAGE_CONFIG = JSON.parse(fs.readFileSync('./package.json', {encoding : 'utf-8'}))
 ;
 
@@ -122,8 +122,8 @@ function serveExamples(done){
 					return next();
 				},
 				serveStatic({
-					path: DOCS_DIR,
-					url: '/docs',
+					path: DOCUMENTATION_DIR,
+					url: '/documentation',
 					// otherwise connect produces a content encoding error
 					gzip : false
 				})
@@ -169,7 +169,7 @@ gulp.task('watch', function(done){
 	done();
 });
 
-gulp.task('doc', shell.task([`rm -rf ${DOCS_DIR}`, 'jsdoc -c jsdoc.config.json --verbose']));
+gulp.task('documentation', shell.task([`rm -rf ${DOCUMENTATION_DIR}`, 'jsdoc -c jsdoc.config.json --verbose']));
 
 gulp.task('test', shell.task('npm test'));
 gulp.task('test-dist', shell.task('npm run test-dist'));

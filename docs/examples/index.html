@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>annex examples</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png">
+
+		<link rel="stylesheet" href="./main.css">
+	</head>
+
+	<body>
+		<header>
+			<img src="./files/img/annex.png" alt="annex"/>
+		</header>
+		<main>
+			<h2>Examples</h2>
+			<section class="row">
+				<div class="col s12 m6 l4 xl3">
+					<div class="card grey lighten-5">
+						<div class="card-content">
+							<span class="card-title">Viewport</span>
+							<p>
+								helpers to deal with where elements are relative to the current viewport or to
+								manipulate the viewport, by scrolling somewhere for example
+							</p>
+						</div>
+						<div class="card-action">
+							<a href="./viewport-test.html" class="btn-floating halfway-fab light-blue"><i class="material-icons">send</i></a>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="row">
+				<p class="col s12 m10 l8">
+					Keep an eye on your browser's <strong>dev console</strong>, most examples will post statuses there!
+				</p>
+			</section>
+
+			<h2>Documentation</h2>
+			<section class="row">
+				<p class="col s12 m10 l8">
+					Have look at the <a class="doc-link" href="../documentation/index.html">documentation</a>
+					to find out more about all available functionality, going beyond these examples, which demonstrate
+					only what's in need of a real browser. For reference usage of all methods, keep an eye on the
+					examples in each method's documentation as well as the unit tests in the repo.
+				</p>
+			</section>
+		</main>
+		<script>
+			if( location.protocol.indexOf('http') === 0 ){
+				document.querySelector('.doc-link').setAttribute('href', 'documentation/index.html');
+			}
+		</script>
+	</body>
+</html>

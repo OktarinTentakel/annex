@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><p><img src="annex.png" alt="annex"></p>
+<h1>annex</h1>
+<p>by Sebastian Schlapkohl</p>
+<h2>!WARNING!</h2>
+<p>This is still in early phases of development, 1.0.0 will be the first stable version. Do not use before beta status!</p>
+<h2>What is This?</h2>
+<p>After more than 15 years of web development I have gotten quite opinionated about JavaScript, its way of doing things,
+the dark places of this language, what it is lacking and how I like to do things instead.</p>
+<p>This package is a collection of helpers, solutions and best practices that have amassed over the years, providing
+quality of life solutions, best practices (in my opinion) and additions, that I can't and don't want to live without
+(especially some Python stuff).</p>
+<p>Everything included here is strictly <strong>frontend-oriented</strong> and not meant for node or window-less or dom-less
+environments. Think of it as lodash's little frontend brother.</p>
+<p>Every single solution/helper/function is importable by itself using ES6 imports (and maybe a bundler),
+documented with jsdoc, tested with <a href="https://github.com/avajs/ava">Ava</a> (unit tests can be found in <code>test</code>),
+used in a live browser example (in case unit tests are not helpful; examples can be found in <code>examples</code>) and
+semantically structured into modules concerning topics and aspects of development
+(such as <code>logging</code> or <code>string-handling</code>).</p>
+<p>So, the TL;DR is: annex is a battle-proven, tested pool of frontend js tools to solve reappearing tasks quickly and make
+JavaScript more bearable by streamlining syntactical nonsense and providing functions other languages provide naturally.</p>
+<h2>Some of the Batteries Included</h2>
+<ul>
+<li>better logging</li>
+<li>variable normalization</li>
+<li>info getters for variable states like type and value checks</li>
+<li>string format functionality</li>
+<li>string generation and conversion tools like slugification and safe id generation</li>
+<li>array tools</li>
+<li>math helpers</li>
+<li>better timers</li>
+<li>polling</li>
+<li>url and navigation helpers</li>
+<li>solutions for obfuscated mailto and tel links</li>
+<li>browser capability checks</li>
+<li>cookie handling</li>
+<li>image and webfont callback helpers</li>
+<li>form helpers for data</li>
+<li>event tools</li>
+<li>...</li>
+</ul>
+<h2>Is This Documented Somewhere?</h2>
+<p>Yes, that as well.</p>
+<p>Visit the documentation on <a href="https://oktarintentakel.github.io/annex/documentation/">GitHub</a> or open
+<code>/docs/documentation/index.html</code> locally after checking out the repo.</p>
+<h2>Is This Tested in Any Way?</h2>
+<p>Yes, it actually is!</p>
+<p>The algorithmic core is tested via <a href="https://github.com/avajs/ava">Ava</a> and all tests are to be found in <code>test</code>.</p>
+<p>Many features are not really well suited for unit testing but require a real browser as a context.
+For all those cases I built example pages (to be found under <code>examples</code>, just opening <code>index.hml</code> from the file system
+should work, at least for the es5 version). In these example pages you can browse all topics not covered by unit tests
+and play around with the functionality.</p>
+<h2>How Can I Run the Examples?</h2>
+<p>Either view the examples on <a href="https://oktarintentakel.github.io/annex/examples/">GitHub</a> or open
+<code>/docs/examples/index.html</code> locally after checking out the repo.</p>
+<h2>How Do I Install This?</h2>
+<p>Besides just downloading the zip and dropping the package in your project (which I would not recommend doing), you may
+easily use npm or yarn. Since I do not publish to npm yet, you can just reference the github repo and maybe the version
+tag (which I would recommed) and you are done. To get an idea about the latest version and/or changes, have a look at
+the tags and releases in Github.</p>
+<h3>NPM</h3>
+<pre class="prettyprint source"><code>npm install oktarintentakel/annex
+</code></pre>
+<p>or</p>
+<pre class="prettyprint source"><code>npm install oktarintentakel/annex#vX.X.X
+</code></pre>
+<h3>Yarn</h3>
+<pre class="prettyprint source"><code>yarn add oktarintentakel/annex
+</code></pre>
+<p>or</p>
+<pre class="prettyprint source"><code>yarn add oktarintentakel/annex#vX.X.X
+</code></pre>
+<h3>@client Package Separation</h3>
+<p>It may be a good idea, to generally split node and client packages up. Why? Client packages are delivered directly to
+the client and are executed and interpreted on the user's machine. So, these packages have a different set of rules
+applying to them. For example: it is not really clever to give client packages an approximate version, like a normal
+node dependency using <code>^</code> oder <code>~</code>, because every minor change in a client package may affect all receiving clients
+after a reevaluation of npm versions. This is a nightmare, because this means, that, at undetermined points in time, all
+cross-browser testing you did may be invalid and since you are not seeing everything while developing all the time, your
+app may fall apart on certain devices, without you knowing.</p>
+<p>Another problem is sharing of packages between dev/build/hosting and frontend/client. Let's say both use lodash or q
+promises: both have to agree on the exact same version, that should not be changed frequently because of the afore
+mentioned problems. That is very unpractical for both usages and each should be able to use the version fitting its
+purpose, since they are used for different things on very different machines, even if it is the same package under the
+hood.</p>
+<p>So I generally propse separating all npm packages, that are delivered to the client directly in any way into a specific
+<code>@client</code> package in <code>node_modules</code> using fixed versioning for these (I originally got the idea when I transitioned)
+from bower to npm, reading the bower team's <a href="https://bower.io/blog/2017/how-to-migrate-away-from-bower/">ideas</a> about
+this.</p>
+<p>So, adding a <code>@client</code> dependency may look like this in <code>package.json</code>:</p>
+<pre class="prettyprint source"><code>&quot;dependencies&quot;: {
+    &quot;@client/annex&quot; : &quot;oktarintentakel/annex#vX.X.X&quot;,
+    ...
+}
+</code></pre>
+<p>You can also add the dependency on the command line like this, albeit the command gets a little lengthy then:</p>
+<pre class="prettyprint source"><code>yarn add @client/annex@oktarintentakel/annex#vX.X.X
+</code></pre>
+<p>If the package is on npm you can, of course, pull the package from there as well:</p>
+<pre class="prettyprint source"><code>&quot;dependencies&quot;: {
+    &quot;@client/some-npm-package&quot; : &quot;npm:some-npm-package@1.0.0&quot;,
+    ...
+}
+</code></pre>
+<h2>How Do I Include and Use This?</h2>
+<p>After installation, just include single functions/symbols from the semantic packages like this:</p>
+<p><code>import {log} from 'annex/source/logging';</code></p>
+<p>If you want to serve packages without bundling, as they are, you can do so, by serving them as type module scripts.
+For this purpose I included a <code>dist</code> dir, containing minified, ES6 scripts. Use these, you would do:</p>
+<p><code>&lt;script type=&quot;module&quot; src=&quot;annex/dist/logging.js&quot;&gt;&lt;/script&gt;</code></p>
+<p>In this case, make sure all dist file are publicly available and are in the same dir, so imports can work.</p>
+<p>Of course you can also import <code>dist</code> files via a bundler, but in that case you would lose the capability to jump to
+readable source in your IDE and you would also lose all JSDOC strings.</p>
+<p>If you need to use ES5, I also included a monolithic ES5 version in <code>dist</code> as a UMD. So you can easily load the script
+with</p>
+<p><code>&lt;script src=&quot;public/annex/dist/es5-monolith.js&quot;&gt;&lt;/script&gt;</code></p>
+<p>After which there should be <code>window.annex</code>, which has each package as a key, so for example</p>
+<p><code>window.annex.logging.log('test')</code></p>
+<p>should write something to the console.</p>
+<p>ES5 is compiled with a target &gt;= IE11.</p>
+<h2>Versioning</h2>
+<p>I'm using semver, so majors are definitely breaking, minors may be breaking and bugfixes should never break anything.</p>
+<h2>Is This Any Good, Why Should I Use This?</h2>
+<p>Well, since this package is not monolithic: Why not?</p>
+<p>If anything catches your eye, just use this one thing and maybe you find other helpful things as well. Since ES6 we have
+the luxurious situation of being able to pick and choose, without immediately bloating the bundle. And since annex has
+no peer dependencies, you are not even bloating your node_modules.</p>
+<p>On the other hand, you are also completely free to just scan the source and copy whatever you need, if you do not want
+to add the dependency. You are completely free to just use the repo as reference as well!</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Mon Mar 01 2021 20:18:29 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

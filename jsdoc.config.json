@@ -1,8 +1,8 @@
 {
 	"opts": {
-		"template": "doc-templates/default",
+		"template": "jsdoc-templates/default",
 		"encoding": "utf8",
-		"destination": "./docs/",
+		"destination": "./docs/documentation/",
 		"recurse": true,
 		"//tutorials": "path/to/tutorials",
 		"readme" : "readme.md"

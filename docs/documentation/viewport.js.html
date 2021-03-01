@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: viewport.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: viewport.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*!
+ * Module Viewport
+ */
+
+/**
+ * @namespace Viewport
+ */
+
+
+
+import {hasValue, orDefault, isA, Deferred} from './basic.js';
+import {EasingFunctions} from './animation.js';
+import {requestAnimationFrame} from './timers.js';
+
+
+
+/**
+ * @namespace Viewport:isInViewport
+ */
+
+/**
+ * Returns if the current element is visible in the window's viewport at the moment.
+ * This method uses getBoundingClientRect(), which has to be supported by the browser, otherwise
+ * the method will always return true.
+ *
+ * @param {HTMLElement} element - the element to check
+ * @param {?Boolean} [mustBeFullyInside=false] - defines if the element has to be fully enclosed in the viewport, default is false
+ * @returns {Boolean} true if in viewport
+ *
+ * @memberof Viewport:isInViewport
+ * @name isInViewport
+ * @example
+ * if( isInViewport(document.querySelector('div.moving'), true) ){
+ *   ...
+ * }
+ */
+export function isInViewport(element, mustBeFullyInside){
+	mustBeFullyInside = orDefault(mustBeFullyInside, false, 'boolean');
+
+	let bb;
+	try {
+		bb = element.getBoundingClientRect();
+	} catch(err){
+		// if we cannot calculate position, we must assume the element is in
+		return true;
+	}
+
+	let viewportBounds;
+	if( mustBeFullyInside ){
+		viewportBounds = {
+			top: 0,
+			right : window.innerWidth,
+			bottom : window.innerHeight,
+			left : 0
+		};
+	} else {
+		viewportBounds = {
+			top : -(bb.bottom - bb.top) + 1,
+			right : (window.innerWidth + (bb.right - bb.left)) + 1,
+			bottom : (window.innerHeight + (bb.bottom - bb.top)) + 1,
+			left : -(bb.right - bb.left) + 1
+		};
+	}
+
+	return (
+		bb.top >= viewportBounds.top &amp;&amp;
+		bb.right &lt;= viewportBounds.right &amp;&amp;
+		bb.left >= viewportBounds.left &amp;&amp;
+		bb.bottom &lt;= viewportBounds.bottom
+	);
+}
+
+
+
+/**
+ * @namespace Viewport:scrollTo
+ */
+
+/**
+ * Scrolls the viewport to the element's position (first pixel at half viewport height).
+ * Does not do anything if target element is already fully in viewport, unless scrollEvenIfFullyInViewport is set to
+ * true. Uses getBoundingClientRect to measure viewport check, scrolls always if missing.
+ *
+ * If you use this function on a window, the offset is directly used as scrollTop, so this function may also be used for
+ * things like back to top buttons.
+ *
+ * Scrolls may be cancelled by setting cancelOnUserScroll to true, but keep in mind, that this will only work
+ * with mousewheels and (maybe) touchpads on modern browsers. No keyboard or scrollbar support yet.
+ * The root of the problem is that a user scroll is indistinguishable from a js-triggered scroll,
+ * since both trigger the scroll event and look exactly the same. So we have to use exotic
+ * and specific events like mousewheel and DOMMouseScroll. So, please, use cancelOnUserScroll only
+ * as a convenience option and not as a must.
+ *
+ *
+ * @param {HTMLElement} element - the element to scroll to
+ * @param {?Number} [durationMs=1000] - duration of the scrolling animation
+ * @param {?Number} [offset=0] - offset from the viewport center to apply to the end position
+ * @param {?String} [easing='easeInOutCubic'] - easing function to use, can be any of Animation.EasingFunctions
+ * @param {?Boolean} [scrollEvenIfFullyInViewport=false] - if true, forces method to always scroll no matter the element's position
+ * @param {?Boolean} [cancelOnUserScroll=false] - if true, scrolling animation will immediately be canceled on manual user scroll, callback will not fire in that case
+ * @returns {Promise} resolves when scroll complete, rejects if scroll fails or is cancelled
+ *
+ * @memberof Viewport:scrollTo
+ * @name scrollTo
+ * @see EasingFunctions
+ * @example
+ * document.querySelector('a.jumpitem').addEventListener('click', function(){ scrollTo(document.querySelector('.jumptarget'), function(){ alert('scrolled!'); }, 500, -100, true); });
+ * scrollTo(document.querySelector('.jumptarget'), function(){ alert('Not triggered if user uses mousewheel.'); }, 5000, -0, false, true);
+ * scrollTo(window, null, 500, 0, false, true);
+ */
+export function scrollTo(element, durationMs, offset, easing, scrollEvenIfFullyInViewport, cancelOnUserScroll){
+	durationMs = orDefault(durationMs, 1000, 'integer');
+	offset = orDefault(offset, 0, 'integer');
+	easing = orDefault(easing, 'easeInOutCubic', 'string');
+	scrollEvenIfFullyInViewport = orDefault(scrollEvenIfFullyInViewport, false, 'boolean');
+	cancelOnUserScroll = orDefault(cancelOnUserScroll, false, 'boolean');
+
+	if( !isA(EasingFunctions[easing], 'function') ){
+		easing = EasingFunctions.easeInOutCubic;
+	} else {
+		easing = EasingFunctions[easing];
+	}
+
+	const
+		res = new Deferred(),
+		elementIsWindow = (element.self === element)
+	;
+
+	// the window itself is considered not to be in viewport
+	let elementInViewport = elementIsWindow ? false : isInViewport(element, true);
+
+	// in this case missing support for bounding rects should result in scrolling
+	try {
+		element.getBoundingClientRect();
+	} catch(err){
+		elementInViewport = false;
+	}
+
+	if( scrollEvenIfFullyInViewport || !elementInViewport ){
+		let start, targetY, cancelled = false;
+		const startY = window.pageYOffset;
+
+		if( elementIsWindow ){
+			targetY = offset;
+		} else {
+			targetY = window.pageYOffset + element.getBoundingClientRect().top - Math.round(window.innerHeight / 2) + offset;
+		}
+
+		const
+			diff = targetY - startY,
+			fScroll = function(timestamp){
+				if( !cancelled ){
+					if( !hasValue(start) ){
+						start = timestamp;
+					}
+
+					const
+						time = timestamp - start,
+						progress = easing(Math.min(time / durationMs, 1))
+					;
+
+					window.scrollTo(0, startY + (diff * progress));
+
+					if( (time &lt; durationMs) &amp;&amp; (progress &lt; 1) ){
+						requestAnimationFrame(fScroll)
+					} else {
+						res.resolve();
+					}
+				}
+			}
+		;
+
+		if( cancelOnUserScroll ){
+			const fCancelScroll = function(){
+				cancelled = true;
+				res.reject();
+				window.removeEventListener('DOMMouseScroll', fCancelScroll);
+				window.removeEventListener('mousewheel', fCancelScroll);
+			};
+
+			window.addEventListener('DOMMouseScroll', fCancelScroll);
+			window.addEventListener('mousewheel', fCancelScroll);
+		}
+
+		if( diff !== 0 ){
+			requestAnimationFrame(fScroll);
+		}
+	}
+
+	return res;
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Mon Mar 01 2021 20:18:29 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

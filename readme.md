@@ -57,8 +57,14 @@ Some of the Batteries Included
 - event tools
 - ...
 
-Have a look at the documentation in `doc` to get a complete picture of what's there and play around with
-the examples in `examples`.
+
+
+Is This Documented Somewhere?
+-----------------------------
+Yes, that as well.
+
+Visit the documentation on [GitHub](https://oktarintentakel.github.io/annex/documentation/) or open
+`/docs/documentation/index.html` locally after checking out the repo.
 
 
 
@@ -70,17 +76,15 @@ The algorithmic core is tested via [Ava](https://github.com/avajs/ava) and all t
 
 Many features are not really well suited for unit testing but require a real browser as a context.
 For all those cases I built example pages (to be found under `examples`, just opening `index.hml` from the file system
-should work). In these example pages you can browse all topics not covered by unit tests and play around with the
-functionality.
+should work, at least for the es5 version). In these example pages you can browse all topics not covered by unit tests
+and play around with the functionality.
 
 
 
-Is This Documented Somewhere?
------------------------------
-Yes, that as well.
-
-Visit the documentation on [GitHub](https://oktarintentakel.github.io/annex/) or open `/docs/index.html` locally
-after checking out the repo.
+How Can I Run the Examples?
+---------------------------
+Either view the examples on [GitHub](https://oktarintentakel.github.io/annex/examples/) or open
+`/docs/examples/index.html` locally after checking out the repo.
 
 
 

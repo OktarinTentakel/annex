@@ -62,7 +62,7 @@ the examples in `examples`.
 
 
 
-Is this Tested in Any Way?
+Is This Tested in Any Way?
 --------------------------
 Yes, it actually is!
 
@@ -75,7 +75,16 @@ functionality.
 
 
 
-How do I install this?
+Is This Documented Somewhere?
+-----------------------------
+Yes, that as well.
+
+Visit the documentation on [GitHub](https://oktarintentakel.github.io/annex/) or open `/doc/index.html` locally
+after checking out the repo.
+
+
+
+How Do I Install This?
 ----------------------
 Besides just downloading the zip and dropping the package in your project (which I would not recommend doing), you may
 easily use npm or yarn. Since I do not publish to npm yet, you can just reference the github repo and maybe the version

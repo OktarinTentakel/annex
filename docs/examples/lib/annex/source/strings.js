@@ -1,10 +1,12 @@
 /*!
- * Module Basic
+ * Module Strings
  */
 
 /**
  * @namespace Strings
  */
+
+const MODULE_NAME = 'Strings';
 
 
 
@@ -13,11 +15,11 @@ import {isA, orDefault, isNaN, hasValue} from './basic.js';
 
 
 /**
- * @namespace Strings:strReplace
+ * @namespace Strings:replace
  */
 
 /**
- * Offers similar functionality to phps str_replace or ES2021's replaceAll and avoids RegExps for this task.
+ * Offers similar functionality to PHP's str_replace or ES2021's replaceAll and avoids RegExps for this task.
  * Replaces occurrences of search in subject with replace. search and replace may be arrays.
  * If search is an array and replace is a string, all phrases in the array will be replaced with one string.
  * If replace is an array itself, phrases and replacements are matched by index.
@@ -30,12 +32,12 @@ import {isA, orDefault, isNaN, hasValue} from './basic.js';
  * @param {String} subject - the string to replace in
  * @returns {String} the modified string
  *
- * @memberof Strings:strReplace
- * @alias strReplace
+ * @memberof Strings:replace
+ * @alias replace
  * @example
- * const sanitizedString = strReplace([':', '#', '-'], '_', exampleString);
+ * const sanitizedString = replace([':', '#', '-'], '_', exampleString);
  */
-export function strReplace(search, replace, subject){
+export function replace(search, replace, subject){
 	search = [].concat(search);
 	replace = [].concat(replace);
 	subject = `${subject}`;
@@ -58,7 +60,7 @@ export function strReplace(search, replace, subject){
 
 
 /**
- * @namespace Strings:strTruncate
+ * @namespace Strings:truncate
  */
 
 /**
@@ -70,18 +72,18 @@ export function strReplace(search, replace, subject){
  * @throws error if suffix length is bigger than defined maxLength
  * @returns {String} the (truncated) subject
  *
- * @memberof Strings:strTruncate
- * @alias strTruncate
+ * @memberof Strings:truncate
+ * @alias truncate
  * @example
- * const truncatedString = strTruncate(string, 10, '...');
+ * const truncatedString = truncate(string, 10, '...');
  */
-export function strTruncate(subject, maxLength, suffix){
+export function truncate(subject, maxLength, suffix){
 	subject = `${subject}`;
 	maxLength = orDefault(maxLength, 30, 'integer');
 	suffix = orDefault(suffix, '...', 'string');
 
 	if( suffix.length > maxLength ){
-		throw new Error('strTruncate | suffix cannot be longer than maxLength');
+		throw new Error(`${MODULE_NAME}:truncate | suffix cannot be longer than maxLength`);
 	}
 
 	if( subject.length > maxLength ){
@@ -94,7 +96,7 @@ export function strTruncate(subject, maxLength, suffix){
 
 
 /**
- * @namespace Strings:strConcat
+ * @namespace Strings:concat
  */
 
 /**
@@ -106,13 +108,13 @@ export function strTruncate(subject, maxLength, suffix){
  * @param {?String[]} strings - list of strings to concatenate, either comma-separated or as single array
  * @returns {String} the concatenated string
  *
- * @memberof Strings:strConcat
- * @alias strConcat
+ * @memberof Strings:concat
+ * @alias concat
  * @example
- * const finalCountdown = strConcat(' ... ', 10, 9, 8, 7, 6, '5', '4', '3', '2', '1', 'ZERO!');
- * const finalCountdown = strConcat(' ... ', [10, 9, 8, 7, 6, '5', '4', '3', '2', '1', 'ZERO!']);
+ * const finalCountdown = concat(' ... ', 10, 9, 8, 7, 6, '5', '4', '3', '2', '1', 'ZERO!');
+ * const finalCountdown = concat(' ... ', [10, 9, 8, 7, 6, '5', '4', '3', '2', '1', 'ZERO!']);
  */
-export function strConcat(glue, ...strings){
+export function concat(glue, ...strings){
 	glue = orDefault(glue, '', 'string');
 
 	if( (strings.length > 0) && Array.isArray(strings[0]) ){
@@ -125,7 +127,7 @@ export function strConcat(glue, ...strings){
 
 
 /**
- * @namespace Strings:strFormat
+ * @namespace Strings:format
  */
 
 /**
@@ -144,19 +146,19 @@ export function strConcat(glue, ...strings){
  * @throws general exception on syntax errors
  * @returns {String} the formatted string
  *
- * @memberof Strings:strFormat
- * @alias strFormat
+ * @memberof Strings:format
+ * @alias format
  * @example
- * strFormat('An elephant is {times:float(0.00)} times smarter than a {animal}', {times : 5.5555, animal : 'lion'})
+ * format('An elephant is {times:float(0.00)} times smarter than a {animal}', {times : 5.5555, animal : 'lion'})
  * => 'An elephant is 5.56 times smarter than a lion'
- * strFormat('{0}{0}{0} ... {{BATMAN!}}', 'Nana')
+ * format('{0}{0}{0} ... {{BATMAN!}}', 'Nana')
  * => 'NanaNanaNana ... {BATMAN!}'
- * strFormat('{} {} {} starts the alphabet.', 'A', 'B', 'C')
+ * format('{} {} {} starts the alphabet.', 'A', 'B', 'C')
  * => 'A B C starts the alphabet.'
- * strFormat('{0:int}, {1:int}, {2:int}: details are for wankers', '1a', 2.222, 3)
+ * format('{0:int}, {1:int}, {2:int}: details are for wankers', '1a', 2.222, 3)
  * => '1, 2, 3: details are for wankers'
  */
-export function strFormat(template, ...replacements){
+export function format(template, ...replacements){
 	let
 		idx = 0,
 		explicit = false,
@@ -205,7 +207,7 @@ export function strFormat(template, ...replacements){
 				try {
 					precision = format.split('.')[1].length;
 				} catch(ex) {
-					throw new Error('strFormat | float precision arg malformed');
+					throw new Error(`${MODULE_NAME}:format | float precision arg malformed`);
 				}
 
 				const power = Math.pow(10, precision);
@@ -243,18 +245,18 @@ export function strFormat(template, ...replacements){
 				;
 
 				if( formatterParts.length > 1 ){
-					formatterArg = strReplace(')', '', formatterParts[1]);
+					formatterArg = formatterParts[1].replace(')', '');
 				}
 
 				try {
 					formatter = formatters[formatterName];
 				} catch(ex) {
-					throw new Error('strFormat | unknown formatter');
+					throw new Error(`${MODULE_NAME}:format | unknown formatter`);
 				}
 			}
 
 			if( implicit ){
-				throw new Error('strFormat | cannot switch from implicit to explicit numbering');
+				throw new Error(`${MODULE_NAME}:format | cannot switch from implicit to explicit numbering`);
 			} else {
 				explicit = true;
 			}
@@ -263,7 +265,7 @@ export function strFormat(template, ...replacements){
 			value = orDefault(ref, '');
 		} else {
 			if( explicit ){
-				throw new Error ('strFormat | cannot switch from explicit to implicit numbering');
+				throw new Error (`${MODULE_NAME}:format | cannot switch from explicit to implicit numbering`);
 			} else {
 				implicit = true;
 			}

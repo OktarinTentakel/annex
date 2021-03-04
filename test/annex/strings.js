@@ -10,10 +10,10 @@ if( global.__AVA_SOURCE__ === 'es5-monolith' ){
 }
 
 const {
-	strReplace,
-	strTruncate,
-	strConcat,
-	strFormat,
+	replace,
+	truncate,
+	concat,
+	format,
 	slugify,
 	maskForSelector,
 	maskForRegEx,
@@ -23,62 +23,62 @@ const {
 
 
 
-test('strReplace', assert => {
+test('replace', assert => {
 	const
 		foo = 'this:is#a-very:unclean-string',
 		bar = '<\'transform\' ; <\'me\' ; \'to json\'>>',
 		foobar = 'ßßß'
 	;
 
-	assert.is(strReplace([':', '#', '-'], '_', foo), 'this_is_a_very_unclean_string');
-	assert.is(strReplace(['<', '>', ';', '\''], ['{', '}', ':', '"'], bar), '{"transform" : {"me" : "to json"}}');
-	assert.is(strReplace('ß', 'sz', foobar), 'szszsz');
+	assert.is(replace([':', '#', '-'], '_', foo), 'this_is_a_very_unclean_string');
+	assert.is(replace(['<', '>', ';', '\''], ['{', '}', ':', '"'], bar), '{"transform" : {"me" : "to json"}}');
+	assert.is(replace('ß', 'sz', foobar), 'szszsz');
 });
 
 
 
-test('strTruncate', assert => {
+test('truncate', assert => {
 	const
 		foo = 'abc',
 		bar = 'abcdefghijklmnopqrstuvwxyz',
 		foobar = 'üäöÜÄÖß'
 	;
 
-	assert.is(strTruncate(foo), foo);
-	assert.is(strTruncate(bar), bar);
-	assert.is(strTruncate(bar, 6), 'abc...');
-	assert.is(strTruncate(bar, 3, '---'), '---');
-	assert.throws(function(){ strTruncate(bar, 1, '---'); });
-	assert.is(strTruncate(foobar, 6, '.'), 'üäöÜÄ.');
-	assert.is(strTruncate(foobar, 7), foobar);
+	assert.is(truncate(foo), foo);
+	assert.is(truncate(bar), bar);
+	assert.is(truncate(bar, 6), 'abc...');
+	assert.is(truncate(bar, 3, '---'), '---');
+	assert.throws(function(){ truncate(bar, 1, '---'); });
+	assert.is(truncate(foobar, 6, '.'), 'üäöÜÄ.');
+	assert.is(truncate(foobar, 7), foobar);
 });
 
 
 
-test('strConcat', assert => {
+test('concat', assert => {
 	const foo = [10, 9, 8, 7, 6, '5', '4', '3', '2', '1', 'ZERO!'];
 
 	assert.is(
-		strConcat(' ... ', 10, 9, 8.8, 7, 6.6, '5', '4', '3', '2', '1', 'ZERO!'),
+		concat(' ... ', 10, 9, 8.8, 7, 6.6, '5', '4', '3', '2', '1', 'ZERO!'),
 		'10 ... 9 ... 8.8 ... 7 ... 6.6 ... 5 ... 4 ... 3 ... 2 ... 1 ... ZERO!'
 	);
 	assert.is(
-		strConcat('...', foo),
+		concat('...', foo),
 		'10...9...8...7...6...5...4...3...2...1...ZERO!'
 	);
 	assert.is(
-		strConcat('...', ...foo),
+		concat('...', ...foo),
 		'10...9...8...7...6...5...4...3...2...1...ZERO!'
 	);
-	assert.is(strConcat(null, 1, ['2', 3.3], {a : 1, b : 2}), '12,3.3[object Object]');
-	assert.is(strConcat(null, [1,'2', 3.3], 1, 2, 3), '123.3');
-	assert.is(strConcat('_'), '');
-	assert.is(strConcat('_', []), '');
+	assert.is(concat(null, 1, ['2', 3.3], {a : 1, b : 2}), '12,3.3[object Object]');
+	assert.is(concat(null, [1,'2', 3.3], 1, 2, 3), '123.3');
+	assert.is(concat('_'), '');
+	assert.is(concat('_', []), '');
 });
 
 
 
-test('strFormat', assert => {
+test('format', assert => {
 	const Person = function(firstName, lastName, age, favoriteFloat){
 		this.names = {
 			first : firstName,
@@ -94,35 +94,35 @@ test('strFormat', assert => {
 	};
 
 	assert.is(
-		strFormat(
+		format(
 			'An elephant is {times:float(0.00)} times smarter than a {animal}',
 			{times : 5.5555, animal : 'lion'}
 		),
 		'An elephant is 5.56 times smarter than a lion'
 	);
 	assert.is(
-		strFormat('{0}{0}{0} ... {{BATMAN!}}', 'Nana'),
+		format('{0}{0}{0} ... {{BATMAN!}}', 'Nana'),
 		'NanaNanaNana ... {BATMAN!}'
 	);
 	assert.is(
-		strFormat('{} {} {} starts the alphabet.', 'A', 'B', 'C'),
+		format('{} {} {} starts the alphabet.', 'A', 'B', 'C'),
 		'A B C starts the alphabet.'
 	);
 	assert.is(
-		strFormat('{0:int}, {1:int}, {2:int}: details are for pussies', '1a', 2.222, 3),
+		format('{0:int}, {1:int}, {2:int}: details are for pussies', '1a', 2.222, 3),
 		'1, 2, 3: details are for pussies'
 	);
 	assert.is(
-		strFormat(
+		format(
 			'This is {4}: We need just {1.2:int} {foo} {3} kill {1.0} humans {2:float(0.0)} times over.',
 			{foo : 'ape'}, [function(){ return 3; }, 2, 1.1], 42.45, 'to', function(){ return true; }
 		),
 		'This is true: We need just 1 ape to kill 3 humans 42.5 times over.'
 	);
-	assert.throws(function(){ strFormat('{0} {1} {2} {}', 1, 2, 3, 4); });
-	assert.throws(function(){ strFormat('{} {1} {2} {3}', 1, 2, 3, 4); });
+	assert.throws(function(){ format('{0} {1} {2} {}', 1, 2, 3, 4); });
+	assert.throws(function(){ format('{} {1} {2} {3}', 1, 2, 3, 4); });
 	assert.is(
-		strFormat(
+		format(
 			'{names.first} {names.last} is {info.personal.age:int} years old and his/her favorite floating number is {info.favorites.float:float(0.00)}.',
 			new Person('Darth', 'Vader', 88, 666.666)
 		),

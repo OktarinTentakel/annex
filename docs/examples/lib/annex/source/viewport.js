@@ -6,6 +6,8 @@
  * @namespace Viewport
  */
 
+const MODULE_NAME = 'Viewport';
+
 
 
 import {hasValue, orDefault, isA, Deferred} from './basic.js';

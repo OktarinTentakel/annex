@@ -6,6 +6,8 @@
  * @namespace Logging
  */
 
+const MODULE_NAME = 'Logging';
+
 
 
 //###( MODULE DATA )###

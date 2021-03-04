@@ -6,6 +6,8 @@
  * @namespace Basic
  */
 
+const MODULE_NAME = 'Basic';
+
 
 
 import {log, warn} from './logging.js';
@@ -63,7 +65,7 @@ export function assert(condition, message){
  * if( !attempt(function(){ foobar(); }) ){ log('foobar cannot be executed!'); }
  */
 export function attempt(closure){
-	assert(isA(closure, 'function'), 'attempt | closure is not a function');
+	assert(isA(closure, 'function'), `${MODULE_NAME}:attempt | closure is not a function`);
 
 	try {
 		closure();
@@ -193,7 +195,7 @@ export function hasMembers(obj, memberNames, verbose){
 	memberNames.forEach(memberName => {
 		if( !hasValue(obj[memberName]) ){
 			if( verbose ){
-				log().info(`hasMembers | missing member ${memberName}`);
+				log().info(`${MODULE_NAME}:hasMembers | missing member ${memberName}`);
 			}
 
 			res = false;
@@ -370,7 +372,7 @@ export function isA(value, type){
 	){
 		return getType(value) === `${type}`.toLowerCase();
 	} else {
-		warn(`isA | "${type}" is not a recognized type for this function`);
+		warn(`${MODULE_NAME}:isA | "${type}" is not a recognized type`);
 		return false;
 	}
 }
@@ -485,7 +487,7 @@ export function isNaN(expression, checkForIdentity){
  * let croppedVal = minMax(-100, value, 100);
  */
 export function minMax(min, value, max){
-	assert(min <= max, 'minMax | min can not be larger than max');
+	assert(min <= max, `${MODULE_NAME}:minMax | min can not be larger than max`);
 
 	return (value < min)
 		? min

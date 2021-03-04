@@ -6,6 +6,8 @@
  * @namespace Timers
  */
 
+const MODULE_NAME = 'Timers';
+
 
 
 import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
@@ -37,7 +39,7 @@ import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
 export function schedule(ms, callback, oldTimer){
 	ms = orDefault(ms, 1, 'integer');
 
-	assert(isA(callback, 'function'), 'schedule | callback must be a function');
+	assert(isA(callback, 'function'), `${MODULE_NAME}:schedule | callback must be a function`);
 
 	if( hasValue(oldTimer) ){
 		countermand(oldTimer);
@@ -79,7 +81,7 @@ export function schedule(ms, callback, oldTimer){
 export function pschedule(ms, callback, oldTimer){
 	ms = orDefault(ms, 1, 'integer');
 
-	assert(isA(callback, 'function'), 'pschedule | callback must be a function');
+	assert(isA(callback, 'function'), `${MODULE_NAME}:pschedule | callback must be a function`);
 
 	if(
 		hasValue(oldTimer)
@@ -132,7 +134,7 @@ export function pschedule(ms, callback, oldTimer){
 export function reschedule(timer, ms, callback){
 	ms = orDefault(ms, 1, 'integer');
 
-	assert(isA(callback, 'function'), 'reschedule | callback must be a function');
+	assert(isA(callback, 'function'), `${MODULE_NAME}:reschedule | callback must be a function`);
 
 	if( hasValue(timer) && hasValue(timer.precise) && !!timer.precise ){
 		return pschedule(ms, callback, timer);
@@ -168,7 +170,7 @@ export function reschedule(timer, ms, callback){
 export function loop(ms, callback, oldLoop){
 	ms = orDefault(ms, 1, 'integer');
 
-	assert(isA(callback, 'function'), 'loop | callback must be a function');
+	assert(isA(callback, 'function'), `${MODULE_NAME}:loop | callback must be a function`);
 
 	if( hasValue(oldLoop) ){
 		countermand(oldLoop, true);
@@ -213,7 +215,7 @@ export function loop(ms, callback, oldLoop){
 export function ploop(ms, callback, oldLoop){
 	ms = orDefault(ms, 1, 'integer');
 
-	assert(isA(callback, 'function'), 'ploop | callback must be a function');
+	assert(isA(callback, 'function'), `${MODULE_NAME}:ploop | callback must be a function`);
 
 	if(
 		hasValue(oldLoop)

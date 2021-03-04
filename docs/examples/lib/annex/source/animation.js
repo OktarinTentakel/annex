@@ -6,6 +6,8 @@
  * @namespace Animation
  */
 
+const MODULE_NAME = 'Animation';
+
 
 
 /**

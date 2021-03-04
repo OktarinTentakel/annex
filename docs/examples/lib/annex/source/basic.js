@@ -229,7 +229,7 @@ export function hasMembers(obj, memberNames, verbose){
  */
 export function orDefault(expression, defaultValue, caster=null, additionalEmptyValues=null){
 	if( hasValue(additionalEmptyValues) ){
-		additionalEmptyValues = Array.isArray(additionalEmptyValues) ? additionalEmptyValues : [additionalEmptyValues];
+		additionalEmptyValues = [].concat(additionalEmptyValues);
 	} else {
 		additionalEmptyValues = [];
 	}
@@ -256,7 +256,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
 			} else if( caster === 'float' ){
 				caster = function(value){ return parseFloat(value); };
 			} else if( ['arr', 'array'].includes(caster) ){
-				caster = function(value){ return !Array.isArray(value) ? [value] : value; };
+				caster = function(value){ return [].concat(value); };
 			}
 		} else if( !isA(caster, 'function') ){
 			caster = function(value){ return value; };

@@ -6,6 +6,16 @@ annex
 =====
 by Sebastian Schlapkohl
 
+![NPM - no peer dependencies](https://img.shields.io/badge/NPM-no%20peer%20dependencies-blue)
+![JavaScript - ES6+](https://img.shields.io/badge/JavaScript-ES6%2B-blue)
+![JavaScript - Module](https://img.shields.io/badge/JavaScript-Modules-blue)
+![JavaScript - Legacy ES5 Monolith](https://img.shields.io/badge/JavaScript-Legacy%20ES5%20Monolith-blue)
+![Ava - Unit Tested](https://img.shields.io/badge/Ava-Unit%20Tested-brightgreen)
+![Examples - Interactive Demonstrations](https://img.shields.io/badge/Examples-Interactive%20Demonstrations-brightgreen)
+![JSDOC - Fully Documented](https://img.shields.io/badge/JSDOC-Fully%20Documented-green)
+![GitHub Pages - Online Documentation & Examples](https://img.shields.io/badge/GitHub%20Pages-Online%20Documentation%20%26%20Examples-yellow)
+![Docker - Docker Compose Dev Setup With Gulp and Rollup](https://img.shields.io/badge/Docker-Docker%20Compose%20Dev%20Setup%20With%20Gulp%20and%20Rollup-yellow)
+
 
 
 !WARNING!
@@ -30,7 +40,7 @@ Every single solution/helper/function is importable by itself using ES6 imports 
 documented with jsdoc, tested with [Ava](https://github.com/avajs/ava) (unit tests can be found in `test`),
 used in a live browser example (in case unit tests are not helpful; examples can be found in `examples`) and
 semantically structured into modules concerning topics and aspects of development
-(such as `logging` or `string-handling`).
+(such as `logging` or `strings`).
 
 So, the TL;DR is: annex is a battle-proven, tested pool of frontend js tools to solve reappearing tasks quickly and make
 JavaScript more bearable by streamlining syntactical nonsense and providing functions other languages provide naturally. 

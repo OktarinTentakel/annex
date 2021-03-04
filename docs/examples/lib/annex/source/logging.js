@@ -145,7 +145,7 @@ const LOG_CHAINABLE_OBJECT = {
  * @returns {Object} - chainable logging object
  *
  * @memberof Logging:log
- * @name log
+ * @alias log
  * @example
  * log(randomVar, 'string');
  * log(false, true);
@@ -187,7 +187,7 @@ export function log(){
  * @param {...*} [...] - add any number of arguments you wish to log
  *
  * @memberof Logging:warn
- * @name warn
+ * @alias warn
  * @example
  * warn('warning yo!');
  * warn(randomVar, 'string');
@@ -229,7 +229,7 @@ export function warn(){
  * @param {...*} [...] - add any number of arguments you wish to log
  *
  * @memberof Logging:err
- * @name err
+ * @alias err
  * @example
  * err('error yo!');
  * err(randomVar, 'string');
@@ -278,7 +278,7 @@ export function err(){
  * @param {?String} [message] - an optional message to be printed besides the context information
  *
  * @memberof Logging:xlog
- * @name xlog
+ * @alias xlog
  * @example
  * for( let i = 0; i < 10; i++ ){
  *   xlog('purely optional message');

@@ -28,7 +28,7 @@ import {requestAnimationFrame} from './timers.js';
  * @returns {Boolean} true if in viewport
  *
  * @memberof Viewport:isInViewport
- * @name isInViewport
+ * @alias isInViewport
  * @example
  * if( isInViewport(document.querySelector('div.moving'), true) ){
  *   ...
@@ -101,7 +101,7 @@ export function isInViewport(element, mustBeFullyInside){
  * @returns {Promise} resolves when scroll complete, rejects if scroll fails or is cancelled
  *
  * @memberof Viewport:scrollTo
- * @name scrollTo
+ * @alias scrollTo
  * @see EasingFunctions
  * @example
  * document.querySelector('a.jumpitem').addEventListener('click', function(){ scrollTo(document.querySelector('.jumptarget'), function(){ alert('scrolled!'); }, 500, -100, true); });

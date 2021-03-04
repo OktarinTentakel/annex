@@ -24,7 +24,7 @@ import {log, warn} from './logging.js';
  * @throws assert exception
  *
  * @memberof Basic:assert
- * @name assert
+ * @alias assert
  * @example
  * function set(name, value){
  *   assert(name.length > 0);
@@ -58,7 +58,7 @@ export function assert(condition, message){
  * @returns {Boolean} true if no exception occurred
  *
  * @memberof Basic:attempt
- * @name attempt
+ * @alias attempt
  * @example
  * if( !attempt(function(){ foobar(); }) ){ log('foobar cannot be executed!'); }
  */
@@ -87,7 +87,7 @@ export function attempt(closure){
  * @returns {Boolean} variable(s) is/are set
  *
  * @memberof Basic:hasValue
- * @name hasValue
+ * @alias hasValue
  * @example
  * function set(name, value){
  *   if( hasValue(name, value) ){
@@ -122,7 +122,7 @@ export function hasValue(){
  * @returns {Boolean} variable(s) is/are non-empty
  *
  * @memberof Basic:isEmpty
- * @name isEmpty
+ * @alias isEmpty
  * @example
  * function set(name, value){
  *   if( isEmpty(fooBar) || isEmpty({'__additionalEmptyValues__' : [false, '0']}, someArray, someSet, someString, value) ){
@@ -177,7 +177,7 @@ export function isEmpty(){
  * @returns {Boolean} all memberNames present and not nullish
  *
  * @memberof Basic:hasMembers
- * @name hasMembers
+ * @alias hasMembers
  * @example
  * function pat(kitten){
  *   if( hasMembers(kitten, ['fluff', 'meow', 'scratch']) ){
@@ -220,7 +220,7 @@ export function hasMembers(obj, memberNames, verbose){
  * @returns {*} expression of defaultValue
  *
  * @memberof Basic:orDefault
- * @name orDefault
+ * @alias orDefault
  * @example
  * function set(name, value){
  *   name = orDefault(name, 'kittens!', 'string', ['', 'none']);
@@ -306,7 +306,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  * @returns {String} the value type in lower case
  *
  * @memberof Basic:getType
- * @name getType
+ * @alias getType
  * @example
  * if( getType(cb) === 'function' ){
  *     ...
@@ -340,7 +340,7 @@ export function getType(value) {
  * @returns {Boolean} target has type
  *
  * @memberof Basic:isA
- * @name isA
+ * @alias isA
  * @see getType
  * @example
  * let stringBool = (isA(test, 'boolean') && test) ? 'true' : 'false';
@@ -390,7 +390,7 @@ export function isA(value, type){
  * @returns {Boolean} true if intVal is a true integer value
  *
  * @memberof Basic:isInt
- * @name isInt
+ * @alias isInt
  * @example
  * if( !isInt(val) ){
  *   val = parseInt(val, 10);
@@ -416,7 +416,7 @@ export function isInt(intVal){
  * @returns {Boolean} true if floatVal is usable in a float context
  *
  * @memberof Basic:isFloat
- * @name isFloat
+ * @alias isFloat
  * @example
  * if( !isFloat(val) ){
  *   alert('val can not be calculated with!');
@@ -445,7 +445,7 @@ export function isFloat(floatVal){
  * @returns {Boolean} true if expression is NaN
  *
  * @memberof Basic:isNaN
- * @name isNaN
+ * @alias isNaN
  * @example
  * if( !isNaN(suspiciousCalculatedValue) ){
  *   return suspiciousCalculatedValue * 3;
@@ -480,7 +480,7 @@ export function isNaN(expression, checkForIdentity){
  * @returns {*} value, min or max
  *
  * @memberof Basic:minMax
- * @name minMax
+ * @alias minMax
  * @example
  * let croppedVal = minMax(-100, value, 100);
  */

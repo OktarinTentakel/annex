@@ -27,7 +27,7 @@ import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
  * @returns {Object} new timer
  *
  * @memberof Timers:schedule
- * @name schedule
+ * @alias schedule
  * @see pschedule
  * @see countermand
  * @example
@@ -69,7 +69,7 @@ export function schedule(ms, callback, oldTimer){
  * @returns {Object} timer (does not create new timer object if oldTimer given, but returns old one)
  *
  * @memberof Timers:pschedule
- * @name pschedule
+ * @alias pschedule
  * @see schedule
  * @see countermand
  * @example
@@ -124,7 +124,7 @@ export function pschedule(ms, callback, oldTimer){
  * @returns {Object} timer (may be the original timer, if given timer is precise from pschedule or ploop)
  *
  * @memberof Timers:reschedule
- * @name reschedule
+ * @alias reschedule
  * @see schedule
  * @example
  * const timer = reschedule(timer, 3000, function(){ alert('taking even more time'); });
@@ -158,7 +158,7 @@ export function reschedule(timer, ms, callback){
  * @returns {Object} new loop
  *
  * @memberof Timers:loop
- * @name loop
+ * @alias loop
  * @see ploop
  * @see countermand
  * @example
@@ -203,7 +203,7 @@ export function loop(ms, callback, oldLoop){
  * @returns {Object} loop (if you give an old loop into the function the same reference will be returned)
  *
  * @memberof Timers:ploop
- * @name ploop
+ * @alias ploop
  * @see loop
  * @see countermand
  * @example
@@ -260,7 +260,7 @@ export function ploop(ms, callback, oldLoop){
  * @param {?Boolean} [isInterval] - defines if a timer or a loop is to be stopped, set in case timer is a GUID
  *
  * @memberof Timers:countermand
- * @name countermand
+ * @alias countermand
  * @see schedule
  * @see pschedule
  * @see loop
@@ -301,7 +301,7 @@ export function countermand(timer, isInterval){
  * @return {Number} either the id of the requestAnimationFrame or the internal timeout, both are cancellable via cancelAnimationFrame
  *
  * @memberof Timers:requestAnimationFrame
- * @name requestAnimationFrame
+ * @alias requestAnimationFrame
  * @see raf
  * @see cancelAnimationFrame
  * @see caf
@@ -332,7 +332,7 @@ export function requestAnimationFrame(callback){
  * @return {Number} either the id of the requestAnimationFrame or the internal timeout, both are cancellable via cancelAnimationFrame
  *
  * @memberof Timers:raf
- * @name raf
+ * @alias raf
  * @see requestAnimationFrame
  * @see cancelAnimationFrame
  * @see caf
@@ -355,7 +355,7 @@ export function raf(callback){
  * @param {Number} id - either the id of the requestAnimationFrame or its timeout fallback
  *
  * @memberof Timers:cancelAnimationFrame
- * @name cancelAnimationFrame
+ * @alias cancelAnimationFrame
  * @see requestAnimationFrame
  * @see raf
  * @see caf
@@ -367,7 +367,6 @@ export function cancelAnimationFrame(id){
 		?? window.webkitRequestAnimationFrame
 		?? window.mozRequestAnimationFrame
 		?? window.msRequestAnimationFrame
-		?? null
 	;
 
 	let caf = window.cancelAnimationFrame
@@ -393,7 +392,7 @@ export function cancelAnimationFrame(id){
  * @param {Number} id - either the id of the requestAnimationFrame or its timeout fallback
  *
  * @memberof Timers:caf
- * @name caf
+ * @alias caf
  * @see requestAnimationFrame
  * @see raf
  * @see cancelAnimationFrame
@@ -425,7 +424,7 @@ export function caf(id){
  * @return {Object} dictionary of ids for the inner and outer request ids, outer gets assigned right away, while inner gets assigned after first callback => {outer : 1, inner : 2}
  *
  * @memberof Timers:waitForRepaint
- * @name waitForRepaint
+ * @alias waitForRepaint
  * @see requestAnimationFrame
  * @see raf
  * @example

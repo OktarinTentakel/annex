@@ -34,7 +34,7 @@
  * - easeInOutQuint
  *
  * @memberof Animation:EasingFunctions
- * @name EasingFunctions
+ * @alias EasingFunctions
  * @example
  * scrollTo(window, 1000, 0, EasingFunctions.easeInOutQuint);
  */

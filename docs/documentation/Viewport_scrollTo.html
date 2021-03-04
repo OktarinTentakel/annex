@@ -97,12 +97,18 @@
     
 
     
-        <h3 class="subsection-title">Members</h3>
+
+    
+        <h3 class="subsection-title">Methods</h3>
 
         
             
-<h4 class="name" id=".scrollTo"><span class="type-signature">(static) </span>scrollTo<span class="type-signature"></span></h4>
 
+    
+
+    <h4 class="name" id="scrollTo"><span class="type-signature"></span>scrollTo<span class="signature">(element, durationMs<span class="signature-attributes">opt, nullable</span>, offset<span class="signature-attributes">opt, nullable</span>, easing<span class="signature-attributes">opt, nullable</span>, scrollEvenIfFullyInViewport<span class="signature-attributes">opt, nullable</span>, cancelOnUserScroll<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
 
 
 
@@ -122,6 +128,282 @@ and specific events like mousewheel and DOMMouseScroll. So, please, use cancelOn
 as a convenience option and not as a must.
 </div>
 
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>element</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">the element to scroll to</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>durationMs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    1000
+                
+                </td>
+            
+
+            <td class="description last">duration of the scrolling animation</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>offset</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0
+                
+                </td>
+            
+
+            <td class="description last">offset from the viewport center to apply to the end position</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>easing</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'easeInOutCubic'
+                
+                </td>
+            
+
+            <td class="description last">easing function to use, can be any of Animation.EasingFunctions</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>scrollEvenIfFullyInViewport</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">if true, forces method to always scroll no matter the element's position</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>cancelOnUserScroll</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">if true, scrolling animation will immediately be canceled on manual user scroll, callback will not fire in that case</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -157,7 +439,7 @@ as a convenience option and not as a must.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line79">line 79</a>
+        <a href="viewport.js.html">viewport.js</a>, <a href="viewport.js.html#line111">line 111</a>
     </li></ul></dd>
     
 
@@ -167,7 +449,7 @@ as a convenience option and not as a must.
     <dt class="tag-see">See:</dt>
     <dd class="tag-see">
         <ul>
-            <li>EasingFunctions</li>
+            <li><a href="Animation_EasingFunctions.html">EasingFunctions</a></li>
         </ul>
     </dd>
     
@@ -179,6 +461,38 @@ as a convenience option and not as a must.
 
 
 
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    resolves when scroll complete, rejects if scroll fails or is cancelled
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
     <h5>Example</h5>
     
     <pre class="prettyprint"><code>document.querySelector('a.jumpitem').addEventListener('click', function(){ scrollTo(document.querySelector('.jumptarget'), function(){ alert('scrolled!'); }, 500, -100, true); });
@@ -188,8 +502,6 @@ scrollTo(window, null, 500, 0, false, true);</code></pre>
 
 
         
-    
-
     
 
     
@@ -211,7 +523,7 @@ scrollTo(window, null, 500, 0, false, true);</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Thu Mar 04 2021 10:04:18 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Thu Mar 04 2021 11:14:24 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

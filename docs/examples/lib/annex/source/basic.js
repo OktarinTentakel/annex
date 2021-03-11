@@ -139,18 +139,18 @@ export function isEmpty(){
 	;
 
 	Array.from(arguments).forEach(obj => {
-		if( Array.isArray(obj?.__additionalEmptyValues__) ){
+		if( isA(obj?.__additionalEmptyValues__, 'array') ){
 			emptyValues = emptyValues.concat(obj.__additionalEmptyValues__);
 		}
 	});
 	emptyValues = Array.from(new Set(emptyValues));
 
 	Array.from(arguments).forEach(obj => {
-		if( res && !Array.isArray(obj?.__additionalEmptyValues__) ){
+		if( res && !isA(obj?.__additionalEmptyValues__, 'array') ){
 			res = emptyValues.includes(obj);
 
 			if( !res ){
-				if( Array.isArray(obj) ){
+				if( isA(obj, 'array') ){
 					res = (obj.length === 0);
 				} else if( isA(obj, 'object') ){
 					res = Object.keys(obj).length === 0;
@@ -281,8 +281,9 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  */
 
 /**
- * Prod-ready type detection for values, expanding on flawed typeof functionality, following
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
+ * Prod-ready type detection for values, expanding on flawed typeof functionality, roughly following
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof, but expanding on
+ * useful frontend types like "htmldocument", "htmlelement" and "nodelist"
  *
  * Types:
  * - "undefined"
@@ -303,6 +304,9 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  * - "weakset"
  * - "map"
  * - "weakmap"
+ * - "htmldocument"
+ * - "htmlelement"
+ * - "nodelist"
  *
  * @param {*} [value] - variable to check the type of
  * @returns {String} the value type in lower case
@@ -320,8 +324,11 @@ export function getType(value) {
 	const deepType = Object.prototype.toString.call(value).slice(8,-1).toLowerCase();
 
 	if( deepType === 'generatorfunction' ) return 'function';
+	if( deepType === 'document' ) return 'htmldocument';
+	if( deepType === 'element' ) return 'htmlelement';
+	if( /^html.*element$/.test(deepType) ) return 'htmlelement';
 
-	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap)$/)
+	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|nodelist)$/)
 		? deepType
 		: ((typeof value === 'object') || (typeof value === 'function')) ? 'object' : typeof value
 	;
@@ -367,7 +374,10 @@ export function isA(value, type){
 			'set',
 			'weakset',
 			'map',
-			'weakmap'
+			'weakmap',
+			'htmldocument',
+			'htmlelement',
+			'nodelist'
 		].includes(`${type}`.toLowerCase())
 	){
 		return getType(value) === `${type}`.toLowerCase();

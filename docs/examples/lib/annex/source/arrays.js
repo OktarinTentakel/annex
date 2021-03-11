@@ -15,7 +15,7 @@ import {assert, isA, orDefault} from './basic.js';
 
 
 /**
- * @namespace Arrays:remove
+ * @namespace Arrays:removeFrom
  */
 
 /**
@@ -46,24 +46,24 @@ import {assert, isA, orDefault} from './basic.js';
  * @throws error if target is not an array
  * @returns {Array} new array without index/range/matches
  *
- * @memberof Arrays:remove
- * @alias remove
+ * @memberof Arrays:removeFrom
+ * @alias removeFrom
  * @example
- * remove([1, 2, 3, 4, 5], 0, 2);
+ * removeFrom([1, 2, 3, 4, 5], 0, 2);
  * => [4, 5]
- * remove([1, 2, 3, 4, 5], -3, -1);
+ * removeFrom([1, 2, 3, 4, 5], -3, -1);
  * => [1, 2]
- * remove([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], 'b');
+ * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], 'b');
  * => [b, 1]
- * remove([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], b);
+ * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], b);
  * => [{a : 'b', toString(){ return 'b'; }}, 'b', 1]
- * remove([true, true, false, true, true], true)
+ * removeFrom([true, true, false, true, true], true)
  * => [false]
- * remove([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2], true);
+ * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2], true);
  * => [1]
  */
-export function remove(target, from, to){
-	assert(Array.isArray(target), `${MODULE_NAME}:remove | target is no array`);
+export function removeFrom(target, from, to){
+	assert(isA(target, 'array'), `${MODULE_NAME}:remove | target is no array`);
 
 	if( isA(from, 'number') && (to !== false) ){
 		from = parseInt(from, 10);
@@ -86,7 +86,7 @@ export function remove(target, from, to){
 
 		if( (to === true) && (fromList.length > 0) ){
 			return fromList.reduce((reducedArray, item) => {
-				reducedArray = remove(reducedArray, item, false);
+				reducedArray = removeFrom(reducedArray, item, false);
 				return reducedArray;
 			}, [...target]);
 		} else {

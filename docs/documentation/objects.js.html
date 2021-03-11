@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: objects.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: objects.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*!
+ * Module Objects
+ */
+
+/**
+ * @namespace Objects
+ */
+
+const MODULE_NAME = 'Objects';
+
+
+
+import {getType, isA, orDefault} from './basic.js';
+
+
+
+/**
+ * @namespace Objects:clone
+ */
+
+/**
+ * Cloning arbitrary objects, values and structured values is no trivial task in JavaScript.
+ * For basic values this can easily achieved by serializing/deserializing via JSON.parse(JSON.stringify(value)), but
+ * for everything not included in the JSON standard, such as nodes, sets, maps, functions and objects with constructors
+ * this gets hairy pretty quickly.
+ *
+ * This function implements a fairly robust recursive cloning algorithm with circular dependency detection and should
+ * be sufficient for 90% of your cloning needs. It can create deep and shallow copies, although I generally presume
+ * that you need a deep copy if you are in need of a clone method to begin with. This method handles ordinal values,
+ * regexes, dates and htmlelements/nodes, as well as nested structures consisting of arrays, plain objects,
+ * simple constructed objects with settable properties, sets, maps and even nodelists.
+ *
+ * Be aware of these restrictions:
+ * - map keys are not cloned since, if you would, you'd lose all access to values,
+ *   because you would have no valid references
+ * - cloning a nodelist in a shallow manner results in the original list being empty afterwards, since moving a node
+ *   reference from one nodelist to another automatically removes the reference from the first, because a node may
+ *   only appear at exactly one place in a dom tree
+ *
+ * If this function does not suffice, have a look at lodash's cloneDeep method, which is a very robust and complete
+ * (but large and complex) solution: https://www.npmjs.com/package/lodash.clonedeep
+ *
+ * @param {*} target - the object/value to clone
+ * @param {?Boolean} [deep=true] - define if nested objects/values are to be cloned as well or just referenced in a shallow way
+ * @returns {*} the cloned object/value
+ *
+ * @memberof Objects:clone
+ * @alias clone
+ * @example
+ * const foo = {foo : 'bar', bar : [new Foobar(1, 2, 3), new Set([new Date('2021-03-09'), new RegExp('^foobar$')])]};
+ * const allNewFoo = clone(foo);
+ * const shallowNewFoo = clone(foo, false);
+ * const thatOneTextAgain = clone(document.querySelector('p.that-one-text'));
+ * thatOneTextAgain.classList.add('hooray');
+ */
+export function clone(target, deep=true){
+	deep = orDefault(deep, true, 'boolean');
+
+	if( isA(target.clone, 'function') ){
+		return target.clone(deep);
+	}
+
+	const
+		seenReferences = Array.from(arguments)[2] ?? [],
+		seenCopies = Array.from(arguments)[3] ?? []
+	;
+
+	if( seenReferences.indexOf(target) >= 0 ){
+		return seenCopies[seenReferences.indexOf(target)];
+	}
+
+	const targetType = getType(target);
+	switch( targetType ){
+		case 'array':
+			const arrayCopy = [...target];
+
+			seenReferences.push(target);
+			seenCopies.push(arrayCopy);
+
+			if( deep ){
+				let i = arrayCopy.length;
+				while( i-- ){
+					arrayCopy[i] = clone(arrayCopy[i], deep, seenReferences, seenCopies);
+				}
+			}
+
+			return arrayCopy;
+
+		case 'set':
+		case 'weakset':
+			const setCopy = (targetType === 'weakset')
+				? new WeakSet()
+				: new Set()
+			;
+
+			seenReferences.push(target);
+			seenCopies.push(setCopy);
+
+			target.forEach(value => {
+				if( deep ){
+					setCopy.add(clone(value, deep, seenReferences, seenCopies));
+				} else {
+					setCopy.add(value);
+				}
+			});
+
+			return setCopy;
+
+		case 'map':
+		case 'weakmap':
+			const mapCopy = (targetType === 'weakmap')
+				? new WeakMap()
+				: new Map()
+			;
+
+			seenReferences.push(target);
+			seenCopies.push(mapCopy);
+
+			target.forEach((value, key) => {
+				if( deep ){
+					mapCopy.set(key, clone(value, deep, seenReferences, seenCopies));
+				} else {
+					mapCopy.set(key, value);
+				}
+			});
+
+			return mapCopy;
+
+		case 'object':
+			const objectCopy = Object.create(Object.getPrototypeOf ? Object.getPrototypeOf(target) : target.__proto__);
+
+			seenReferences.push(target);
+			seenCopies.push(objectCopy);
+
+			for( let prop in target ){
+				if( target.hasOwnProperty(prop) ){
+					if( deep ){
+						objectCopy[prop] = clone(target[prop], deep, seenReferences, seenCopies);
+					} else {
+						objectCopy[prop] = target[prop];
+					}
+				}
+			}
+
+			return objectCopy;
+
+		case 'nodelist':
+			const fragment = document.createDocumentFragment();
+
+			if( deep ){
+				target.forEach(element => {
+					if( deep ){
+						fragment.appendChild(clone(element, deep, seenReferences, seenCopies));
+					}
+				});
+			// shallow copying a nodelist is destructive, since appending the original element, empties the original
+			// list, since every node may only exists once inside a dom
+			} else {
+				while( target.length ){
+					fragment.appendChild(target.item(0));
+				}
+			}
+
+			return fragment.childNodes;
+
+		case 'date': return new Date(target.getTime());
+		case 'regexp': return new RegExp(target);
+		case 'htmlelement': return target.cloneNode(deep);
+		default: return target;
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Thu Mar 11 2021 16:33:12 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

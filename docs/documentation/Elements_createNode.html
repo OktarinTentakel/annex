@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Namespace: Elements:createNode</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Namespace: Elements:createNode</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>Elements:createNode</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line17">line 17</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="createNode"><span class="type-signature"></span>createNode<span class="signature">(tag, attributes<span class="signature-attributes">opt, nullable</span>, content<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {HTMLElement}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Creates an element on the fly programmatically, based on provided name, attributes and content or markup,
+without inserting it into the DOM.
+
+If you provide markup as "tag", make sure that there is one single root element, this method returns exactly one
+element, not a NodeList.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>tag</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">tag of the element to create or markup for root element</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>attributes</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">tag attributes as key/value-pairs, will also be added to provided markup</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>content</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">content to insert into the element as textContent, be aware, that this will replace other content in provided markup</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line44">line 44</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    DOM-node
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">HTMLElement</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>window.body.appendChild(
+ createNode('div', {id : 'content', style : 'display:none;'}, 'loading...')
+);
+window.body.appendChild(
+ createNode('&lt;div id="content" style="display:none;">loading...&lt;/div>')
+);</code></pre>
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Thu Mar 11 2021 16:33:13 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

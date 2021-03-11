@@ -117,7 +117,7 @@ export function truncate(subject, maxLength, suffix){
 export function concat(glue, ...strings){
 	glue = orDefault(glue, '', 'string');
 
-	if( (strings.length > 0) && Array.isArray(strings[0]) ){
+	if( (strings.length > 0) && isA(strings[0], 'array') ){
 		return strings[0].join(glue);
 	} else {
 		return strings.join(glue);

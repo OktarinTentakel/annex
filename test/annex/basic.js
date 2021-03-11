@@ -174,19 +174,23 @@ test('getType', assert => {
 	wm.set(foobar, 'foobar');
 
 	assert.is((getType(foo) === 'boolean' && foo) ? 'true' : 'false', 'true');
-	assert.true(getType(bar) === 'object');
-	assert.true(getType(bar.a) === 'string');
-	assert.true(getType(foobar) === 'function');
-	assert.true(getType(foobar()) === 'number');
-	assert.true(getType(boo) === 'date');
-	assert.true(getType(far) === 'array');
-	assert.true(getType(far[1]) === 'number');
-	assert.true(getType(boofar) === 'regexp');
-	assert.false(getType(boofar) === 'boofar');
-	assert.false(getType(bar.a) === 'date');
-	assert.true(getType(lala) === 'set');
-	assert.true(getType(wm) === 'weakmap');
-	assert.true(getType(document.querySelectorAll('.test')) === 'object');
+	assert.is(getType(bar), 'object');
+	assert.is(getType(bar.a), 'string');
+	assert.is(getType(foobar), 'function');
+	assert.is(getType(foobar()), 'number');
+	assert.is(getType(boo), 'date');
+	assert.is(getType(far), 'array');
+	assert.is(getType(far[1]), 'number');
+	assert.is(getType(boofar), 'regexp');
+	assert.not(getType(boofar), 'boofar');
+	assert.not(getType(bar.a), 'date');
+	assert.is(getType(lala), 'set');
+	assert.is(getType(wm), 'weakmap');
+	assert.is(getType(document.querySelectorAll('.test')), 'nodelist');
+	assert.is(getType(document), 'htmldocument');
+	assert.is(getType(document.createElement('div')), 'htmlelement');
+	assert.is(getType(document.createElement('p')), 'htmlelement');
+	assert.is(getType(document.createElement('body')), 'htmlelement');
 });
 
 
@@ -218,7 +222,11 @@ test('isA', assert => {
 	assert.false(isA(bar.a, 'date'));
 	assert.true(isA(lala, 'set'));
 	assert.true(isA(wm, 'weakmap'));
-	assert.false(isA(document.querySelectorAll('.test'), 'nodelist'));
+	assert.true(isA(document.querySelectorAll('.test'), 'nodelist'));
+	assert.true(isA(document, 'htmldocument'));
+	assert.true(isA(document.createElement('div'), 'htmlelement'));
+	assert.true(isA(document.createElement('p'), 'htmlelement'));
+	assert.true(isA(document.createElement('body'), 'htmlelement'));
 });
 
 

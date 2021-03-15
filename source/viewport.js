@@ -37,7 +37,7 @@ import {requestAnimationFrame} from './timers.js';
  * }
  */
 export function isInViewport(element, mustBeFullyInside){
-	mustBeFullyInside = orDefault(mustBeFullyInside, false, 'boolean');
+	mustBeFullyInside = orDefault(mustBeFullyInside, false, 'bool');
 
 	let bb;
 	try {
@@ -111,11 +111,11 @@ export function isInViewport(element, mustBeFullyInside){
  * scrollTo(window, null, 500, 0, false, true);
  */
 export function scrollTo(element, durationMs, offset, easing, scrollEvenIfFullyInViewport, cancelOnUserScroll){
-	durationMs = orDefault(durationMs, 1000, 'integer');
-	offset = orDefault(offset, 0, 'integer');
-	easing = orDefault(easing, 'easeInOutCubic', 'string');
-	scrollEvenIfFullyInViewport = orDefault(scrollEvenIfFullyInViewport, false, 'boolean');
-	cancelOnUserScroll = orDefault(cancelOnUserScroll, false, 'boolean');
+	durationMs = orDefault(durationMs, 1000, 'int');
+	offset = orDefault(offset, 0, 'int');
+	easing = orDefault(easing, 'easeInOutCubic', 'str');
+	scrollEvenIfFullyInViewport = orDefault(scrollEvenIfFullyInViewport, false, 'bool');
+	cancelOnUserScroll = orDefault(cancelOnUserScroll, false, 'bool');
 
 	if( !isA(EasingFunctions[easing], 'function') ){
 		easing = EasingFunctions.easeInOutCubic;

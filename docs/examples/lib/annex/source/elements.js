@@ -42,8 +42,8 @@ import {orDefault, isA, hasValue, assert} from './basic.js'
  *
  */
 export function createNode(tag, attributes, content){
-	tag = orDefault(tag, '', 'string').trim();
-	content = orDefault(content, null, 'string');
+	tag = orDefault(tag, '', 'str').trim();
+	content = orDefault(content, null, 'str');
 
 	const outerNode = document.createElement('main');
 

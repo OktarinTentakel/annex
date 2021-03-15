@@ -67,7 +67,7 @@ export function removeFrom(target, from, to){
 
 	if( isA(from, 'number') && (to !== false) ){
 		from = parseInt(from, 10);
-		to = orDefault(to, null, 'integer');
+		to = orDefault(to, null, 'int');
 
 		target = target.slice(0);
 		const rest = target.slice((to || from) + 1 || target.length);

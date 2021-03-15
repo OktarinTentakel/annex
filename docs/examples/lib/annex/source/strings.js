@@ -79,8 +79,8 @@ export function replace(search, replace, subject){
  */
 export function truncate(subject, maxLength, suffix){
 	subject = `${subject}`;
-	maxLength = orDefault(maxLength, 30, 'integer');
-	suffix = orDefault(suffix, '...', 'string');
+	maxLength = orDefault(maxLength, 30, 'int');
+	suffix = orDefault(suffix, '...', 'str');
 
 	if( suffix.length > maxLength ){
 		throw new Error(`${MODULE_NAME}:truncate | suffix cannot be longer than maxLength`);
@@ -115,7 +115,7 @@ export function truncate(subject, maxLength, suffix){
  * const finalCountdown = concat(' ... ', [10, 9, 8, 7, 6, '5', '4', '3', '2', '1', 'ZERO!']);
  */
 export function concat(glue, ...strings){
-	glue = orDefault(glue, '', 'string');
+	glue = orDefault(glue, '', 'str');
 
 	if( (strings.length > 0) && isA(strings[0], 'array') ){
 		return strings[0].join(glue);
@@ -197,7 +197,7 @@ export function format(template, ...replacements){
 			return !isNaN(res) ? `${res}` : '';
 		},
 		float(value, format){
-			format = orDefault(format, null, 'string');
+			format = orDefault(format, null, 'str');
 
 			let res = null;
 
@@ -301,7 +301,7 @@ const SLUGIFY_LATINMAP = {'Á':'A','Ă':'A','Ắ':'A','Ặ':'A','Ằ':'A','Ẳ':
  * => 'this-is-a-complicated-sstring-for-urls'
  */
 export function slugify(text){
-	text = orDefault(text, '', 'string');
+	text = orDefault(text, '', 'str');
 
 	return text.toLowerCase()
 		.replace(/\s+/g, '-')           //replace spaces with "-"

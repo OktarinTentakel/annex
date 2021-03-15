@@ -37,7 +37,7 @@ import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
  * const timer = schedule(2000, function(){ alert('traffic jam, tea has to wait'); }, timer);
  **/
 export function schedule(ms, callback, oldTimer){
-	ms = orDefault(ms, 1, 'integer');
+	ms = orDefault(ms, 1, 'int');
 
 	assert(isA(callback, 'function'), `${MODULE_NAME}:schedule | callback must be a function`);
 
@@ -79,7 +79,7 @@ export function schedule(ms, callback, oldTimer){
  * const timer = pschedule(2000, function(){ alert('traffic jam, tea has to wait'); }, timer);
  */
 export function pschedule(ms, callback, oldTimer){
-	ms = orDefault(ms, 1, 'integer');
+	ms = orDefault(ms, 1, 'int');
 
 	assert(isA(callback, 'function'), `${MODULE_NAME}:pschedule | callback must be a function`);
 
@@ -132,7 +132,7 @@ export function pschedule(ms, callback, oldTimer){
  * const timer = reschedule(timer, 3000, function(){ alert('taking even more time'); });
  */
 export function reschedule(timer, ms, callback){
-	ms = orDefault(ms, 1, 'integer');
+	ms = orDefault(ms, 1, 'int');
 
 	assert(isA(callback, 'function'), `${MODULE_NAME}:reschedule | callback must be a function`);
 
@@ -168,7 +168,7 @@ export function reschedule(timer, ms, callback){
  * const loop = loop(100, function(){ document.body.classList.add('brightgreen'); }, loop);
  */
 export function loop(ms, callback, oldLoop){
-	ms = orDefault(ms, 1, 'integer');
+	ms = orDefault(ms, 1, 'int');
 
 	assert(isA(callback, 'function'), `${MODULE_NAME}:loop | callback must be a function`);
 
@@ -213,7 +213,7 @@ export function loop(ms, callback, oldLoop){
  * const loop = ploop(100, function(){ document.body.classList.add('brightgreen'); }, loop);
  */
 export function ploop(ms, callback, oldLoop){
-	ms = orDefault(ms, 1, 'integer');
+	ms = orDefault(ms, 1, 'int');
 
 	assert(isA(callback, 'function'), `${MODULE_NAME}:ploop | callback must be a function`);
 

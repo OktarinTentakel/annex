@@ -54,7 +54,7 @@ import {getType, isA, orDefault} from './basic.js';
  * thatOneTextAgain.classList.add('hooray');
  */
 export function clone(target, deep=true){
-	deep = orDefault(deep, true, 'boolean');
+	deep = orDefault(deep, true, 'bool');
 
 	if( isA(target.clone, 'function') ){
 		return target.clone(deep);

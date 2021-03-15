@@ -36,7 +36,7 @@ import {log, warn} from './logging.js';
  */
 export function assert(condition, message){
 	if( !condition ){
-		message = orDefault(message, 'assert exception: assertion failed', 'string');
+		message = orDefault(message, 'assert exception: assertion failed', 'str');
 		throw new Error(message);
 	}
 }
@@ -188,7 +188,7 @@ export function isEmpty(){
  * }
  */
 export function hasMembers(obj, memberNames, verbose){
-	verbose = orDefault(verbose, false, 'boolean');
+	verbose = orDefault(verbose, false, 'bool');
 
 	let res = true;
 
@@ -464,7 +464,7 @@ export function isFloat(floatVal){
  * }
  */
 export function isNaN(expression, checkForIdentity){
-	checkForIdentity = orDefault(checkForIdentity, true, 'boolean');
+	checkForIdentity = orDefault(checkForIdentity, true, 'bool');
 
 	if( checkForIdentity ){
 		return expression !== expression;

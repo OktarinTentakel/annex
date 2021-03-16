@@ -13,7 +13,9 @@ const {
 	log,
 	warn,
 	err,
-	xlog
+	xlog,
+	LOG_LEVEL,
+	TRY_TO_LOG_TO_PARENT
 } = pkg;
 
 
@@ -30,6 +32,8 @@ test('log', assert => {
 		log().setLogLevel('warn').warn('oh noez, but printed').log('not printed').setLogLevel('log');
 		log('test', {test : 'test'}).clear();
 		log().tryToLogToParent().log('hooray times two').tryToLogToParent(false);
+		assert.is(LOG_LEVEL, 'log');
+		assert.false(TRY_TO_LOG_TO_PARENT);
 	} catch(ex){
 		console.log(ex);
 		excepted = true;

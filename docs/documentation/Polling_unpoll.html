@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Logging:err</title>
+    <title>JSDoc: Namespace: Polling:unpoll</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Logging:err</h1>
+    <h1 class="page-title">Namespace: Polling:unpoll</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Logging:err</h2>
+        <h2>Polling:unpoll</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="logging.js.html">logging.js</a>, <a href="logging.js.html#line222">line 222</a>
+        <a href="polling.js.html">polling.js</a>, <a href="polling.js.html#line151">line 151</a>
     </li></ul></dd>
     
 
@@ -106,16 +106,14 @@
 
     
 
-    <h4 class="name" id="err"><span class="type-signature"></span>err<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="poll"><span class="type-signature"></span>poll<span class="signature">(poll)</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
 
     
 
 
 
 <div class="description">
-    Logs an error to the console. Prevents errors in browsers, that don't support this feature.
-
-This function is not named error because that already might be misleading with the Error object and is not a verb.
+    Removes an active poll.
 </div>
 
 
@@ -139,8 +137,6 @@ This function is not named error because that already might be misleading with t
         <th>Type</th>
 
         
-        <th>Attributes</th>
-        
 
         
 
@@ -153,35 +149,26 @@ This function is not named error because that already might be misleading with t
 
         <tr>
             
-                <td class="name"><code>...</code></td>
+                <td class="name"><code>poll</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">*</span>
+<span class="param-type">String</span>
+|
+
+<span class="param-type">Object</span>
 
 
             
             </td>
 
             
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                    &lt;repeatable><br>
-                
-                </td>
-            
 
             
 
-            <td class="description last">add any number of arguments you wish to log</td>
+            <td class="description last">name of the poll to be removed or the poll object itself</td>
         </tr>
 
     
@@ -222,12 +209,19 @@ This function is not named error because that already might be misleading with t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="logging.js.html">logging.js</a>, <a href="logging.js.html#line241">line 241</a>
+        <a href="polling.js.html">polling.js</a>, <a href="polling.js.html#line168">line 168</a>
     </li></ul></dd>
     
 
     
 
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Polling_unpoll.html">poll</a></li>
+        </ul>
+    </dd>
     
 
     
@@ -245,14 +239,34 @@ This function is not named error because that already might be misleading with t
 
 
 
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    true if poll has been removed, false if poll has not been found
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Boolean</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>err('error yo!');
-err(randomVar, 'string');
-err(false);
-err(true);</code></pre>
+    <pre class="prettyprint"><code>unpoll('permanent-body-height-poll');
+unpoll(pollBodyHeightAndStopIfHighEnough);</code></pre>
 
 
 

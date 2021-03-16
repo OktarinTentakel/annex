@@ -26,7 +26,7 @@ export const POLLS = {
 
 
 /**
- * @namespace Polling:.poll
+ * @namespace Polling:poll
  **/
 
 const POLL_DEFAULT_LOOP_MS = 250;
@@ -159,7 +159,7 @@ export function poll(name, fCondition, fAction, fElseAction=null, newLoopMs=POLL
  * @returns {Boolean} true if poll has been removed, false if poll has not been found
  *
  * @memberof Polling:unpoll
- * @alias poll
+ * @alias unpoll
  * @see poll
  * @example
  * unpoll('permanent-body-height-poll');

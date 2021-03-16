@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Timers:reschedule</title>
+    <title>JSDoc: Namespace: Polling:poll</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Timers:reschedule</h1>
+    <h1 class="page-title">Namespace: Polling:poll</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Timers:reschedule</h2>
+        <h2>Polling:poll</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="timers.js.html">timers.js</a>, <a href="timers.js.html#line115">line 115</a>
+        <a href="polling.js.html">polling.js</a>, <a href="polling.js.html#line28">line 28</a>
     </li></ul></dd>
     
 
@@ -106,14 +106,26 @@
 
     
 
-    <h4 class="name" id="reschedule"><span class="type-signature"></span>reschedule<span class="signature">(timer, ms, callback)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="poll"><span class="type-signature"></span>poll<span class="signature">(name, fCondition, fAction, fElseAction<span class="signature-attributes">opt, nullable</span>, newLoopMs<span class="signature-attributes">opt, nullable</span>, useOwnTimer<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
 
 
 
 <div class="description">
-    Alias for schedule() with more natural param-order for rescheduling.
+    Waits for a certain program- or DOM-state before executing a certain action. Waiting is implemented via
+a global timer (and optionally locals as well). If you need to react to a certain case, that's not
+defined by standard events and reaction does not have to be razor sharp, this is your method.
+Pick a name for the state/event you want to poll, define a condition closure and an action closure that
+holds what is to be done in case the condition works out.
+Polls end or are repeated after an execution of the action depending on the result of the action closure.
+There can always be only one poll of a certain name, redefining it overwrites the first one.
+
+If you need to evaluate a poll out of the line, to trigger a sharp synchronous evaluation due to an event
+for example, you can use the "fire" method of the poll object itself, which will trigger the condition and all
+subsequent actions. You can provide a boolean parameter to this function to override manually if the result
+should be considered changed to the last run. You can only fire polls, that are still active, you can check this
+state easily via "isActive" on the poll.
 </div>
 
 
@@ -137,7 +149,11 @@
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -149,56 +165,42 @@
 
         <tr>
             
-                <td class="name"><code>timer</code></td>
+                <td class="name"><code>name</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Object</span>
-|
-
-<span class="param-type">Number</span>
+<span class="param-type">String</span>
 
 
             
             </td>
 
             
-
-            
-
-            <td class="description last">the timer to refresh/reset</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>ms</code></td>
-            
-
-            <td class="type">
-            
+                <td class="attributes">
                 
-<span class="param-type">Number</span>
 
+                
 
-            
-            </td>
-
-            
-
+                
+                </td>
             
 
-            <td class="description last">time in milliseconds until execution</td>
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">name of the state or event you are waiting/polling for</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>callback</code></td>
+                <td class="name"><code>fCondition</code></td>
             
 
             <td class="type">
@@ -211,10 +213,180 @@
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last">callback function to execute after ms</td>
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">closure to define the state to wait for, returns true if state exists and false if not</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fAction</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">closure to define action to take place if condition is fulfilled, poll removes itself if this evaluates to true, receives Boolean parameter defining if condition result has changed since last call</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fElseAction</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">closure to define action to take place if condition is not fulfilled, receives Boolean parameter defining if condition result has changed since last call</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>newLoopMs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    250
+                
+                </td>
+            
+
+            <td class="description last">sets interval length from here on, resets global loop if useOwnTimer is not set, otherwise sets local interval for that poll poll</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>useOwnTimer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">has to be true to tell the poll to use an independent local timer instead of the global one, use this if you need different levels of fuzziness for you polls, performance-wise it's better to have less independent intervals running</td>
         </tr>
 
     
@@ -255,7 +427,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="timers.js.html">timers.js</a>, <a href="timers.js.html#line134">line 134</a>
+        <a href="polling.js.html">polling.js</a>, <a href="polling.js.html#line65">line 65</a>
     </li></ul></dd>
     
 
@@ -265,7 +437,7 @@
     <dt class="tag-see">See:</dt>
     <dd class="tag-see">
         <ul>
-            <li><a href="Timers_schedule.html">schedule</a></li>
+            <li><a href="Polling_unpoll.html">unpoll</a></li>
         </ul>
     </dd>
     
@@ -289,7 +461,7 @@
 
     <div class="param-desc">
     
-        error if callback is not a function
+        error in case name, fCondition or fAction are missing or unfit to use
     
     </div>
 
@@ -301,7 +473,7 @@
 
         
 <div class="param-desc">
-    timer (may be the original timer, if given timer is precise from pschedule or ploop)
+    new poll - structure: {name, condition, action, elseAction, loop, lastPollResult, isActive, fire()}
 </div>
 
 
@@ -323,7 +495,8 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>const timer = reschedule(timer, 3000, function(){ alert('taking even more time'); });</code></pre>
+    <pre class="prettyprint"><code>const pollBodyHeightPermanently = poll('permanent-body-height-poll', function(){ return document.body.scrollHeight > 1000; }, function(changed){ console.log(`too high${changed ? ' as of yet' : ''}!`); }, null, 5000);
+const pollBodyHeightAndStopIfHighEnough = poll('one-time-body-height-poll', function(){ return document.body.scrollHeight > 1000; }, function(){ console.log('high enough!'); return true; }, function(){ console.log('not high enough yet :(') }, null, true);</code></pre>
 
 
 

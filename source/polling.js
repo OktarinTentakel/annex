@@ -26,7 +26,7 @@ export const POLLS = {
 
 
 /**
- * @namespace Polling:.poll
+ * @namespace Polling:poll
  **/
 
 const POLL_DEFAULT_LOOP_MS = 250;

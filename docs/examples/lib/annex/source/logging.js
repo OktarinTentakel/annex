@@ -181,7 +181,7 @@ export function log(){
 
 /**
  * @namespace Logging:warn
- **/
+ */
 
 /**
  * Logs a warning to the console. Prevents errors in browsers, that don't support this feature.

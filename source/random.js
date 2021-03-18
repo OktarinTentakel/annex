@@ -16,7 +16,7 @@ import {orDefault, assert, hasValue, isA} from './basic.js';
 
 /**
  * @namespace Random:randomNumber
- **/
+ */
 
 /**
  * Special form of Math.random, returning a value in a defined range,
@@ -36,7 +36,7 @@ import {orDefault, assert, hasValue, isA} from './basic.js';
  * @example
  * let randomInt = randomNumber(23, 42);
  * let randomFloat = randomNumber(23.5, 42.123, true, 3);
- **/
+ */
 export function randomNumber(floor=0, ceiling=10, float=false, precision=2){
 	floor = orDefault(floor, 0, 'float');
 	ceiling = orDefault(ceiling, 10, 'float');
@@ -60,7 +60,7 @@ export function randomNumber(floor=0, ceiling=10, float=false, precision=2){
 
 /**
  * @namespace Random:randomUuid
- **/
+ */
 
 const RANDOM_UUID_USED_SINCE_RELOAD = new Set();
 
@@ -81,7 +81,7 @@ const RANDOM_UUID_USED_SINCE_RELOAD = new Set();
  * @example
  * const uuidWithDashes = randomUuid();
  * const uuidWithoutDashes = randomUuid(false);
- **/
+ */
 export function randomUuid(withDashes=true){
 	withDashes = orDefault(withDashes, true, 'bool');
 

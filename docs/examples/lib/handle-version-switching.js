@@ -20,7 +20,7 @@
 
 	if( !SUPPORTS_ES6_MODULES ){
 		console.warn(
-			'this browser does not support dynamic imports => '
+			'this browser does not support dynamic imports; '
 			+'you may get a syntax error in console due to a module script using import() in this browser, '
 			+'but don\'t worry, it\'s okay for that script to fail, it\'s isolated and the rest should run fine with ES5'
 		);

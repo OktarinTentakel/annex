@@ -20,6 +20,7 @@ const {
 	isA,
 	isInt,
 	isFloat,
+	isPlainObject,
 	isNaN,
 	minMax,
 	Deferred
@@ -255,6 +256,21 @@ test('isFloat', assert => {
 	assert.true(isFloat(foo));
 	assert.true(isFloat(bar));
 	assert.false(isFloat(foobar));
+});
+
+
+
+test('isPlainObject', assert => {
+	assert.true(isPlainObject({}));
+	assert.false(isPlainObject(document.createElement('div')));
+	assert.false(isPlainObject(null));
+	assert.false(isPlainObject(Object.create(null)));
+	assert.false(isPlainObject(Object.create(null)));
+	assert.false(isPlainObject(new (function Foo(){})()));
+	assert.false(isPlainObject(42));
+	assert.false(isPlainObject('42'));
+	assert.false(isPlainObject(new Number(42)));
+	assert.false(isPlainObject(Math));
 });
 
 

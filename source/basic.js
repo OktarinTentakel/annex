@@ -441,6 +441,39 @@ export function isFloat(floatVal){
 
 
 /**
+ * @namespace Basic:isPlainObject
+ */
+
+/**
+ * Returns if a value is an object literal, so so-called "plain object.
+ * A plain object is something like "{hello : 'world'}".
+ *
+ * This might especially be helpful when dealing with JSON configs, so quickly check if
+ * something might even be parsed JSON (which in most cases is a plain object in js).
+ *
+ * Be aware that this function cannot differentiate between contructor based simple objects and
+ * plain objects declared inline. So, if someone took on the work to instantiate a base object and assign
+ * properties either in a function or a contructor, we accept that as a plain object.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value seems to be a plain object
+ *
+ * @memberof Basic:isPlainObject
+ * @alias isPlainObject
+ * @example
+ * const isParameterConfigObject = isPlainObject(param);
+ */
+export function isPlainObject(value){
+	return isA(value, 'object')
+		&& hasValue(value)
+		&& (value.constructor === Object)
+		&& Object.prototype.toString.call(value) === '[object Object]'
+	;
+}
+
+
+
+/**
  * @namespace Basic:isNaN
  */
 

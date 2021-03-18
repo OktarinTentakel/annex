@@ -35,7 +35,7 @@ import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
  * @example
  * const timer = schedule(1000, function(){ alert('time for tea'); });
  * const timer = schedule(2000, function(){ alert('traffic jam, tea has to wait'); }, timer);
- **/
+ */
 export function schedule(ms, callback, oldTimer){
 	ms = orDefault(ms, 1, 'int');
 

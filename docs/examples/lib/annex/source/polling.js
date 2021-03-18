@@ -27,7 +27,7 @@ export const POLLS = {
 
 /**
  * @namespace Polling:poll
- **/
+ */
 
 const POLL_DEFAULT_LOOP_MS = 250;
 
@@ -61,7 +61,7 @@ const POLL_DEFAULT_LOOP_MS = 250;
  * @example
  * const pollBodyHeightPermanently = poll('permanent-body-height-poll', function(){ return document.body.scrollHeight > 1000; }, function(changed){ console.log(`too high${changed ? ' as of yet' : ''}!`); }, null, 5000);
  * const pollBodyHeightAndStopIfHighEnough = poll('one-time-body-height-poll', function(){ return document.body.scrollHeight > 1000; }, function(){ console.log('high enough!'); return true; }, function(){ console.log('not high enough yet :(') }, null, true);
- **/
+ */
 export function poll(name, fCondition, fAction, fElseAction=null, newLoopMs=POLL_DEFAULT_LOOP_MS, useOwnTimer=false){
 	name = orDefault(name, '', 'str').trim();
 	fCondition = isA(fCondition, 'function') ? fCondition : null;
@@ -150,7 +150,7 @@ export function poll(name, fCondition, fAction, fElseAction=null, newLoopMs=POLL
 
 /**
  * @namespace Polling:unpoll
- **/
+ */
 
 /**
  * Removes an active poll.
@@ -164,7 +164,7 @@ export function poll(name, fCondition, fAction, fElseAction=null, newLoopMs=POLL
  * @example
  * unpoll('permanent-body-height-poll');
  * unpoll(pollBodyHeightAndStopIfHighEnough);
- **/
+ */
 export function unpoll(poll){
 	const name = (isA(poll, 'object') && hasValue(poll.name)) ? `${poll.name}` : `${poll}`.trim();
 	if( name === '' ) return false;

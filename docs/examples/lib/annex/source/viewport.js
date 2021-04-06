@@ -10,7 +10,7 @@ const MODULE_NAME = 'Viewport';
 
 
 
-import {hasValue, orDefault, isA, Deferred} from './basic.js';
+import {hasValue, orDefault, isA, Deferred, assert} from './basic.js';
 import {EasingFunctions} from './animation.js';
 import {requestAnimationFrame} from './timers.js';
 
@@ -36,7 +36,7 @@ import {requestAnimationFrame} from './timers.js';
  *   ...
  * }
  */
-export function isInViewport(element, mustBeFullyInside){
+export function isInViewport(element, mustBeFullyInside=false){
 	mustBeFullyInside = orDefault(mustBeFullyInside, false, 'bool');
 
 	let bb;
@@ -94,12 +94,13 @@ export function isInViewport(element, mustBeFullyInside){
  * as a convenience option and not as a must.
  *
  *
- * @param {HTMLElement} element - the element to scroll to
+ * @param {HTMLElement|Window} element - the element to scroll to or the window to scroll within
  * @param {?Number} [durationMs=1000] - duration of the scrolling animation
  * @param {?Number} [offset=0] - offset from the viewport center to apply to the end position
  * @param {?String} [easing='easeInOutCubic'] - easing function to use, can be any of Animation.EasingFunctions
  * @param {?Boolean} [scrollEvenIfFullyInViewport=false] - if true, forces method to always scroll no matter the element's position
  * @param {?Boolean} [cancelOnUserScroll=false] - if true, scrolling animation will immediately be canceled on manual user scroll, callback will not fire in that case
+ * @throws error if element is not usable or if durationMs is <= 0
  * @returns {Promise} resolves when scroll complete, rejects if scroll fails or is cancelled
  *
  * @memberof Viewport:scrollTo
@@ -110,12 +111,15 @@ export function isInViewport(element, mustBeFullyInside){
  * scrollTo(document.querySelector('.jumptarget'), function(){ alert('Not triggered if user uses mousewheel.'); }, 5000, -0, false, true);
  * scrollTo(window, null, 500, 0, false, true);
  */
-export function scrollTo(element, durationMs, offset, easing, scrollEvenIfFullyInViewport, cancelOnUserScroll){
+export function scrollTo(element, durationMs=1000, offset=0, easing='easeInOutCubic', scrollEvenIfFullyInViewport=false, cancelOnUserScroll=false){
 	durationMs = orDefault(durationMs, 1000, 'int');
 	offset = orDefault(offset, 0, 'int');
 	easing = orDefault(easing, 'easeInOutCubic', 'str');
 	scrollEvenIfFullyInViewport = orDefault(scrollEvenIfFullyInViewport, false, 'bool');
 	cancelOnUserScroll = orDefault(cancelOnUserScroll, false, 'bool');
+
+	assert(isA(element, 'htmlelement') || isA(element, 'window'), `${MODULE_NAME}:scrollTo | element unusable`);
+	assert(durationMs > 0, `${MODULE_NAME}:scrollTo | durationMs must be > 0`);
 
 	if( !isA(EasingFunctions[easing], 'function') ){
 		easing = EasingFunctions.easeInOutCubic;

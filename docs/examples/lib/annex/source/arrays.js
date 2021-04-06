@@ -62,7 +62,7 @@ import {assert, isA, orDefault} from './basic.js';
  * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2], true);
  * => [1]
  */
-export function removeFrom(target, from, to){
+export function removeFrom(target, from, to=null){
 	assert(isA(target, 'array'), `${MODULE_NAME}:remove | target is no array`);
 
 	if( isA(from, 'number') && (to !== false) ){

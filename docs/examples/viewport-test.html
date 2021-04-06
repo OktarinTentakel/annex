@@ -43,6 +43,8 @@
 			#scroll-to-elements {
 				background: rgba(0, 0, 0, 0.1);
 
+				margin-top: 40px;
+
 				color: white;
 				font-size: 5rem;
 				line-height: 3.8;
@@ -257,21 +259,21 @@
 			</section>
 
 			<h3>scrollTo</h3>
-				<section>
+			<section>
 				<p>
 					If you click on the buttons below, you should programmatically scroll down, to several elements
 					below. The end points of the scroll should differ in position relative to the element, speed and
 					the fact that you can or cannot cancel the ongoing scroll by scrolling yourself with your mouse or
 					touch.
 				</p>
-				<p>
-					<button id="scroll-to-1" class="btn light-blue darken-1">Scroll to 1 (1s, centered, not cancellable, scroll if already in viewport)</button><br/><br/>
-					<button id="scroll-to-2" class="btn light-blue darken-1">Scroll to 2 (2s, exactly at top, cancellable)</button><br/><br/>
-					<button id="scroll-to-3" class="btn light-blue darken-1">Scroll to 3 (1.5s, centered, cancellable)</button><br/><br/>
-					<button id="scroll-to-4" class="btn light-blue darken-1">Scroll to 4 (0.5s, at bottom, cancellable)</button><br/><br/>
+				<div>
+					<button id="scroll-to-1" class="btn light-blue darken-1">Scroll to 1 (1s, centered, not cancellable, scroll if already in viewport)</button>
+					<button id="scroll-to-2" class="btn light-blue darken-1">Scroll to 2 (2s, exactly at top, cancellable)</button>
+					<button id="scroll-to-3" class="btn light-blue darken-1">Scroll to 3 (1.5s, centered, cancellable)</button>
+					<button id="scroll-to-4" class="btn light-blue darken-1">Scroll to 4 (0.5s, at bottom, cancellable)</button>
 					<button id="scroll-to-5" class="btn light-blue darken-1">Scroll to 5 (5s, 250px offset, cancellable, with two callbacks)</button>
 					<button id="scroll-to-top" class="btn light-blue darken-1">To Top</button>
-				</p>
+				</div>
 				<div id="scroll-to-elements">
 					<p class="element-1"></p>
 					<p class="element-2"></p>

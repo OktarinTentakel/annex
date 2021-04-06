@@ -64,15 +64,13 @@ const POLL_DEFAULT_LOOP_MS = 250;
  */
 export function poll(name, fCondition, fAction, fElseAction=null, newLoopMs=POLL_DEFAULT_LOOP_MS, useOwnTimer=false){
 	name = orDefault(name, '', 'str').trim();
-	fCondition = isA(fCondition, 'function') ? fCondition : null;
-	fAction = isA(fAction, 'function') ? fAction : null;
 	fElseAction = isA(fElseAction, 'function') ? fElseAction : () => {};
 	newLoopMs = orDefault(newLoopMs, POLL_DEFAULT_LOOP_MS, 'int');
 	useOwnTimer = orDefault(useOwnTimer, false, 'bool');
 
-	assert(name !== '', `${MODULE_NAME}:poll | "name" is missing`);
-	assert(fCondition !== null, `${MODULE_NAME}:poll | "fCondition" is not a function`);
-	assert(fAction !== null, `${MODULE_NAME}:poll | "fAction" is not a function`);
+	assert(name !== '', `${MODULE_NAME}:poll | name is missing`);
+	assert(isA(fCondition, 'function'), `${MODULE_NAME}:poll | fCondition is not a function`);
+	assert(isA(fAction, 'function'), `${MODULE_NAME}:poll | fAction is not a function`);
 
 	const newPoll = {
 		name,

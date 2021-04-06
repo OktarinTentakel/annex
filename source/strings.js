@@ -27,9 +27,9 @@ import {isA, orDefault, isNaN, hasValue} from './basic.js';
  *
  * Uses String.prototype.replaceAll internally, if available.
  *
+ * @param {String} subject - the string to replace in
  * @param {(String|String[])} search - the string(s) to replace
  * @param {String|String[]} replace - the string(s) to replace the search string(s)
- * @param {String} subject - the string to replace in
  * @returns {String} the modified string
  *
  * @memberof Strings:replace
@@ -37,10 +37,10 @@ import {isA, orDefault, isNaN, hasValue} from './basic.js';
  * @example
  * const sanitizedString = replace([':', '#', '-'], '_', exampleString);
  */
-export function replace(search, replace, subject){
+export function replace(subject, search, replace){
+	subject = `${subject}`;
 	search = [].concat(search);
 	replace = [].concat(replace);
-	subject = `${subject}`;
 
 	let tmp = '';
 
@@ -48,9 +48,9 @@ export function replace(search, replace, subject){
 		tmp = (replace.length > 1) ? ((replace[index] !== undefined) ? replace[index] : '') : replace[0];
 
 		if( isA(String.prototype.replaceAll, 'function') ){
-			subject.replaceAll(searchTerm, tmp);
+			subject.replaceAll(`${searchTerm}`, `${tmp}`);
 		} else {
-			subject = subject.split(searchTerm).join(tmp);
+			subject = subject.split(`${searchTerm}`).join(`${tmp}`);
 		}
 	});
 
@@ -77,7 +77,7 @@ export function replace(search, replace, subject){
  * @example
  * const truncatedString = truncate(string, 10, '...');
  */
-export function truncate(subject, maxLength, suffix){
+export function truncate(subject, maxLength=30, suffix='...'){
 	subject = `${subject}`;
 	maxLength = orDefault(maxLength, 30, 'int');
 	suffix = orDefault(suffix, '...', 'str');
@@ -114,7 +114,7 @@ export function truncate(subject, maxLength, suffix){
  * const finalCountdown = concat(' ... ', 10, 9, 8, 7, 6, '5', '4', '3', '2', '1', 'ZERO!');
  * const finalCountdown = concat(' ... ', [10, 9, 8, 7, 6, '5', '4', '3', '2', '1', 'ZERO!']);
  */
-export function concat(glue, ...strings){
+export function concat(glue='', ...strings){
 	glue = orDefault(glue, '', 'str');
 
 	if( (strings.length > 0) && isA(strings[0], 'array') ){
@@ -159,6 +159,8 @@ export function concat(glue, ...strings){
  * => '1, 2, 3: details are for wankers'
  */
 export function format(template, ...replacements){
+	template = `${template}`;
+
 	let
 		idx = 0,
 		explicit = false,
@@ -301,9 +303,7 @@ const SLUGIFY_LATINMAP = {'Á':'A','Ă':'A','Ắ':'A','Ặ':'A','Ằ':'A','Ẳ':
  * => 'this-is-a-complicated-sstring-for-urls'
  */
 export function slugify(text){
-	text = orDefault(text, '', 'str');
-
-	return text.toLowerCase()
+	return `${text}`.toLowerCase()
 		.replace(/\s+/g, '-')           //replace spaces with "-"
 		.replace(/[^A-Za-z0-9\[\] ]/g, function(char){ return SLUGIFY_LATINMAP[char] ?? char; })
 		.replace(/[^\w\-]+|_+/g, '')    //remove all non-word chars || ^replace accented chars with plain ones
@@ -323,7 +323,7 @@ export function slugify(text){
  * Masks all selector-special-characters, to allow selecting elements with special characters in selector using
  * querySelector and querySelectorAll (also works for jQuery and Cash).
  *
- * @param {String} string - the string to mask for use in a selector
+ * @param {String} str - the string to mask for use in a selector
  * @returns {String} the masked string
  *
  * @memberof Strings:maskForSelector
@@ -331,8 +331,8 @@ export function slugify(text){
  * @example
  * document.querySelector(`#element_${maskForSelector(elementName)}`).classList.remove('test');
  */
-export function maskForSelector(string){
-	return string.replace(/([#;&,.+*~':"!^$\[\]()=>|\/@])/g, '\\$&');
+export function maskForSelector(str){
+	return `${str}`.replace(/([#;&,.+*~':"!^$\[\]()=>|\/@])/g, '\\$&');
 }
 
 
@@ -345,7 +345,7 @@ export function maskForSelector(string){
  * Masks all regex special characters, to test or match a string using a regex, that contains
  * characters used in regexes themselves.
  *
- * @param {String} string - the string to mask for use in a regexp
+ * @param {String} str - the string to mask for use in a regexp
  * @returns {String} the masked string
  *
  * @memberof Strings:maskForRegEx
@@ -355,8 +355,8 @@ export function maskForSelector(string){
  *   alert('are identical!');
  * }
  */
-export function maskForRegEx(string){
-	return string.replace(/([\-\[\]\/{}()*+?.\\^$|])/g, "\\$&");
+export function maskForRegEx(str){
+	return `${str}`.replace(/([\-\[\]\/{}()*+?.\\^$|])/g, "\\$&");
 }
 
 
@@ -384,7 +384,7 @@ export function maskForRegEx(string){
  */
 export function maskForHtml(text){
 	const escape = document.createElement('textarea');
-	escape.textContent = text;
+	escape.textContent = `${text}`;
 	return escape.innerHTML;
 }
 
@@ -411,6 +411,6 @@ export function maskForHtml(text){
  */
 export function unmaskFromHtml(html){
 	const escape = document.createElement('textarea');
-	escape.innerHTML = html;
+	escape.innerHTML = `${html}`;
 	return escape.textContent;
 }

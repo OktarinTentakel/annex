@@ -146,7 +146,7 @@ function reload(source){
 
 //###[ TASKS ]##########################################################################################################
 
-gulp.task('watch-build', gulp.series(buildJs, copyExamplesLibs));
+gulp.task('watch-build', gulp.series(buildJs, buildEs5Monolith, copyExamplesLibs));
 gulp.task('watch', function(done){
 	const watchConfig = {
 		usePolling : true,

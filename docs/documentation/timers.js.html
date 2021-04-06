@@ -52,8 +52,8 @@ import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
  *
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @param {?(Object|Number)} [oldTimer] - if set, kills the timer before setting up new one
- * @throws error if callback is not a function
+ * @param {?(Object|Number)} [oldTimer=null] - if set, kills the timer before setting up new one
+ * @throws error if ms is negative or callback is not a function
  * @returns {Object} new timer
  *
  * @memberof Timers:schedule
@@ -64,9 +64,10 @@ import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
  * const timer = schedule(1000, function(){ alert('time for tea'); });
  * const timer = schedule(2000, function(){ alert('traffic jam, tea has to wait'); }, timer);
  */
-export function schedule(ms, callback, oldTimer){
+export function schedule(ms, callback, oldTimer=null){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:schedule | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:schedule | callback must be a function`);
 
 	if( hasValue(oldTimer) ){
@@ -94,8 +95,8 @@ export function schedule(ms, callback, oldTimer){
  *
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @param {?(Object|Number)} [oldTimer] - if set, kills the timer before setting up new one
- * @throws error if callback is not a function
+ * @param {?(Object|Number)} [oldTimer=null] - if set, kills the timer before setting up new one
+ * @throws error if ms is not positive or if callback is not a function
  * @returns {Object} timer (does not create new timer object if oldTimer given, but returns old one)
  *
  * @memberof Timers:pschedule
@@ -106,9 +107,10 @@ export function schedule(ms, callback, oldTimer){
  * const timer = pschedule(1000, function(){ alert('time for tea'); });
  * const timer = pschedule(2000, function(){ alert('traffic jam, tea has to wait'); }, timer);
  */
-export function pschedule(ms, callback, oldTimer){
+export function pschedule(ms, callback, oldTimer=null){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:pschedule | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:pschedule | callback must be a function`);
 
 	if(
@@ -150,7 +152,7 @@ export function pschedule(ms, callback, oldTimer){
  * @param {(Object|Number)} timer - the timer to refresh/reset
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @throws error if callback is not a function
+ * @throws error if ms is not positive or if callback is not a function
  * @returns {Object} timer (may be the original timer, if given timer is precise from pschedule or ploop)
  *
  * @memberof Timers:reschedule
@@ -162,6 +164,7 @@ export function pschedule(ms, callback, oldTimer){
 export function reschedule(timer, ms, callback){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:reschedule | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:reschedule | callback must be a function`);
 
 	if( hasValue(timer) &amp;&amp; hasValue(timer.precise) &amp;&amp; !!timer.precise ){
@@ -183,8 +186,8 @@ export function reschedule(timer, ms, callback){
  *
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @param {?(Object|Number)} [oldLoop] - if set, kills the loop before setting up new one
- * @throws error if callback is not a function
+ * @param {?(Object|Number)} [oldLoop=null] - if set, kills the loop before setting up new one
+ * @throws error if ms is not positive or if callback is not a function
  * @returns {Object} new loop
  *
  * @memberof Timers:loop
@@ -195,9 +198,10 @@ export function reschedule(timer, ms, callback){
  * const loop = loop(250, function(){ document.body.classList.add('brightred'); });
  * const loop = loop(100, function(){ document.body.classList.add('brightgreen'); }, loop);
  */
-export function loop(ms, callback, oldLoop){
+export function loop(ms, callback, oldLoop=null){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:loop | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:loop | callback must be a function`);
 
 	if( hasValue(oldLoop) ){
@@ -228,8 +232,8 @@ export function loop(ms, callback, oldLoop){
  *
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @param {?(Object|Number)} [oldLoop] - if set, kills the loop before setting up new one
- * @throws error if callback is not a function
+ * @param {?(Object|Number)} [oldLoop=null] - if set, kills the loop before setting up new one
+ * @throws error if ms is not positive or if callback is not a function
  * @returns {Object} loop (if you give an old loop into the function the same reference will be returned)
  *
  * @memberof Timers:ploop
@@ -240,9 +244,10 @@ export function loop(ms, callback, oldLoop){
  * const loop = ploop(250, function(){ document.body.classList.add('brightred'); });
  * const loop = ploop(100, function(){ document.body.classList.add('brightgreen'); }, loop);
  */
-export function ploop(ms, callback, oldLoop){
+export function ploop(ms, callback, oldLoop=null){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:ploop | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:ploop | callback must be a function`);
 
 	if(
@@ -287,7 +292,7 @@ export function ploop(ms, callback, oldLoop){
  * Cancel a timer or loop immediately.
  *
  * @param {(Object|Number)} timer - the timer or loop to end
- * @param {?Boolean} [isInterval] - defines if a timer or a loop is to be stopped, set in case timer is a GUID
+ * @param {?Boolean} [isInterval=false] - defines if a timer or a loop is to be stopped, set in case timer is a GUID
  *
  * @memberof Timers:countermand
  * @alias countermand
@@ -299,7 +304,9 @@ export function ploop(ms, callback, oldLoop){
  * countermand(timer);
  * countermand(loop);
  */
-export function countermand(timer, isInterval){
+export function countermand(timer, isInterval=false){
+	isInterval = orDefault(isInterval, false, 'bool');
+
 	if( hasValue(timer) ){
 		if( hasMembers(timer, ['id', 'type']) ){
 			if( timer.type === 'interval' ){
@@ -308,7 +315,7 @@ export function countermand(timer, isInterval){
 				window.clearTimeout(timer.id);
 			}
 		} else {
-			if( !hasValue(isInterval) || !isInterval ){
+			if( !isInterval ){
 				window.clearTimeout(timer);
 			} else {
 				window.clearInterval(timer);
@@ -328,6 +335,7 @@ export function countermand(timer, isInterval){
  * case the functionality is missing from the browser.
  *
  * @param {Function} callback - the code to execute once the browser has assigned an execution slot for it
+ * @throws error if callback is not a function
  * @return {Number} either the id of the requestAnimationFrame or the internal timeout, both are cancellable via cancelAnimationFrame
  *
  * @memberof Timers:requestAnimationFrame
@@ -339,6 +347,8 @@ export function countermand(timer, isInterval){
  * const requestId = requestAnimationFrame(function(){ window.body.style.opacity = 0; });
  */
 export function requestAnimationFrame(callback){
+	assert(isA(callback, 'function'), `${MODULE_NAME}:requestAnimationFrame | callback is no function`);
+
 	const raf = window.requestAnimationFrame
 		?? window.webkitRequestAnimationFrame
 		?? window.mozRequestAnimationFrame
@@ -451,6 +461,7 @@ export function caf(id){
  * repaint between them.
  *
  * @param {Function} callback - the code to execute once the browser performed a repaint
+ * @throws error if callback is not a function
  * @return {Object} dictionary of ids for the inner and outer request ids, outer gets assigned right away, while inner gets assigned after first callback => {outer : 1, inner : 2}
  *
  * @memberof Timers:waitForRepaint
@@ -462,6 +473,8 @@ export function caf(id){
  * waitForRepaint(function(){ alert(`the new dimensions after class change are: ${element.offsetWidth}x${element.offsetHeight}`); });
  */
 export function waitForRepaint(callback){
+	assert(isA(callback, 'function'), `${MODULE_NAME}:waitForRepaint | callback is no function`);
+
 	const ids = {};
 
 	ids.outer = requestAnimationFrame(function(){
@@ -480,13 +493,13 @@ export function waitForRepaint(callback){
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_bindHistoryChange.html">Navigation:bindHistoryChange</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace"><a href="Navigation_unbindHistoryChange.html">Navigation:unbindHistoryChange</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Thu Mar 18 2021 14:27:55 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Tue Apr 06 2021 10:30:07 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Navigation Module Examples</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png">
+
+		<link rel="stylesheet" href="./main.css">
+		<style type="text/css">
+
+		</style>
+
+		<script defer src="./lib/handle-version-switching.js"></script>
+		<script>
+			function setup(
+				redirect,
+				openTab,
+				openWindow,
+				reload,
+				changeCurrentUrl,
+				bindHistoryChange,
+				unbindHistoryChange
+			){
+				document.querySelector('#redirect-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					redirect('//www.google.com?q=test', {search : 'kittens', ordering : 'asc'}, 'fluffykittens', 'google');
+				});
+
+				document.querySelector('#redirect-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					redirect('?q=test', {search : 'kittens', ordering : 'asc'}, 'fluffykittens', 'google');
+				});
+
+				document.querySelector('#redirect-3').addEventListener('click', function(e){
+					e.preventDefault();
+
+					redirect(null, {order : 'desc'}, 'fluffykittens', null, {test : 'test', param : 'param'});
+				});
+
+				document.querySelector('#redirect-4').addEventListener('click', function(e){
+					e.preventDefault();
+
+					redirect(null, null, 'fluffykittens');
+				});
+
+
+
+				document.querySelector('#opentab-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					openTab('//www.google.com?q=test', {search : 'kittens', ordering : 'asc'}, 'fluffykittens');
+				});
+
+				document.querySelector('#opentab-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					openTab(null, {order : 'desc'}, 'fluffykittens', {test : 'test', param : 'param'});
+				});
+
+
+
+				document.querySelector('#openwindow-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					console.log('opened this window: '+openWindow('about:blank', {name : 'blanka'}).name);
+				});
+
+				document.querySelector('#openwindow-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					console.log('opened this window: '+openWindow('//www.google.com', {name : 'google', width : 666, height : 666}, null, true).name);
+				});
+
+
+
+				document.querySelector('#reload-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					reload();
+				});
+
+				document.querySelector('#reload-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					reload(false);
+				});
+
+				document.querySelector('#reload-3').addEventListener('click', function(e){
+					e.preventDefault();
+
+					reload(false, false);
+				});
+
+
+
+				document.querySelector('#change-current-url-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					changeCurrentUrl('/article/important-stuff', false, {some : 'information'}, 'important');
+				});
+
+				document.querySelector('#change-current-url-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					changeCurrentUrl('/article/more-important-stuff', true, {more : 'information'}, 'more important');
+				});
+
+
+
+				const fLogBothNavigationStates = function(oldState, newState){
+					console.info('old state:', oldState);
+					console.info('new state:', newState);
+				};
+
+
+				document.querySelector('#bind-history-change').addEventListener('click', function(e){
+					e.preventDefault();
+
+					bindHistoryChange(function(){
+						alert('I should never be called!');
+					});
+
+					bindHistoryChange(fLogBothNavigationStates, true, true);
+
+					bindHistoryChange(function(currentState){
+						console.info('current state:', currentState);
+					});
+				});
+
+
+
+				document.querySelector('#unbind-history-change-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					unbindHistoryChange(fLogBothNavigationStates);
+				});
+
+				document.querySelector('#unbind-history-change-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					unbindHistoryChange();
+				});
+			}
+		</script>
+		<script type="module">
+			if( window.__ANNEX_VERSION__ !== 'es5' ){
+				(async () => {
+					const {
+						redirect,
+						openTab,
+						openWindow,
+						reload,
+						changeCurrentUrl,
+						bindHistoryChange,
+						unbindHistoryChange
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/navigation.js`);
+
+					setup(
+						redirect,
+						openTab,
+						openWindow,
+						reload,
+						changeCurrentUrl,
+						bindHistoryChange,
+						unbindHistoryChange
+					);
+				})().catch(err => {
+					console.error(err);
+				});
+			}
+		</script>
+		<script defer src="./lib/annex/dist/es5-monolith.js"></script>
+		<script defer>
+			(function(){
+				var annexPoll = window.setInterval(function(){
+					if( window.__ANNEX_VERSION__ && window.annex ){
+						window.clearInterval(annexPoll);
+
+						if( window.__ANNEX_VERSION__ === 'es5' ){
+							setup(
+								window.annex.navigation.redirect,
+								window.annex.navigation.openTab,
+								window.annex.navigation.openWindow,
+								window.annex.navigation.reload,
+								window.annex.navigation.changeCurrentUrl,
+								window.annex.navigation.bindHistoryChange,
+								window.annex.navigation.unbindHistoryChange
+							);
+						}
+					}
+				}, 250);
+			})();
+		</script>
+	</head>
+
+	<body>
+		<header>
+			<h1>Navigation Module Examples</h1>
+		</header>
+		<main>
+			<a href="../navigation-test.html">>>> Reset URL (after navigating below) <<<</a>
+
+			<h3>redirect</h3>
+			<section>
+				<div>
+					<a id="redirect-1">Should open google.com with get-parameters and a hash in a new window</a>
+					<a id="redirect-2">Should open this URL with get-parameters and a hash in a new window, repeated clicks should target the same window</a>
+					<a id="redirect-3">Should open this URL with a get and several post-params (may fail due to request method, but post data should be visible in network)</a>
+					<a id="redirect-4">Should only change the current hash, without loading anything</a>
+				</div>
+			</section>
+
+			<h3>openTab</h3>
+			<section>
+				<div>
+					<a id="opentab-1">Should open google.com with get-parameters and a hash in a new tab</a>
+					<a id="opentab-2">Should open this URL with a get and several post-params in a new tab (may fail due to request method, but post data should be visible in network)</a>
+				</div>
+			</section>
+
+			<h3>openWindow</h3>
+			<section>
+				<div>
+					<button id="openwindow-1" class="btn light-blue darken-1">Should open a new window with empty site</button>
+					<button id="openwindow-2" class="btn light-blue darken-1">Should open a new window with google.com with window options as popup</button>
+				</div>
+			</section>
+
+			<h3>reload</h3>
+			<section>
+				<p>
+					Click the buttons to trigger different kinds of reloads, have a look at your dev tool's network
+					tab to see cache hits next to requests.
+				</p>
+				<div>
+					<button id="reload-1" class="btn light-blue darken-1">Should reload the current URL using browser cache</button>
+					<button id="reload-2" class="btn light-blue darken-1">Should reload the current URL using a POST request, circumventing browser cache</button>
+					<button id="reload-3" class="btn light-blue darken-1">Should reload the current URL replacing the URL, hopefully circumventing browser cache</button>
+				</div>
+			</section>
+
+			<h3>changeCurrentUrl</h3>
+			<section>
+				<div>
+					<a id="change-current-url-1">Should replace the current URL without reload, not changing history</a>
+					<a id="change-current-url-2">Should replace the current URL without reload, back navigation being the old URL</a>
+				</div>
+			</section>
+
+			<h3>bindHistoryChange</h3>
+			<section>
+				<p>
+					Click button to register event handlers for history navigation. Clicking the second link in "changeCurrentUrl"
+					and navigating back should then result in console logs stating previous, current and next state, being
+					a combination of event handlers working with only one and two states.
+				</p>
+				<div>
+					<button id="bind-history-change" class="btn light-blue darken-1">Register Event Handlers</button>
+				</div>
+			</section>
+
+			<h3>unbindHistoryChange</h3>
+			<section>
+				<p>
+					Click the buttons to unregister event handlers previously registered in "bindHistoryChange".
+					Clicking the first button should remove the output for previous and next states during back navigation
+					on the second link in "changeCurrentUrl". Clicking the second button should remove all handlers and output.
+				</p>
+				<div>
+					<button id="unbind-history-change-1" class="btn light-blue darken-1">Unregister Event Handler With Both States</button>
+					<button id="unbind-history-change-2" class="btn light-blue darken-1">Unregister All Event Handlers</button>
+				</div>
+			</section>
+		</main>
+	</body>
+</html>

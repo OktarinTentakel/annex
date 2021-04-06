@@ -277,7 +277,7 @@ export function err(){
  * remove it again afterwards. For more info on Error.stack, read:
  * https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Error/Stack
  *
- * @param {?String} [message] - an optional message to be printed besides the context information
+ * @param {?String} [message=null] - an optional message to be printed besides the context information
  *
  * @memberof Logging:xlog
  * @alias xlog
@@ -286,7 +286,7 @@ export function err(){
  *   xlog('purely optional message');
  * }
  */
-export function xlog(message){
+export function xlog(message=null){
 	let context;
 
 	try {

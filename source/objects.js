@@ -56,7 +56,7 @@ import {getType, isA, orDefault} from './basic.js';
 export function clone(target, deep=true){
 	deep = orDefault(deep, true, 'bool');
 
-	if( isA(target.clone, 'function') ){
+	if( isA(target?.clone, 'function') ){
 		return target.clone(deep);
 	}
 

@@ -29,6 +29,7 @@ import {orDefault, assert, hasValue, isA} from './basic.js';
  * @param {?Number} [ceiling=10] - the upper end of random range, can either be integer or float
  * @param {?Boolean} [float=false] - define if we are working with floating point numbers
  * @param {?Number} [precision=2] - if we are working with floats, what precision are we working with, considering floor, ceiling and result?
+ * @throws error if ceiling is smaller than floor
  * @returns {Number} random integer or float between floor and ceiling
  *
  * @memberof Random:randomNumber
@@ -40,9 +41,10 @@ import {orDefault, assert, hasValue, isA} from './basic.js';
 export function randomNumber(floor=0, ceiling=10, float=false, precision=2){
 	floor = orDefault(floor, 0, 'float');
 	ceiling = orDefault(ceiling, 10, 'float');
-	assert((ceiling >= floor), `${MODULE_NAME}:randomInt | ceiling cannot not be smaller than floor`);
 	float = orDefault(float, false, 'bool');
 	precision = orDefault(precision, 2, 'int');
+
+	assert((ceiling >= floor), `${MODULE_NAME}:randomInt | ceiling smaller than floor`);
 
 	const power = Math.pow(10, precision);
 

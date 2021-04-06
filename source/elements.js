@@ -10,7 +10,7 @@ const MODULE_NAME = 'Elements';
 
 
 
-import {orDefault, isA, hasValue, assert} from './basic.js'
+import {orDefault, isA, isPlainObject, hasValue, assert} from './basic.js'
 
 
 
@@ -25,9 +25,9 @@ import {orDefault, isA, hasValue, assert} from './basic.js'
  * If you provide markup as "tag", make sure that there is one single root element, this method returns exactly one
  * element, not a NodeList.
  *
- * @param {String} tag - tag of the element to create or markup for root element
- * @param {?Object} [attributes] - tag attributes as key/value-pairs, will also be added to provided markup
- * @param {?String} [content] - content to insert into the element as textContent, be aware, that this will replace other content in provided markup
+ * @param {?String} [tag='span'] - tag of the element to create or markup for root element
+ * @param {?Object} [attributes=null] - tag attributes as key/value-pairs, will also be added to provided markup
+ * @param {?String} [content=null] - content to insert into the element as textContent, be aware, that this will replace other content in provided markup
  * @returns {HTMLElement} DOM-node
  *
  * @memberof Elements:createNode
@@ -41,8 +41,9 @@ import {orDefault, isA, hasValue, assert} from './basic.js'
  * );
  *
  */
-export function createNode(tag, attributes, content){
-	tag = orDefault(tag, '', 'str').trim();
+export function createNode(tag, attributes=null, content=null){
+	tag = orDefault(tag, 'span', 'str').trim();
+	attributes = isPlainObject(attributes) ? attributes : null;
 	content = orDefault(content, null, 'str');
 
 	const outerNode = document.createElement('main');
@@ -58,7 +59,7 @@ export function createNode(tag, attributes, content){
 
 	const node = outerNode.firstChild;
 
-	if( isA(attributes, 'object') ){
+	if( hasValue(attributes) ){
 		for( let attribute in attributes ){
 			node.setAttribute(attribute, `${attributes[attribute]}`);
 		}
@@ -92,14 +93,14 @@ export function createNode(tag, attributes, content){
  * @example
  * someElement.textContent = getTextContent('<p onlick="destroyWorld();">red button <a>meow<span>woof</span></a></p>');
  */
-export function getTextContent(target, onlyFirstLevel){
+export function getTextContent(target, onlyFirstLevel=false){
 	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
 
 	if( isA(target, 'string') ){
 		target = createNode(target);
 	}
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}:getTextContent | given target is neither node nor markup`);
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}:getTextContent | target is neither node nor markup`);
 
 	if( onlyFirstLevel ){
 		let textContent = '';

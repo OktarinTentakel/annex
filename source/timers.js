@@ -24,8 +24,8 @@ import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
  *
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @param {?(Object|Number)} [oldTimer] - if set, kills the timer before setting up new one
- * @throws error if callback is not a function
+ * @param {?(Object|Number)} [oldTimer=null] - if set, kills the timer before setting up new one
+ * @throws error if ms is negative or callback is not a function
  * @returns {Object} new timer
  *
  * @memberof Timers:schedule
@@ -36,9 +36,10 @@ import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
  * const timer = schedule(1000, function(){ alert('time for tea'); });
  * const timer = schedule(2000, function(){ alert('traffic jam, tea has to wait'); }, timer);
  */
-export function schedule(ms, callback, oldTimer){
+export function schedule(ms, callback, oldTimer=null){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:schedule | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:schedule | callback must be a function`);
 
 	if( hasValue(oldTimer) ){
@@ -66,8 +67,8 @@ export function schedule(ms, callback, oldTimer){
  *
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @param {?(Object|Number)} [oldTimer] - if set, kills the timer before setting up new one
- * @throws error if callback is not a function
+ * @param {?(Object|Number)} [oldTimer=null] - if set, kills the timer before setting up new one
+ * @throws error if ms is not positive or if callback is not a function
  * @returns {Object} timer (does not create new timer object if oldTimer given, but returns old one)
  *
  * @memberof Timers:pschedule
@@ -78,9 +79,10 @@ export function schedule(ms, callback, oldTimer){
  * const timer = pschedule(1000, function(){ alert('time for tea'); });
  * const timer = pschedule(2000, function(){ alert('traffic jam, tea has to wait'); }, timer);
  */
-export function pschedule(ms, callback, oldTimer){
+export function pschedule(ms, callback, oldTimer=null){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:pschedule | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:pschedule | callback must be a function`);
 
 	if(
@@ -122,7 +124,7 @@ export function pschedule(ms, callback, oldTimer){
  * @param {(Object|Number)} timer - the timer to refresh/reset
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @throws error if callback is not a function
+ * @throws error if ms is not positive or if callback is not a function
  * @returns {Object} timer (may be the original timer, if given timer is precise from pschedule or ploop)
  *
  * @memberof Timers:reschedule
@@ -134,6 +136,7 @@ export function pschedule(ms, callback, oldTimer){
 export function reschedule(timer, ms, callback){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:reschedule | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:reschedule | callback must be a function`);
 
 	if( hasValue(timer) && hasValue(timer.precise) && !!timer.precise ){
@@ -155,8 +158,8 @@ export function reschedule(timer, ms, callback){
  *
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @param {?(Object|Number)} [oldLoop] - if set, kills the loop before setting up new one
- * @throws error if callback is not a function
+ * @param {?(Object|Number)} [oldLoop=null] - if set, kills the loop before setting up new one
+ * @throws error if ms is not positive or if callback is not a function
  * @returns {Object} new loop
  *
  * @memberof Timers:loop
@@ -167,9 +170,10 @@ export function reschedule(timer, ms, callback){
  * const loop = loop(250, function(){ document.body.classList.add('brightred'); });
  * const loop = loop(100, function(){ document.body.classList.add('brightgreen'); }, loop);
  */
-export function loop(ms, callback, oldLoop){
+export function loop(ms, callback, oldLoop=null){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:loop | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:loop | callback must be a function`);
 
 	if( hasValue(oldLoop) ){
@@ -200,8 +204,8 @@ export function loop(ms, callback, oldLoop){
  *
  * @param {Number} ms - time in milliseconds until execution
  * @param {Function} callback - callback function to execute after ms
- * @param {?(Object|Number)} [oldLoop] - if set, kills the loop before setting up new one
- * @throws error if callback is not a function
+ * @param {?(Object|Number)} [oldLoop=null] - if set, kills the loop before setting up new one
+ * @throws error if ms is not positive or if callback is not a function
  * @returns {Object} loop (if you give an old loop into the function the same reference will be returned)
  *
  * @memberof Timers:ploop
@@ -212,9 +216,10 @@ export function loop(ms, callback, oldLoop){
  * const loop = ploop(250, function(){ document.body.classList.add('brightred'); });
  * const loop = ploop(100, function(){ document.body.classList.add('brightgreen'); }, loop);
  */
-export function ploop(ms, callback, oldLoop){
+export function ploop(ms, callback, oldLoop=null){
 	ms = orDefault(ms, 1, 'int');
 
+	assert(ms >= 0, `${MODULE_NAME}:ploop | ms must be positive`);
 	assert(isA(callback, 'function'), `${MODULE_NAME}:ploop | callback must be a function`);
 
 	if(
@@ -259,7 +264,7 @@ export function ploop(ms, callback, oldLoop){
  * Cancel a timer or loop immediately.
  *
  * @param {(Object|Number)} timer - the timer or loop to end
- * @param {?Boolean} [isInterval] - defines if a timer or a loop is to be stopped, set in case timer is a GUID
+ * @param {?Boolean} [isInterval=false] - defines if a timer or a loop is to be stopped, set in case timer is a GUID
  *
  * @memberof Timers:countermand
  * @alias countermand
@@ -271,7 +276,9 @@ export function ploop(ms, callback, oldLoop){
  * countermand(timer);
  * countermand(loop);
  */
-export function countermand(timer, isInterval){
+export function countermand(timer, isInterval=false){
+	isInterval = orDefault(isInterval, false, 'bool');
+
 	if( hasValue(timer) ){
 		if( hasMembers(timer, ['id', 'type']) ){
 			if( timer.type === 'interval' ){
@@ -280,7 +287,7 @@ export function countermand(timer, isInterval){
 				window.clearTimeout(timer.id);
 			}
 		} else {
-			if( !hasValue(isInterval) || !isInterval ){
+			if( !isInterval ){
 				window.clearTimeout(timer);
 			} else {
 				window.clearInterval(timer);
@@ -300,6 +307,7 @@ export function countermand(timer, isInterval){
  * case the functionality is missing from the browser.
  *
  * @param {Function} callback - the code to execute once the browser has assigned an execution slot for it
+ * @throws error if callback is not a function
  * @return {Number} either the id of the requestAnimationFrame or the internal timeout, both are cancellable via cancelAnimationFrame
  *
  * @memberof Timers:requestAnimationFrame
@@ -311,6 +319,8 @@ export function countermand(timer, isInterval){
  * const requestId = requestAnimationFrame(function(){ window.body.style.opacity = 0; });
  */
 export function requestAnimationFrame(callback){
+	assert(isA(callback, 'function'), `${MODULE_NAME}:requestAnimationFrame | callback is no function`);
+
 	const raf = window.requestAnimationFrame
 		?? window.webkitRequestAnimationFrame
 		?? window.mozRequestAnimationFrame
@@ -423,6 +433,7 @@ export function caf(id){
  * repaint between them.
  *
  * @param {Function} callback - the code to execute once the browser performed a repaint
+ * @throws error if callback is not a function
  * @return {Object} dictionary of ids for the inner and outer request ids, outer gets assigned right away, while inner gets assigned after first callback => {outer : 1, inner : 2}
  *
  * @memberof Timers:waitForRepaint
@@ -434,6 +445,8 @@ export function caf(id){
  * waitForRepaint(function(){ alert(`the new dimensions after class change are: ${element.offsetWidth}x${element.offsetHeight}`); });
  */
 export function waitForRepaint(callback){
+	assert(isA(callback, 'function'), `${MODULE_NAME}:waitForRepaint | callback is no function`);
+
 	const ids = {};
 
 	ids.outer = requestAnimationFrame(function(){

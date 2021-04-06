@@ -34,6 +34,7 @@ import {schedule, reschedule} from './timers.js';
  * @param {Function} func - the function to throttle
  * @param {?Boolean} [hasLeadingExecution=false] - defines that the function call that starts a timeframe, does not count, so that during the following frame another call is possible
  * @param {?Boolean} [hasTrailingExecution=false] - defines if the function is executed at the end of the timeframe (will only happen, if there were more than one calls to the function in the time frame)
+ * @throws error if ms is no number > 0 or func is not a function
  * @returns {Function} the throttling function (parameters will be handed as is to the throttled function)
  *
  * @memberof Functions:throttle
@@ -41,14 +42,13 @@ import {schedule, reschedule} from './timers.js';
  * @example
  * window.addEventListener('resize', throttle(400, function(){ console.log(`the viewport is now ${window.innerWidth}px wide`); }));
  */
-export function throttle(ms, func, hasLeadingExecution, hasTrailingExecution){
+export function throttle(ms, func, hasLeadingExecution=false, hasTrailingExecution=false){
 	ms = orDefault(ms, 0, 'int');
-	func = isA(func, 'function') ? func : null;
 	hasLeadingExecution = orDefault(hasLeadingExecution, false, 'bool');
 	hasTrailingExecution = orDefault(hasTrailingExecution, false, 'bool');
 
 	assert(ms > 0, `${MODULE_NAME}:throttle | ms must be > 0`);
-	assert(func !== null, `${MODULE_NAME}:throttle | no function given`);
+	assert(isA(func, 'function'), `${MODULE_NAME}:throttle | no function given`);
 
 	let
 		frameHasStarted = false,
@@ -98,6 +98,7 @@ export function throttle(ms, func, hasLeadingExecution, hasTrailingExecution){
  *
  * @param {Number} ms - timeframe in milliseconds without call before execution
  * @param {Function} func - the function to delay the execution of
+ * @throws error if ms is no number > 0 or func is not a function
  * @returns {Function} the debounced function (parameters will be handed as is to the provided function)
  *
  * @memberof Functions:debounce
@@ -107,10 +108,9 @@ export function throttle(ms, func, hasLeadingExecution, hasTrailingExecution){
  */
 export function debounce(ms, func){
 	ms = orDefault(ms, 0, 'int');
-	func = isA(func, 'function') ? func : null;
 
 	assert(ms > 0, `${MODULE_NAME}:debounce | ms must be > 0`);
-	assert(func !== null, `${MODULE_NAME}:debounce | no function given`);
+	assert(isA(func, 'function'), `${MODULE_NAME}:debounce | no function given`);
 
 	let	debounceTimer;
 
@@ -131,6 +131,7 @@ export function debounce(ms, func){
  *
  * @param {Function} func - the function to defer
  * @param {?Number} [delay=1] - the delay to apply in milliseconds, 1 is a non-minifiable value to target the next tick, but you may define any millisecond value you want, to manually delay the function execution
+ * @throws error if func is not a function or delay is no number > 0
  * @returns {Function} the deferred function; the deferred function returns the timer id, in case you want to cancel execution
  *
  * @memberof Functions:defer
@@ -139,12 +140,11 @@ export function debounce(ms, func){
  * defer(function(){ doOnNextTick(); })();
  * defer(function(){ doInTwoSeconds(); }, 2000)();
  */
-export function defer(func, delay){
-	func = isA(func, 'function') ? func : null;
+export function defer(func, delay=1){
 	delay = orDefault(delay, 1, 'int');
 
+	assert(isA(func, 'function'), `${MODULE_NAME}:defer | no function given`);
 	assert(delay > 0, `${MODULE_NAME}:defer | delay must be > 0`);
-	assert(func !== null, `${MODULE_NAME}:defer | no function given`);
 
 	return function(){
 		return schedule(delay, () => { func.apply(this, Array.from(arguments)); }).id;
@@ -177,25 +177,26 @@ export function defer(func, delay){
  * You can even mix these types. If two parameters describe the same value in the call, the last declaration wins.
  *
  * @param {Function} func - the function to provide kwargs to
- * @param {?Object} [defaults={}] - the default kwargs to apply to func, essentially setting default values for all given keys fitting parameters of the function
+ * @param {?Object} [defaults=null] - the default kwargs to apply to func, essentially setting default values for all given keys fitting parameters of the function
+ * @throws error if func is not a function or parameter names of func could not be identified
  * @returns {Function} new function accepting mixed args, also being possible kwarg dicts
  *
  * @memberof Functions:kwargs
  * @alias kwargs
  * @example
  * const fTest = function(tick, trick, track){ console.log(tick, trick, track); };
- * kwargs(fTest, {track : 'defaultTrack'})({tick : 'tiick', trick : 'trick'});
+ * const fKwargsTest = kwargs(fTest, {track : 'defaultTrack'});
+ * fKwargsTest({tick : 'tiick', trick : 'trick'});
  * => "tiick, trick, defaultTrack"
  * kwargs(fTest, {track : 'defaultTrack'})('argumentTick', {trick : 'triick', track : 'trACK'});
  * => "argumentTick, triick, trACK"
  * kwargs(fTest, {track : 'defaultTrack'})('argumentTick', {trick : 'triick', track : 'track'}, 'trackkkk');
  * => "argumentTick, triick, trackkkk"
  */
-export function kwargs(func, defaults){
-	func = isA(func, 'function') ? func : null;
+export function kwargs(func, defaults=null){
 	defaults = isPlainObject(defaults) ? defaults : {};
 
-	assert(func !== null, `${MODULE_NAME}:kwargs | no function given`);
+	assert(isA(func, 'function'), `${MODULE_NAME}:kwargs | no function given`);
 
 	const
 		argNamesString = func.toString().match(/\(([^)]+)/)[1],

@@ -1,31 +1,101 @@
 @import 'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css';
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
 
+
+
 header nav {
 	margin-bottom: 2rem;
 }
 
+
+
 body {
 	padding: 2rem 4rem;
 }
+
+
 
 p em {
 	font-weight: bold;
 	font-style: normal;
 }
 
+
+
 a {
 	cursor: pointer;
 }
+
+
 
 img {
 	max-width: 100%;
 }
 
-.card {
-	margin: .5rem 0 1.5rem 0;
-}
+
 
 .card .card-content {
 	min-height: 155px;
+}
+
+main > .modules {
+	display: flex;
+	flex-flow: wrap;
+	justify-content: flex-start;
+
+	margin-top: -40px;
+	margin-bottom: 40px;
+}
+
+main > .modules > .module {
+	margin: 40px 0 0 0 !important;
+}
+
+main > .modules > .module > .card {
+	display: flex;
+	flex-direction: column;
+
+	height: 100%;
+
+	margin: initial !important;
+}
+
+main > .modules > .module > .card > .card-content {
+	flex-grow: 1;
+	flex-shrink: 0;
+}
+
+main > .modules > .module > .card > .card-action {
+	flex-grow: 0;
+	flex-shrink: 0;
+}
+
+
+
+section a {
+	cursor: pointer;
+}
+
+section a:hover {
+	color: deepskyblue;
+}
+
+
+
+section > div:not(.col) {
+	overflow: hidden;
+}
+
+section > div:not(.col) > a,
+section > div:not(.col) > button {
+	float: left;
+}
+
+section > div:not(.col) > a + a,
+section > div:not(.col) > a + button,
+section > div:not(.col) > button + a,
+section > div:not(.col) > button + button {
+	clear: left;
+
+	margin-top: 1ex;
 }

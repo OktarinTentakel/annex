@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Context Module Examples</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png">
+
+		<link rel="stylesheet" href="./main.css">
+		<style type="text/css">
+
+		</style>
+
+		<script defer src="./lib/handle-version-switching.js"></script>
+		<script>
+			function setup(
+				browserSupportsHistoryManipulation,
+				contextHasHighDpi,
+				browserScrollbarWidth,
+				detectInteractionType,
+				detectAppleDevice
+			){
+				var
+					context = document.querySelector('#context'),
+					interactionType
+				;
+
+				var fUpdateContext = function(){
+					var infoMarkup = '';
+
+					infoMarkup = infoMarkup+'<tr><td>Browser Supports History Manipulation</td><td>'+(browserSupportsHistoryManipulation() ? 'yes' : 'no')+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Context Has High DPI</td><td>'+(contextHasHighDpi() ? 'yes' : 'no')+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Browser Scrollbar Width</td><td>'+browserScrollbarWidth()+'px'+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Interaction Type</td><td>'+interactionType+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Apple Device Type</td><td>'+(detectAppleDevice() ? detectAppleDevice() : 'not an apple device')+'</td></tr>';
+
+					context.innerHTML = infoMarkup;
+				};
+
+				detectInteractionType(function(changedInteractionType){
+					interactionType = changedInteractionType;
+					fUpdateContext();
+				}, true);
+				window.setInterval(fUpdateContext, 2500);
+			}
+		</script>
+		<script type="module">
+			if( window.__ANNEX_VERSION__ !== 'es5' ){
+				(async () => {
+					const {
+						browserSupportsHistoryManipulation,
+						contextHasHighDpi,
+						browserScrollbarWidth,
+						detectInteractionType,
+						detectAppleDevice
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/context.js`);
+
+					setup(
+						browserSupportsHistoryManipulation,
+						contextHasHighDpi,
+						browserScrollbarWidth,
+						detectInteractionType,
+						detectAppleDevice
+					);
+				})().catch(err => {
+					console.error(err);
+				});
+			}
+		</script>
+		<script defer src="./lib/annex/dist/es5-monolith.js"></script>
+		<script defer>
+			(function(){
+				var annexPoll = window.setInterval(function(){
+					if( window.__ANNEX_VERSION__ && window.annex ){
+						window.clearInterval(annexPoll);
+
+						if( window.__ANNEX_VERSION__ === 'es5' ){
+							setup(
+								window.annex.context.browserSupportsHistoryManipulation,
+								window.annex.context.contextHasHighDpi,
+								window.annex.context.browserScrollbarWidth,
+								window.annex.context.detectInteractionType,
+								window.annex.context.detectAppleDevice
+							);
+						}
+					}
+				}, 250);
+			})();
+		</script>
+	</head>
+
+	<body>
+		<header>
+			<h1>Context Module Examples</h1>
+		</header>
+		<main>
+			<p>
+				This table should update itself automatically, so feel free to play with the dev tools to change
+				information on the fly.
+			</p>
+			<table>
+				<thead>
+					<tr>
+						<th>Feature</th>
+						<th>Support</th>
+					</tr>
+				</thead>
+				<tbody id="context"></tbody>
+			</table>
+		</main>
+	</body>
+</html>

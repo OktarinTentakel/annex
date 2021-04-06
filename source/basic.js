@@ -57,6 +57,7 @@ export function assert(condition, message){
  * Do not encapsulate complex code in the closure and mind recursively occurring exceptions!
  *
  * @param {Function} closure - the code to test
+ * @throws error is closure is not a function
  * @returns {Boolean} true if no exception occurred
  *
  * @memberof Basic:attempt
@@ -65,7 +66,7 @@ export function assert(condition, message){
  * if( !attempt(function(){ foobar(); }) ){ log('foobar cannot be executed!'); }
  */
 export function attempt(closure){
-	assert(isA(closure, 'function'), `${MODULE_NAME}:attempt | closure is not a function`);
+	assert(isA(closure, 'function'), `${MODULE_NAME}:attempt | closure is no function`);
 
 	try {
 		closure();
@@ -187,13 +188,14 @@ export function isEmpty(){
  *   }
  * }
  */
-export function hasMembers(obj, memberNames, verbose){
+export function hasMembers(obj, memberNames, verbose=false){
 	verbose = orDefault(verbose, false, 'bool');
+	memberNames = orDefault(memberNames, [], 'arr');
 
 	let res = true;
 
 	memberNames.forEach(memberName => {
-		if( !hasValue(obj[memberName]) ){
+		if( !hasValue(obj[`${memberName}`]) ){
 			if( verbose ){
 				log().info(`${MODULE_NAME}:hasMembers | missing member ${memberName}`);
 			}
@@ -307,6 +309,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  * - "htmldocument"
  * - "htmlelement"
  * - "nodelist"
+ * - "window"
  *
  * @param {*} [value] - variable to check the type of
  * @returns {String} the value type in lower case
@@ -328,7 +331,7 @@ export function getType(value) {
 	if( deepType === 'element' ) return 'htmlelement';
 	if( /^html.*element$/.test(deepType) ) return 'htmlelement';
 
-	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|nodelist)$/)
+	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|nodelist|window)$/)
 		? deepType
 		: ((typeof value === 'object') || (typeof value === 'function')) ? 'object' : typeof value
 	;
@@ -377,7 +380,8 @@ export function isA(value, type){
 			'weakmap',
 			'htmldocument',
 			'htmlelement',
-			'nodelist'
+			'nodelist',
+			'window'
 		].includes(`${type}`.toLowerCase())
 	){
 		return getType(value) === `${type}`.toLowerCase();
@@ -496,7 +500,7 @@ export function isPlainObject(value){
  *   return suspiciousCalculatedValue * 3;
  * }
  */
-export function isNaN(expression, checkForIdentity){
+export function isNaN(expression, checkForIdentity=true){
 	checkForIdentity = orDefault(checkForIdentity, true, 'bool');
 
 	if( checkForIdentity ){

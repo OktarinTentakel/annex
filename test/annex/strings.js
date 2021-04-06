@@ -30,9 +30,9 @@ test('replace', assert => {
 		foobar = 'ßßß'
 	;
 
-	assert.is(replace([':', '#', '-'], '_', foo), 'this_is_a_very_unclean_string');
-	assert.is(replace(['<', '>', ';', '\''], ['{', '}', ':', '"'], bar), '{"transform" : {"me" : "to json"}}');
-	assert.is(replace('ß', 'sz', foobar), 'szszsz');
+	assert.is(replace(foo, [':', '#', '-'], '_'), 'this_is_a_very_unclean_string');
+	assert.is(replace(bar, ['<', '>', ';', '\''], ['{', '}', ':', '"']), '{"transform" : {"me" : "to json"}}');
+	assert.is(replace(foobar, 'ß', 'sz', ), 'szszsz');
 });
 
 

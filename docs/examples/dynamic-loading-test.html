@@ -262,9 +262,14 @@
 		<main>
 			<h3>createFetchRequest</h3>
 			<section>
-				<p>Trigger a request below, to see the response information.</p>
+				<p>
+					Trigger a request below, to see the response information.
+					(the last two image requests might fail if you are viewing this file directly from the
+					file system, due to CORS security settings, but the examples should work when served by
+					a webserver)
+				</p>
 				<div>
-					<pre id="create-fetch-request-json-result"><code class="source language-json">null</code></pre>
+					<pre id="create-fetch-request-json-result"><code class="source language-json"></code></pre>
 					<a id="create-fetch-request-1">Should query a JSON API and return a post in the payload</a>
 					<a id="create-fetch-request-2">Should query a JSON API and return a newly created post with title "foo" and body "bar" in the payload</a>
 					<a id="create-fetch-request-3">Should query a JSON API and return a patched post with title "foo" in the payload</a>

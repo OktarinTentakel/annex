@@ -82,19 +82,23 @@ section a:hover {
 
 
 
+section pre code {
+	border: 1px solid lightblue;
+}
+
+
+
 section > div:not(.col) {
 	overflow: hidden;
 }
 
-section > div:not(.col) > a,
-section > div:not(.col) > button {
+section > div:not(.col) > * {
 	float: left;
+
+	max-width: 100%;
 }
 
-section > div:not(.col) > a + a,
-section > div:not(.col) > a + button,
-section > div:not(.col) > button + a,
-section > div:not(.col) > button + button {
+section > div:not(.col) > * + * {
 	clear: left;
 
 	margin-top: 1ex;

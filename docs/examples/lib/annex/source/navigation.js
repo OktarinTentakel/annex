@@ -177,12 +177,20 @@ export function redirect(url=null, params=null, anchor=null, target=null, postPa
 			parsedUrl = new URL(url, window.location);
 		}
 
-		const securityFeaturesForExternalUrls = (parsedUrl.origin !== window.location.origin)
-			? 'noopener,noreferrer'
-			: ''
-		;
-
-		window.open(finalUrl, target, securityFeaturesForExternalUrls);
+		if( parsedUrl.origin !== window.location.origin ){
+			// we have to jump through hoops here, since adding security features to window.open
+			// forces popup windows in some browsers and although we can set opener via the created
+			// window, we cannot reliably set the referrer that way
+			const eLink = document.createElement('a');
+			eLink.href = finalUrl;
+			eLink.target = target;
+			eLink.rel = 'noopener noreferrer';
+			document.body.appendChild(eLink);
+			eLink.click();
+			eLink.parentNode.removeChild(eLink);
+		} else {
+			window.open(finalUrl, target);
+		}
 	} else {
 		window.location.href = finalUrl;
 	}
@@ -233,6 +241,9 @@ export function openTab(url, params, anchor, postParams){
  * https://developer.mozilla.org/en-US/docs/Web/API/Window/open#window_features
  *
  * Keep in mind to set "noopener" and/or "noreferrer" for external URLs in options, to improve security and privacy.
+ * Hint for older MS browsers: if you set these security options, these will most likely open the URL in a popup
+ * window. If you want to circumvent this, you'll have to drop the "noreferrer" and settle for "noopener", by
+ * setting opener to null on the returned window like this: `openWindow('url').opener = null;`
  *
  * @param {String} url - the URL to load in the new window
  * @param {?Object} [options=null] - parameters for the new window according to the definitions of window.open & "name" for the window name

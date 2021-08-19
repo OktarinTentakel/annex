@@ -39,3 +39,6 @@ export const viewport = _viewport;
 
 import * as _navigation from './navigation.js';
 export const navigation = _navigation;
+
+import * as _dynamicLoading from './dynamic-loading.js';
+export const dynamicLoading = _dynamicLoading;

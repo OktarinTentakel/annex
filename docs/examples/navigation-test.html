@@ -49,6 +49,12 @@
 					redirect(null, null, 'fluffykittens');
 				});
 
+				document.querySelector('#redirect-5').addEventListener('click', function(e){
+					e.preventDefault();
+
+					redirect('//google.com?q=test&next=%2F%2Fgoogle.com%3Ftest%3Dabc%23test&next2=test', {next2 : '//google.com?test=abc#test'}, 'test', 'google');
+				});
+
 
 
 				document.querySelector('#opentab-1').addEventListener('click', function(e){
@@ -213,6 +219,7 @@
 					<a id="redirect-2">Should open this URL with get-parameters and a hash in a new window, repeated clicks should target the same window</a>
 					<a id="redirect-3">Should open this URL with a get and several post-params (may fail due to request method, but post data should be visible in network)</a>
 					<a id="redirect-4">Should only change the current hash, without loading anything</a>
+					<a id="redirect-5">Should open google.com with get-parameters and a hash in a new window, where the get-parameters are next-parameters that should contain the same url-encoded url</a>
 				</div>
 			</section>
 

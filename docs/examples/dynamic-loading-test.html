@@ -384,7 +384,7 @@
 					e.preventDefault();
 
 					sourceDisplay.innerHTML = '';
-					createJsRequest('/files/js/dynamic-loading-test.js')
+					createJsRequest('./files/js/dynamic-loading-test.js')
 						.execute()
 						.then(function(jsElement){
 							sourceDisplay.innerHTML = jsElement.textContent;
@@ -398,7 +398,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createJsRequest('/files/js/dynamic-loading-test.js')
+					createJsRequest('./files/js/dynamic-loading-test.js')
 						.execute(null, injectTarget, 'request-2')
 						.then(function(jsElement){
 							sourceDisplay.innerHTML = jsElement.textContent;
@@ -412,7 +412,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createJsRequest('/files/js/dynamic-loading-test.js')
+					createJsRequest('./files/js/dynamic-loading-test.js')
 						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-3')
 						.then(function(rawJs){
 							sourceDisplay.innerHTML = rawJs;
@@ -426,7 +426,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createJsRequest('/files/js/dynamic-loading-test.js')
+					createJsRequest('./files/js/dynamic-loading-test.js')
 						.execute('sourced-element', {element : injectTarget, position : 'prepend'}, 'request-4')
 						.then(function(jsElement){
 							sourceDisplay.innerHTML = '"'+jsElement.getAttribute('data-id')+'"';
@@ -471,7 +471,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createCssRequest('/files/css/dynamic-loading-test.css')
+					createCssRequest('./files/css/dynamic-loading-test.css')
 						.execute()
 						.then(function(cssElement){
 							sourceDisplay.innerHTML = cssElement.textContent;
@@ -485,7 +485,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createCssRequest('/files/css/dynamic-loading-test.css')
+					createCssRequest('./files/css/dynamic-loading-test.css')
 						.execute(null, injectTarget, 'request-2')
 						.then(function(cssElement){
 							sourceDisplay.innerHTML = cssElement.textContent;
@@ -499,7 +499,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createCssRequest('/files/css/dynamic-loading-test.css')
+					createCssRequest('./files/css/dynamic-loading-test.css')
 						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-3', 'screen')
 						.then(function(rawCss){
 							sourceDisplay.innerHTML = rawCss;
@@ -513,7 +513,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createCssRequest('/files/css/dynamic-loading-test.css')
+					createCssRequest('./files/css/dynamic-loading-test.css')
 						.execute('sourced-element', {element : injectTarget, position : 'prepend'}, 'request-4', 'screen')
 						.then(function(cssElement){
 							sourceDisplay.innerHTML = '"'+cssElement.getAttribute('data-id')+'"';
@@ -558,7 +558,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+					createHtmlRequest('./files/html/dynamic-loading-test-1.html')
 						.execute('raw', null, 'request-1')
 						.then(function(rawHtml){
 							var escape = document.createElement('textarea');
@@ -574,7 +574,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+					createHtmlRequest('./files/html/dynamic-loading-test-1.html')
 						.execute()
 						.then(function(htmlElement){
 							var escape = document.createElement('textarea');
@@ -590,7 +590,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+					createHtmlRequest('./files/html/dynamic-loading-test-1.html')
 						.execute(null, injectTarget, 'request-3', 'body > main > h1')
 						.then(function(htmlElement){
 							var escape = document.createElement('textarea');
@@ -606,7 +606,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+					createHtmlRequest('./files/html/dynamic-loading-test-1.html')
 						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-4', 'h1 ~ p', true)
 						.then(function(rawHtml){
 							var escape = document.createElement('textarea');
@@ -622,7 +622,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('/files/html/dynamic-loading-test-2.html')
+					createHtmlRequest('./files/html/dynamic-loading-test-2.html')
 						.execute('element', {element : injectTarget, position : 'prepend'}, 'request-5')
 						.then(function(htmlElements){
 							var source = '';

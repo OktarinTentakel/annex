@@ -100,6 +100,829 @@
 
         
                 
+<h4 class="name" id="CssFetchRequest">CssFetchRequest</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the request URL</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the options with which the request has been created
+                <h6>Properties</h6>
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>method</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the request method</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>headers</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the set headers for the request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>credentials</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the credentials setting for the request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>body</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the provided request body of the request</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>execute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#CssFetchRequestExecuteFunction">CssFetchRequestExecuteFunction</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">call this to execute the request</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line515">line 515</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="CssFetchRequestExecuteFunction"><span class="type-signature"></span>CssFetchRequestExecuteFunction<span class="signature">(resolveTo<span class="signature-attributes">opt, nullable</span>, insertTarget<span class="signature-attributes">opt</span>, dataId<span class="signature-attributes">opt, nullable</span>, media<span class="signature-attributes">opt, nullable</span>, resolveSourcedOnInsert<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;<a href="global.html#CssFetchResponse">CssFetchResponse</a>>}</span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>resolveTo</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'element'
+                
+                </td>
+            
+
+            <td class="description last">defines what the response promise should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a link with a href instead of doing a real request)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>insertTarget</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+|
+
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a style/link tag, otherwise the properties below apply
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>element</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">target element in relation to which the resolved value should be inserted into the dom</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>position</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dataId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>media</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'all'
+                
+                </td>
+            
+
+            <td class="description last">define the style's media attribute here to target the output device(s), could be "screen" or "print" for example</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>resolveSourcedOnInsert</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in a resolved promise after insertion</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line501">line 501</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Elements_insertNode.html">insertNode</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;<a href="global.html#CssFetchResponse">CssFetchResponse</a>></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+            
+                
+<h4 class="name" id="CssFetchResponse">CssFetchResponse</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">HTMLElement</span>
+|
+
+<span class="param-type">String</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line496">line 496</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
 <h4 class="name" id="FetchRequest">FetchRequest</h4>
 
 
@@ -397,7 +1220,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line44">line 44</a>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line46">line 46</a>
     </li></ul></dd>
     
 
@@ -465,7 +1288,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line38">line 38</a>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line40">line 40</a>
     </li></ul></dd>
     
 
@@ -891,7 +1714,2359 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line21">line 21</a>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line23">line 23</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="HtmlFetchRequest">HtmlFetchRequest</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the request URL</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the options with which the request has been created
+                <h6>Properties</h6>
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>method</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the request method</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>headers</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the set headers for the request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>credentials</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the credentials setting for the request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>body</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the provided request body of the request</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>execute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#HtmlFetchRequestExecuteFunction">HtmlFetchRequestExecuteFunction</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">call this to execute the request</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line663">line 663</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="HtmlFetchRequestExecuteFunction"><span class="type-signature"></span>HtmlFetchRequestExecuteFunction<span class="signature">(resolveTo<span class="signature-attributes">opt, nullable</span>, insertTarget<span class="signature-attributes">opt</span>, dataId<span class="signature-attributes">opt, nullable</span>, selector<span class="signature-attributes">opt, nullable</span>, selectAll<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;<a href="global.html#HtmlFetchResponse">HtmlFetchResponse</a>>}</span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>resolveTo</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'element'
+                
+                </td>
+            
+
+            <td class="description last">defines what the response promise should resolve to, may either be "element" or "raw"</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>insertTarget</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+|
+
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as (a) node(s), otherwise the properties below apply
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>element</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">target element in relation to which the resolved value should be inserted into the dom</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>position</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dataId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node(s)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>selector</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">if you'd like to preselect something from the result, you may define a regular query selector to find matching elements in the result</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>selectAll</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">usually, if a selector is defined, we select a single element, if you need to select a list, set this to true</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line649">line 649</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Elements_insertNode.html">insertNode</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;<a href="global.html#HtmlFetchResponse">HtmlFetchResponse</a>></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+            
+                
+<h4 class="name" id="HtmlFetchResponse">HtmlFetchResponse</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">HTMLElement</span>
+|
+
+<span class="param-type">Array.&lt;HTMLElement></span>
+|
+
+<span class="param-type">String</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line644">line 644</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="JsFetchRequest">JsFetchRequest</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the request URL</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the options with which the request has been created
+                <h6>Properties</h6>
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>method</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the request method</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>headers</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the set headers for the request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>credentials</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the credentials setting for the request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>body</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the provided request body of the request</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>execute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#JsFetchRequestExecuteFunction">JsFetchRequestExecuteFunction</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">call this to execute the request</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line368">line 368</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="JsFetchRequestExecuteFunction"><span class="type-signature"></span>JsFetchRequestExecuteFunction<span class="signature">(resolveTo<span class="signature-attributes">opt, nullable</span>, insertTarget<span class="signature-attributes">opt</span>, dataId<span class="signature-attributes">opt, nullable</span>, resolveSourcedOnInsert<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;<a href="global.html#JsFetchResponse">JsFetchResponse</a>>}</span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>resolveTo</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'element'
+                
+                </td>
+            
+
+            <td class="description last">defines what the response promise should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a script with a src instead of doing a real request)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>insertTarget</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+|
+
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a script tag, otherwise the properties below apply
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>element</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">target element in relation to which the resolved value should be inserted into the dom</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>position</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dataId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>resolveSourcedOnInsert</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in a resolved promise after insertion</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line355">line 355</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Elements_insertNode.html">insertNode</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;<a href="global.html#JsFetchResponse">JsFetchResponse</a>></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+            
+                
+<h4 class="name" id="JsFetchResponse">JsFetchResponse</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">HTMLElement</span>
+|
+
+<span class="param-type">String</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line350">line 350</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="JsonFetchRequest">JsonFetchRequest</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the request URL</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the options with which the request has been created
+                <h6>Properties</h6>
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>method</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the request method</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>headers</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the set headers for the request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>credentials</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the credentials setting for the request</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>body</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the provided request body of the request</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>execute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#JsonFetchRequestExecuteFunction">JsonFetchRequestExecuteFunction</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">call this to execute the request</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line246">line 246</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="JsonFetchRequestExecuteFunction"><span class="type-signature"></span>JsonFetchRequestExecuteFunction<span class="signature">(resolveTo<span class="signature-attributes">opt, nullable</span>, insertTarget<span class="signature-attributes">opt</span>, dataId<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;<a href="global.html#JsonFetchResponse">JsonFetchResponse</a>>}</span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>resolveTo</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'object'
+                
+                </td>
+            
+
+            <td class="description last">defines what the response promise should resolve to, may either be "object", "element" or "raw"</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>insertTarget</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+|
+
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a script tag, otherwise the properties below apply
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>element</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">target element in relation to which the resolved value should be inserted into the dom</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>position</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dataId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line234">line 234</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Elements_insertNode.html">insertNode</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;<a href="global.html#JsonFetchResponse">JsonFetchResponse</a>></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+            
+                
+<h4 class="name" id="JsonFetchResponse">JsonFetchResponse</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+|
+
+<span class="param-type">HTMLElement</span>
+|
+
+<span class="param-type">String</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dynamic-loading.js.html">dynamic-loading.js</a>, <a href="dynamic-loading.js.html#line229">line 229</a>
     </li></ul></dd>
     
 
@@ -921,13 +4096,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="DynamicLoading.html">DynamicLoading</a></li><li class="namespace"><a href="DynamicLoading_createFetchRequest.html">DynamicLoading:createFetchRequest</a></li><li class="namespace"><a href="DynamicLoading_polyfillFetch.html">DynamicLoading:polyfillFetch</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_bindHistoryChange.html">Navigation:bindHistoryChange</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace"><a href="Navigation_unbindHistoryChange.html">Navigation:unbindHistoryChange</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="DynamicLoading.html">DynamicLoading</a></li><li class="namespace"><a href="DynamicLoading_createCssRequest.html">DynamicLoading:createCssRequest</a></li><li class="namespace"><a href="DynamicLoading_createFetchRequest.html">DynamicLoading:createFetchRequest</a></li><li class="namespace"><a href="DynamicLoading_createHtmlRequest.html">DynamicLoading:createHtmlRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsonRequest.html">DynamicLoading:createJsonRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsRequest.html">DynamicLoading:createJsRequest</a></li><li class="namespace"><a href="DynamicLoading_polyfillFetch.html">DynamicLoading:polyfillFetch</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_bindHistoryChange.html">Navigation:bindHistoryChange</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace"><a href="Navigation_unbindHistoryChange.html">Navigation:unbindHistoryChange</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Thu Aug 19 2021 19:39:49 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Thu Feb 10 2022 18:47:01 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

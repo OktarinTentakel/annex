@@ -192,7 +192,7 @@ export function redirect(url=null, params=null, anchor=null, target=null, postPa
 			window.open(finalUrl, target);
 		}
 	} else {
-		window.location.href = finalUrl;
+		window.location.assign(finalUrl);
 	}
 }
 

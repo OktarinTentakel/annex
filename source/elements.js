@@ -23,38 +23,51 @@ import {orDefault, isA, isPlainObject, hasValue, assert} from './basic.js'
  * without inserting it into the DOM.
  *
  * If you provide markup as "tag", make sure that there is one single root element, this method returns exactly one
- * element, not a NodeList.
+ * element, not a NodeList. Also be sure to _not_ just pass HTML source from an unsecure source, since this
+ * method does not deal with potential security risks.
+ *
+ * One thing about dynamically creating script tags with this: if you want the script is javascript and you want to
+ * actually execute the script upon adding it to the dom, you cannot provide the complete tag as a source string,
+ * since scripts created with innerHTML will not execute.
+ * (see: https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML#security_considerations)
+ * Instead, just provide the tag name and define attributes and source via the parameters instead.
  *
  * @param {?String} [tag='span'] - tag of the element to create or markup for root element
  * @param {?Object} [attributes=null] - tag attributes as key/value-pairs, will also be added to provided markup
  * @param {?String} [content=null] - content to insert into the element as textContent, be aware, that this will replace other content in provided markup
- * @returns {HTMLElement} DOM-node
+ * @returns {HTMLElement} the created DOM-node
  *
  * @memberof Elements:createNode
  * @alias createNode
  * @example
- * window.body.appendChild(
- *  createNode('div', {id : 'content', style : 'display:none;'}, 'loading...')
+ * document.body.appendChild(
+ *   createNode('div', {id : 'content', style : 'display:none;'}, 'loading...')
  * );
- * window.body.appendChild(
- *  createNode('<div id="content" style="display:none;">loading...</div>')
+ * document.body.appendChild(
+ *   createNode('<div id="content" style="display:none;">loading...</div>')
  * );
- *
+ * document.body.appendChild(
+ *   createNode('script', {type : 'text/javascript'}, 'alert("Hello World");');
+ * );
  */
 export function createNode(tag, attributes=null, content=null){
 	tag = orDefault(tag, 'span', 'str').trim();
 	attributes = isPlainObject(attributes) ? attributes : null;
 	content = orDefault(content, null, 'str');
 
-	const outerNode = document.createElement('main');
+	// using anything more generic like template results in non-standard nodes like
+	// <script type="text/json"> not being creatable
+	const outerNode = document.createElement('div');
 
 	if(
-		/^<[^<>\/]+>/.test(tag)
+		/^<[^\/][^<>]*>/.test(tag)
 		&& /<\/[^<>\/]+>$/.test(tag)
 	){
-		outerNode.innerHTML = tag.trim();
+		// using DOMParser results in non-standard nodes like
+		// <script type="text/json"> not being creatable
+		outerNode.innerHTML = tag;
 	} else {
-		outerNode.innerHTML = `<${tag}/>`;
+		outerNode.appendChild(document.createElement(tag));
 	}
 
 	const node = outerNode.firstChild;
@@ -68,6 +81,72 @@ export function createNode(tag, attributes=null, content=null){
 	if( hasValue(content) ){
 		node.textContent = content;
 	}
+
+	return node;
+}
+
+
+
+/**
+ * @namespace Elements:insertNode
+ */
+
+/**
+ * Inserts a node into the DOM in relation to a target element.
+ *
+ * If the node is not an element, the parameter is treated as source and a node is created
+ * automatically based on that.
+ *
+ * The position can be determined with the same values as in "insertAdjacentElement"
+ * (see: https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentElement),
+ * but we also added the more intuitive jQuery aliases for positions:
+ *
+ * - "beforebegin" can also be described as "before"
+ * - "afterbegin" can also be described as "prepend"
+ * - "beforeend" can also be described as "append"
+ * - "afterend" can also be descrived as "after"
+ *
+ * @param {HTMLElement} target - the element to which the node will be inserted in relation to
+ * @param {HTMLElement|String} node - the node to insert, either as element or source string
+ * @param {?String} [position='beforeend'] - the position to insert the node in relation to target, the default value appends the node as the last child in target
+ * @returns {HTMLElement} the inserted DOM-node
+ *
+ * @memberof Elements:insertNode
+ * @alias insertNode
+ * @example
+ * insertNode(document.querySelector('.list-container'), listItemElement);
+ * insertNode(document.querySelector('.list-container'), '<li>Item 42</li>', 'prepend');
+ */
+export function insertNode(target, node, position='beforeend'){
+	if( !isA(node, 'htmlelement') ){
+		node = createNode(`${element}`);
+	}
+
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.injectNode | given target is not an HTMLElement`);
+
+	switch( position ){
+		case 'beforebegin':
+		case 'before':
+			position = 'beforebegin';
+		break;
+		case 'afterend':
+		case 'after':
+			position = 'afterend';
+		break;
+		case 'afterbegin':
+		case 'prepend':
+			position = 'afterbegin';
+		break;
+		case 'beforeend':
+		case 'append':
+			position = 'beforeend';
+		break;
+		default:
+			position = 'beforeend';
+		break;
+	}
+
+	target.insertAdjacentElement(position, node);
 
 	return node;
 }

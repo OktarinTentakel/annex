@@ -307,7 +307,7 @@ export function slugify(text){
 		.replace(/\s+/g, '-')           //replace spaces with "-"
 		.replace(/[^A-Za-z0-9\[\] ]/g, function(char){ return SLUGIFY_LATINMAP[char] ?? char; })
 		.replace(/[^\w\-]+|_+/g, '')    //remove all non-word chars || ^replace accented chars with plain ones
-		.replace(/--+/g, '-')         //replace multiple "-" with single "-"
+		.replace(/--+/g, '-')           //replace multiple "-" with single "-"
 		.replace(/^-+/, '')             //trim "-" from start of text
 		.replace(/-+$/, '')             //trim "-" from end of text
 	;

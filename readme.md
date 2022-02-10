@@ -57,6 +57,7 @@ Some of the Batteries Included
 - array tools
 - math helpers
 - better timers
+- streamlined standard requests
 - polling
 - url and navigation helpers
 - solutions for obfuscated mailto and tel links

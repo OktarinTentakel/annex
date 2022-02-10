@@ -10,8 +10,52 @@
 		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png">
 
 		<link rel="stylesheet" href="./main.css">
-		<style type="text/css">
+		<style>
+			#create-json-request-inject-holder,
+			#create-js-request-inject-holder,
+			#create-css-request-inject-holder,
+			#create-html-request-inject-holder {
+				margin-bottom: 1rem;
+			}
 
+			#create-json-request-inject-reset,
+			#create-js-request-inject-reset,
+			#create-css-request-inject-reset,
+			#create-html-request-inject-reset {
+				margin-bottom: 1rem;
+			}
+
+			#create-json-request-inject-holder .target,
+			#create-js-request-inject-holder .target,
+			#create-css-request-inject-holder .target,
+			#create-html-request-inject-holder .target {
+				padding: 0.5em;
+				border: 1px solid thistle;
+
+				font-family: monospace;
+				font-size: 1em;
+				color: #333;
+
+				background: #f8f8f8;
+			}
+
+			#create-json-request-inject-holder script,
+			#create-js-request-inject-holder script,
+			#create-css-request-inject-holder style,
+			#create-css-request-inject-holder link,
+			#create-html-request-inject-holder :not(.target) {
+				display: block;
+
+				padding: 0.5em;
+				border: 1px solid thistle;
+				margin: 0;
+
+				font-family: monospace;
+				font-size: 0.66em;
+				color: thistle;
+
+				background: #f8f8f8;
+			}
 		</style>
 
 		<!-- deprecated version to support ie11 -->
@@ -30,12 +74,12 @@
 
 		<script defer src="./lib/handle-version-switching.js"></script>
 		<script>
-			function setup(
+			function setupFetch(
 				createFetchRequest,
 				polyfillFetch
 			){
-				var createFetchRequestResultJsonSource = document.querySelector('#create-fetch-request-json-result .source');
-				hljs.highlightBlock(createFetchRequestResultJsonSource);
+				var sourceDisplay = document.querySelector('#create-fetch-request-json-result .source');
+				hljs.highlightBlock(sourceDisplay);
 
 				var
 					fBuildRequestJson = function(response){
@@ -55,7 +99,7 @@
 				document.querySelector('#create-fetch-request-1').addEventListener('click', function(e){
 					e.preventDefault();
 
-					createFetchRequestResultJsonSource.innerHTML = '';
+					sourceDisplay.innerHTML = '';
 					var requestJson;
 
 					fFetch('https://jsonplaceholder.typicode.com/posts/1')
@@ -65,8 +109,8 @@
 						})
 						.then(function(post){
 							requestJson.payload = post;
-							createFetchRequestResultJsonSource.innerHTML = JSON.stringify(requestJson, null, 4);
-							hljs.highlightBlock(createFetchRequestResultJsonSource);
+							sourceDisplay.innerHTML = JSON.stringify(requestJson, null, 4);
+							hljs.highlightBlock(sourceDisplay);
 						})
 					;
 				});
@@ -74,7 +118,7 @@
 				document.querySelector('#create-fetch-request-2').addEventListener('click', function(e){
 					e.preventDefault();
 
-					createFetchRequestResultJsonSource.innerHTML = '';
+					sourceDisplay.innerHTML = '';
 					var requestJson;
 
 					fFetch('https://jsonplaceholder.typicode.com/posts', {
@@ -94,8 +138,8 @@
 						})
 						.then(function(post){
 							requestJson.payload = post;
-							createFetchRequestResultJsonSource.innerHTML = JSON.stringify(requestJson, null, 4);
-							hljs.highlightBlock(createFetchRequestResultJsonSource);
+							sourceDisplay.innerHTML = JSON.stringify(requestJson, null, 4);
+							hljs.highlightBlock(sourceDisplay);
 						})
 					;
 				});
@@ -103,7 +147,7 @@
 				document.querySelector('#create-fetch-request-3').addEventListener('click', function(e){
 					e.preventDefault();
 
-					createFetchRequestResultJsonSource.innerHTML = '';
+					sourceDisplay.innerHTML = '';
 					var requestJson;
 
 					fFetch('https://jsonplaceholder.typicode.com/posts/1', {
@@ -121,8 +165,8 @@
 						})
 						.then(function(post){
 							requestJson.payload = post;
-							createFetchRequestResultJsonSource.innerHTML = JSON.stringify(requestJson, null, 4);
-							hljs.highlightBlock(createFetchRequestResultJsonSource);
+							sourceDisplay.innerHTML = JSON.stringify(requestJson, null, 4);
+							hljs.highlightBlock(sourceDisplay);
 						})
 					;
 				});
@@ -130,7 +174,7 @@
 				document.querySelector('#create-fetch-request-4').addEventListener('click', function(e){
 					e.preventDefault();
 
-					createFetchRequestResultJsonSource.innerHTML = '';
+					sourceDisplay.innerHTML = '';
 					var requestJson;
 
 					fFetch('https://jsonplaceholder.typicode.com/posts/1', {
@@ -142,8 +186,8 @@
 						})
 						.then(function(post){
 							requestJson.payload = post;
-							createFetchRequestResultJsonSource.innerHTML = JSON.stringify(requestJson, null, 4);
-							hljs.highlightBlock(createFetchRequestResultJsonSource);
+							sourceDisplay.innerHTML = JSON.stringify(requestJson, null, 4);
+							hljs.highlightBlock(sourceDisplay);
 						})
 					;
 				});
@@ -151,7 +195,7 @@
 				document.querySelector('#create-fetch-request-5').addEventListener('click', function(e){
 					e.preventDefault();
 
-					createFetchRequestResultJsonSource.innerHTML = '';
+					sourceDisplay.innerHTML = '';
 					var requestJson;
 
 					fFetch('https://jsonplaceholder.typicode.com/posts/1')
@@ -161,8 +205,8 @@
 						})
 						.then(function(post){
 							requestJson.payload = post;
-							createFetchRequestResultJsonSource.innerHTML = JSON.stringify(requestJson, null, 4);
-							hljs.highlightBlock(createFetchRequestResultJsonSource);
+							sourceDisplay.innerHTML = JSON.stringify(requestJson, null, 4);
+							hljs.highlightBlock(sourceDisplay);
 						})
 					;
 				});
@@ -170,7 +214,7 @@
 				document.querySelector('#create-fetch-request-6').addEventListener('click', function(e){
 					e.preventDefault();
 
-					createFetchRequestResultJsonSource.innerHTML = '';
+					sourceDisplay.innerHTML = '';
 					var requestJson;
 
 					fFetch('./files/img/annex.png', {credentials : 'include'})
@@ -180,8 +224,8 @@
 						})
 						.then(function(image){
 							requestJson.payload = image.size;
-							createFetchRequestResultJsonSource.innerHTML = JSON.stringify(requestJson, null, 4);
-							hljs.highlightBlock(createFetchRequestResultJsonSource);
+							sourceDisplay.innerHTML = JSON.stringify(requestJson, null, 4);
+							hljs.highlightBlock(sourceDisplay);
 						})
 					;
 				});
@@ -189,7 +233,7 @@
 				document.querySelector('#create-fetch-request-7').addEventListener('click', function(e){
 					e.preventDefault();
 
-					createFetchRequestResultJsonSource.innerHTML = '';
+					sourceDisplay.innerHTML = '';
 					var requestJson;
 
 					fFetch('./files/img/annexx.png')
@@ -199,8 +243,8 @@
 						})
 						.then(function(){
 							requestJson.payload = null;
-							createFetchRequestResultJsonSource.innerHTML = JSON.stringify(requestJson, null, 4);
-							hljs.highlightBlock(createFetchRequestResultJsonSource);
+							sourceDisplay.innerHTML = JSON.stringify(requestJson, null, 4);
+							hljs.highlightBlock(sourceDisplay);
 						})
 					;
 				});
@@ -218,18 +262,418 @@
 					alert('now using polyfilled window.fetch, reload to reset');
 				});
 			}
+
+
+
+			function setupJson(createJsonRequest){
+				var
+					sourceDisplay = document.querySelector('#create-json-request-result .source'),
+					injectHolder = document.querySelector('#create-json-request-inject-holder'),
+					injectTarget = injectHolder.querySelector('.target')
+				;
+				hljs.highlightBlock(sourceDisplay);
+
+				document.querySelector('#create-json-request-inject-reset').addEventListener('click', function(e){
+					e.preventDefault();
+
+					while( injectTarget.previousElementSibling ){
+						injectHolder.removeChild(injectTarget.previousElementSibling);
+					}
+
+					while( injectTarget.nextElementSibling ){
+						injectHolder.removeChild(injectTarget.nextElementSibling);
+					}
+
+					while( injectTarget.firstElementChild ){
+						injectTarget.removeChild(injectTarget.firstElementChild);
+					}
+
+					while( injectTarget.lastElementChild ){
+						injectTarget.removeChild(injectTarget.lastElementChild);
+					}
+				});
+
+				document.querySelector('#create-json-request-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createJsonRequest('https://jsonplaceholder.typicode.com/posts/1')
+						.execute()
+						.then(function(json){
+							sourceDisplay.innerHTML = JSON.stringify(json, null, 4);
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-json-request-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createJsonRequest('https://jsonplaceholder.typicode.com/posts/2')
+						.execute('element', injectTarget, 'request-2')
+						.then(function(jsonElement){
+							sourceDisplay.innerHTML = JSON.stringify(JSON.parse(jsonElement.textContent), null, 4);
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-json-request-3').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createJsonRequest('https://jsonplaceholder.typicode.com/posts/3')
+						.execute('raw', {element : injectTarget, position : 'prepend'}, 'request-3')
+						.then(function(rawJson){
+							sourceDisplay.innerHTML = JSON.stringify(JSON.parse(rawJson), null, 4);
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-json-request-4').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createJsonRequest('https://jsonplaceholder.typicode.com/posts/4')
+						.execute(null, {element : injectTarget, position : 'beforebegin'}, 'request-4')
+						.then(function(json){
+							sourceDisplay.innerHTML = JSON.stringify(json, null, 4);
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+			}
+
+
+
+			function setupJs(createJsRequest){
+				var
+					sourceDisplay = document.querySelector('#create-js-request-result .source'),
+					injectHolder = document.querySelector('#create-js-request-inject-holder'),
+					injectTarget = injectHolder.querySelector('.target')
+				;
+				hljs.highlightBlock(sourceDisplay);
+
+				document.querySelector('#create-js-request-inject-reset').addEventListener('click', function(e){
+					e.preventDefault();
+
+					while( injectTarget.previousElementSibling ){
+						injectHolder.removeChild(injectTarget.previousElementSibling);
+					}
+
+					while( injectTarget.nextElementSibling ){
+						injectHolder.removeChild(injectTarget.nextElementSibling);
+					}
+
+					while( injectTarget.firstElementChild ){
+						injectTarget.removeChild(injectTarget.firstElementChild);
+					}
+
+					while( injectTarget.lastElementChild ){
+						injectTarget.removeChild(injectTarget.lastElementChild);
+					}
+				});
+
+				document.querySelector('#create-js-request-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+					createJsRequest('/files/js/dynamic-loading-test.js')
+						.execute()
+						.then(function(jsElement){
+							sourceDisplay.innerHTML = jsElement.textContent;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-js-request-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createJsRequest('/files/js/dynamic-loading-test.js')
+						.execute(null, injectTarget, 'request-2')
+						.then(function(jsElement){
+							sourceDisplay.innerHTML = jsElement.textContent;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-js-request-3').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createJsRequest('/files/js/dynamic-loading-test.js')
+						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-3')
+						.then(function(rawJs){
+							sourceDisplay.innerHTML = rawJs;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-js-request-4').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createJsRequest('/files/js/dynamic-loading-test.js')
+						.execute('sourced-element', {element : injectTarget, position : 'prepend'}, 'request-4')
+						.then(function(jsElement){
+							sourceDisplay.innerHTML = '"'+jsElement.getAttribute('data-id')+'"';
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+			}
+
+
+
+			function setupCss(createCssRequest){
+				var
+					sourceDisplay = document.querySelector('#create-css-request-result .source'),
+					injectHolder = document.querySelector('#create-css-request-inject-holder'),
+					injectTarget = injectHolder.querySelector('.target')
+				;
+				hljs.highlightBlock(sourceDisplay);
+
+				document.querySelector('#create-css-request-inject-reset').addEventListener('click', function(e){
+					e.preventDefault();
+
+					while( injectTarget.previousElementSibling ){
+						injectHolder.removeChild(injectTarget.previousElementSibling);
+					}
+
+					while( injectTarget.nextElementSibling ){
+						injectHolder.removeChild(injectTarget.nextElementSibling);
+					}
+
+					while( injectTarget.firstElementChild ){
+						injectTarget.removeChild(injectTarget.firstElementChild);
+					}
+
+					while( injectTarget.lastElementChild ){
+						injectTarget.removeChild(injectTarget.lastElementChild);
+					}
+				});
+
+				document.querySelector('#create-css-request-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createCssRequest('/files/css/dynamic-loading-test.css')
+						.execute()
+						.then(function(cssElement){
+							sourceDisplay.innerHTML = cssElement.textContent;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-css-request-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createCssRequest('/files/css/dynamic-loading-test.css')
+						.execute(null, injectTarget, 'request-2')
+						.then(function(cssElement){
+							sourceDisplay.innerHTML = cssElement.textContent;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-css-request-3').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createCssRequest('/files/css/dynamic-loading-test.css')
+						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-3', 'screen')
+						.then(function(rawCss){
+							sourceDisplay.innerHTML = rawCss;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-css-request-4').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createCssRequest('/files/css/dynamic-loading-test.css')
+						.execute('sourced-element', {element : injectTarget, position : 'prepend'}, 'request-4', 'screen')
+						.then(function(cssElement){
+							sourceDisplay.innerHTML = '"'+cssElement.getAttribute('data-id')+'"';
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+			}
+
+
+
+			function setupHtml(createHtmlRequest){
+				var
+					sourceDisplay = document.querySelector('#create-html-request-result .source'),
+					injectHolder = document.querySelector('#create-html-request-inject-holder'),
+					injectTarget = injectHolder.querySelector('.target')
+				;
+				hljs.highlightBlock(sourceDisplay);
+
+				document.querySelector('#create-html-request-inject-reset').addEventListener('click', function(e){
+					e.preventDefault();
+
+					while( injectTarget.previousElementSibling ){
+						injectHolder.removeChild(injectTarget.previousElementSibling);
+					}
+
+					while( injectTarget.nextElementSibling ){
+						injectHolder.removeChild(injectTarget.nextElementSibling);
+					}
+
+					while( injectTarget.firstElementChild ){
+						injectTarget.removeChild(injectTarget.firstElementChild);
+					}
+
+					while( injectTarget.lastElementChild ){
+						injectTarget.removeChild(injectTarget.lastElementChild);
+					}
+				});
+
+				document.querySelector('#create-html-request-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+						.execute('raw', null, 'request-1')
+						.then(function(rawHtml){
+							var escape = document.createElement('textarea');
+							escape.textContent = rawHtml;
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-html-request-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+						.execute()
+						.then(function(htmlElement){
+							var escape = document.createElement('textarea');
+							escape.textContent = htmlElement.outerHTML;
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-html-request-3').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+						.execute(null, injectTarget, 'request-3', 'body > main > h1')
+						.then(function(htmlElement){
+							var escape = document.createElement('textarea');
+							escape.textContent = htmlElement.outerHTML;
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-html-request-4').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-4', 'h1 ~ p', true)
+						.then(function(rawHtml){
+							var escape = document.createElement('textarea');
+							escape.textContent = rawHtml;
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-html-request-5').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createHtmlRequest('/files/html/dynamic-loading-test-2.html')
+						.execute('element', {element : injectTarget, position : 'prepend'}, 'request-5')
+						.then(function(htmlElements){
+							var source = '';
+							for(var i = 0; i < htmlElements.length; i++){
+								var escape = document.createElement('textarea');
+								escape.textContent = htmlElements[i].outerHTML;
+								source = source + escape.innerHTML;
+							}
+							sourceDisplay.innerHTML = source;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+			}
+
+
+
+			function setup(
+				createFetchRequest,
+				polyfillFetch,
+				createJsonRequest,
+				createJsRequest,
+				createCssRequest,
+				createHtmlRequest
+			){
+				setupFetch(createFetchRequest, polyfillFetch);
+				setupJson(createJsonRequest);
+				setupJs(createJsRequest);
+				setupCss(createCssRequest);
+				setupHtml(createHtmlRequest);
+			}
 		</script>
 		<script type="module">
 			if( window.__ANNEX_VERSION__ !== 'es5' ){
 				(async () => {
 					const {
 						createFetchRequest,
-						polyfillFetch
+						polyfillFetch,
+						createJsonRequest,
+						createJsRequest,
+						createCssRequest,
+						createHtmlRequest
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/dynamic-loading.js`);
 
 					setup(
 						createFetchRequest,
-						polyfillFetch
+						polyfillFetch,
+						createJsonRequest,
+						createJsRequest,
+						createCssRequest,
+						createHtmlRequest
 					);
 				})().catch(err => {
 					console.error(err);
@@ -246,7 +690,11 @@
 						if( window.__ANNEX_VERSION__ === 'es5' ){
 							setup(
 								window.annex.dynamicLoading.createFetchRequest,
-								window.annex.dynamicLoading.polyfillFetch
+								window.annex.dynamicLoading.polyfillFetch,
+								window.annex.dynamicLoading.createJsonRequest,
+								window.annex.dynamicLoading.createJsRequest,
+								window.annex.dynamicLoading.createCssRequest,
+								window.annex.dynamicLoading.createHtmlRequest
 							);
 						}
 					}
@@ -269,7 +717,7 @@
 					a webserver)
 				</p>
 				<div>
-					<pre id="create-fetch-request-json-result"><code class="source language-json"></code></pre>
+					<pre id="create-fetch-request-json-result"><code class="source language-json">trigger request to see result</code></pre>
 					<a id="create-fetch-request-1">Should query a JSON API and return a post in the payload</a>
 					<a id="create-fetch-request-2">Should query a JSON API and return a newly created post with title "foo" and body "bar" in the payload</a>
 					<a id="create-fetch-request-3">Should query a JSON API and return a patched post with title "foo" in the payload</a>
@@ -288,6 +736,79 @@
 				</p>
 				<div>
 					<button id="polyfill-fetch-1" class="btn light-blue darken-1">Force polyfill window.fetch</button>
+				</div>
+			</section>
+
+			<h3>createJsonRequest</h3>
+			<section>
+				<p>
+					Trigger a request below, to see the response information.
+					If the request injects the result into the DOM, have a look at the container below the code
+					area to see inserted nodes.
+				</p>
+				<div>
+					<pre id="create-json-request-result"><code class="source language-json">trigger request to see result</code></pre>
+					<div id="create-json-request-inject-holder"><div class="target">injection target (inspect for details)</div></div>
+					<button id="create-json-request-inject-reset" class="btn light-blue darken-1">reset inserted nodes</button>
+					<a id="create-json-request-1">Should query a JSON API and return the JSON source</a>
+					<a id="create-json-request-2">Should query a JSON API, append a JSON script to injection target and show the script's content</a>
+					<a id="create-json-request-3">Should query a JSON API, prepend a JSON script in the injection target and show the script's raw content</a>
+					<a id="create-json-request-4">Should query a JSON API, prepend a JSON script before the injection target and show the script's content</a>
+				</div>
+			</section>
+
+			<h3>createJsRequest</h3>
+			<section>
+				<p>
+					Trigger a request below, to see the response information.
+					If the request injects the result into the DOM, have a look at the container below the code
+					area to see inserted nodes.
+				</p>
+				<div>
+					<pre id="create-js-request-result"><code class="source language-js">trigger request to see result</code></pre>
+					<div id="create-js-request-inject-holder"><div class="target">injection target (inspect for details)</div></div>
+					<button id="create-js-request-inject-reset" class="btn light-blue darken-1">reset inserted nodes</button>
+					<a id="create-js-request-1">Should request a JavaScript, show the script's inline content</a>
+					<a id="create-js-request-2">Should request a JavaScript, append an inline script to the injection target, show the script's inline content and execute the script, resulting in a popup message</a>
+					<a id="create-js-request-3">Should request a JavaScript, insert an inline script before the injection target, show the script's raw content and execute the script, resulting in a popup message</a>
+					<a id="create-js-request-4">Should prepend a sourced JS script in the injection target, show the script's id and execute the script after load, resulting in a popup message</a>
+				</div>
+			</section>
+
+			<h3>createCssRequest</h3>
+			<section>
+				<p>
+					Trigger a request below, to see the response information.
+					If the request injects the result into the DOM, have a look at the container below the code
+					area to see inserted nodes.
+				</p>
+				<div>
+					<pre id="create-css-request-result"><code class="source language-css">trigger request to see result</code></pre>
+					<div id="create-css-request-inject-holder"><div class="target">injection target (inspect for details)</div></div>
+					<button id="create-css-request-inject-reset" class="btn light-blue darken-1">reset inserted nodes</button>
+					<a id="create-css-request-1">Should request a stylesheet, show the sheet's inline content</a>
+					<a id="create-css-request-2">Should request a stylesheet, append an inline style to the injection target, show the styles's inline content and apply the sheet to the site</a>
+					<a id="create-css-request-3">Should request a stylesheet, insert an inline style before the injection target, show the styles's raw content and apply the sheet to the site</a>
+					<a id="create-css-request-4">Should prepend a sourced link tag in the injection target, show the link's id and apply the sheet to the site</a>
+				</div>
+			</section>
+
+			<h3>createHtmlRequest</h3>
+			<section>
+				<p>
+					Trigger a request below, to see the response information.
+					If the request injects the result into the DOM, have a look at the container below the code
+					area to see inserted nodes.
+				</p>
+				<div>
+					<pre id="create-html-request-result"><code class="source language-html">trigger request to see result</code></pre>
+					<div id="create-html-request-inject-holder"><div class="target">injection target (inspect for details)</div></div>
+					<button id="create-html-request-inject-reset" class="btn light-blue darken-1">reset inserted nodes</button>
+					<a id="create-html-request-1">Should request an HTML document, display whole raw document source</a>
+					<a id="create-html-request-2">Should request an HTML document, show the document's source</a>
+					<a id="create-html-request-3">Should request an HTML document, append the H1 to the injection target, show H1's source</a>
+					<a id="create-html-request-4">Should request an HTML document, insert Ps before the injection target, show the Ps' sources</a>
+					<a id="create-html-request-5">Should request an HTML document, prepend the included H1 and Ps, the combined source of the H1 and Ps</a>
 				</div>
 			</section>
 		</main>

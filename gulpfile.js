@@ -122,8 +122,8 @@ function serveExamples(done){
 					return next();
 				},
 				serveStatic({
-					path: DOCUMENTATION_DIR,
-					url: '/documentation',
+					path : DOCUMENTATION_DIR,
+					url : '/documentation',
 					// otherwise connect produces a content encoding error
 					gzip : false
 				})

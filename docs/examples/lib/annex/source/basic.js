@@ -214,7 +214,7 @@ export function hasMembers(obj, memberNames, verbose=false){
  */
 
 /**
- * If an expression returns an "empty" value, use the default value instead.
+ * If an expression returns a non-value (undefined or null), use the default value instead.
  * Define a caster name, to force expression result/value into certain data type.
  *
  * @param {*} expression - the expression to evaluate
@@ -568,7 +568,7 @@ export function minMax(min, value, max){
  * @name Deferred
  * @example
  * const doStuff = new Deferred();
- * doStuff.then(value => { alert(`yeah, ready with "${value}"!`); }).catch(err => { console.error(err); });
+ * doStuff.then(value => { alert(`yeah, ready with "${value}"!`); }).catch(error => { console.error(error); });
  * ...
  * if( foobar === 42 ){
  *   doStuff.resolve(42);

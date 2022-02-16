@@ -58,7 +58,7 @@ export function schedule(ms, callback, oldTimer=null){
 /**
  * Setup a timer for one-time execution of a callback, kills old timer if given
  * to prevent overlapping timers.
- * This implementation uses Date.getTime() to improve on timer precision for long
+ * This implementation uses Date.now()/Date.getTime() to improve on timer precision for long
  * running timers. The timers of this method can also be used in countermand().
  *
  * Warning: these timers are more precise than normal timer for _long_ time spans and less precise for short ones,
@@ -95,12 +95,12 @@ export function pschedule(ms, callback, oldTimer=null){
 		oldTimer = {id : -1, type : 'timeout', precise : true};
 	}
 
-	const waitStart = new Date().getTime();
+	const waitStart = Date.now();
 	let waitMilliSecs = ms;
 
 	const fAdjustWait = function(){
 		if( waitMilliSecs > 0 ){
-			waitMilliSecs -= (new Date().getTime() - waitStart);
+			waitMilliSecs -= (Date.now() - waitStart);
 			oldTimer.id = window.setTimeout(fAdjustWait, (waitMilliSecs > 10) ? waitMilliSecs : 10);
 		} else {
 			callback();
@@ -192,7 +192,7 @@ export function loop(ms, callback, oldLoop=null){
 /**
  * Setup a loop for repeated execution of a callback, kills old loop if wished
  * to prevent overlapping loops.
- * This implementation uses Date.getTime() to improve on timer precision for long running loops.
+ * This implementation uses Date.now()/Date.getTime() to improve on timer precision for long running loops.
  *
  * Warning: these timers are more precise than normal timer for _long_ time spans and less precise for short ones,
  * if you are dealing with times at least above 30s (or minutes and hours) this the right choice, if you look to
@@ -233,17 +233,17 @@ export function ploop(ms, callback, oldLoop=null){
 	}
 
 	let
-		waitStart = new Date().getTime(),
+		waitStart = Date.now(),
 		waitMilliSecs = ms
 	;
 
 	const fAdjustWait = function(){
 		if( waitMilliSecs > 0 ){
-			waitMilliSecs -= (new Date().getTime() - waitStart);
+			waitMilliSecs -= (Date.now() - waitStart);
 			oldLoop.id = window.setTimeout(fAdjustWait, (waitMilliSecs > 10) ? waitMilliSecs : 10);
 		} else {
 			callback();
-			waitStart = new Date().getTime();
+			waitStart = Date.now();
 			waitMilliSecs = ms;
 			oldLoop.id = window.setTimeout(fAdjustWait, waitMilliSecs);
 		}

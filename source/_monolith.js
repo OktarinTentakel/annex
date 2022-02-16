@@ -42,3 +42,6 @@ export const navigation = _navigation;
 
 import * as _dynamicLoading from './dynamic-loading.js';
 export const dynamicLoading = _dynamicLoading;
+
+import * as _cookies from './cookies.js';
+export const cookies = _cookies;

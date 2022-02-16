@@ -218,8 +218,8 @@
 					const {isInViewport, scrollTo} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/viewport.js`);
 
 					setup(loop, isInViewport, scrollTo);
-				})().catch(err => {
-					console.error(err);
+				})().catch(error => {
+					console.error(error);
 				});
 			}
 		</script>

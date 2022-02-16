@@ -340,14 +340,14 @@ test('Deferred', assert => {
 				assert.is(value.result, 42);
 				end(value.result === 42);
 			})
-			.catch(err => { end(false); })
+			.catch(error => { end(false); })
 		;
 
 		bar
 			.then(value => { end(false); })
-			.catch(err => {
-				assert.is(err.message, 'blimey!');
-				end(err.message === 'blimey!');
+			.catch(error => {
+				assert.is(error.message, 'blimey!');
+				end(error.message === 'blimey!');
 			})
 		;
 

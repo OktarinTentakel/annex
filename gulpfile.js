@@ -8,6 +8,7 @@ import terser from 'gulp-terser';
 import inject from 'gulp-inject-string';
 import connect from 'gulp-connect';
 import serveStatic from 'st';
+import yargs from 'yargs';
 
 import * as rollup from 'rollup';
 import {babel as rollupBabel} from '@rollup/plugin-babel';
@@ -25,7 +26,8 @@ const
 	DIST_DIR = './dist',
 	EXAMPLES_DIR = './docs/examples',
 	DOCUMENTATION_DIR = './docs/documentation',
-	PACKAGE_CONFIG = JSON.parse(fs.readFileSync('./package.json', {encoding : 'utf-8'}))
+	PACKAGE_CONFIG = JSON.parse(fs.readFileSync('./package.json', {encoding : 'utf-8'})),
+	ARGV = yargs(process.argv).argv
 ;
 
 
@@ -171,9 +173,10 @@ gulp.task('watch', function(done){
 
 gulp.task('documentation', shell.task([`rm -rf ${DOCUMENTATION_DIR}`, 'jsdoc -c jsdoc.config.json --verbose']));
 
-gulp.task('test', shell.task('npm test'));
-gulp.task('test-dist', shell.task('npm run test-dist'));
-gulp.task('test-es5-monolith', shell.task('npm run test-es5-monolith'));
+const testTopic = ARGV.topic ? ` -- --topic=${ARGV.topic}` : '';
+gulp.task('test', shell.task(`npm test${testTopic}`));
+gulp.task('test-dist', shell.task(`npm run test-dist${testTopic}`));
+gulp.task('test-es5-monolith', shell.task(`npm run test-es5-monolith${testTopic}`));
 
 gulp.task('build', gulp.series('test', buildJs, 'test-dist', buildEs5Monolith, 'test-es5-monolith', copyExamplesLibs));
 

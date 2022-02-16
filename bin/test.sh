@@ -2,4 +2,4 @@
 
 cd "${0%/*}" && \
 cd .. && \
-docker-compose run --rm -u $(id -u):$(id -g) annex bash -c "yarn; gulp --color test"
+docker-compose run --rm -u $(id -u):$(id -g) annex bash -c "yarn; gulp --color test $1"

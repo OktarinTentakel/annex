@@ -20,7 +20,7 @@ import {getType, isA, orDefault} from './basic.js';
 
 /**
  * Cloning arbitrary objects, values and structured values is no trivial task in JavaScript.
- * For basic values this can easily achieved by serializing/deserializing via JSON.parse(JSON.stringify(value)), but
+ * For basic values this can easily be achieved by serializing/deserializing via JSON.parse(JSON.stringify(value)), but
  * for everything not included in the JSON standard, such as nodes, sets, maps, functions and objects with constructors
  * this gets hairy pretty quickly.
  *
@@ -147,6 +147,9 @@ export function clone(target, deep=true){
 		case 'nodelist':
 			const fragment = document.createDocumentFragment();
 
+			// no optimization with seenReferences or seenCopies, since, in a dom tree, we cannot reuse
+			// references or elements, since that would mean reattaching a node, which would move the node
+
 			if( deep ){
 				target.forEach(element => {
 					if( deep ){
@@ -154,7 +157,7 @@ export function clone(target, deep=true){
 					}
 				});
 			// shallow copying a nodelist is destructive, since appending the original element, empties the original
-			// list, since every node may only exists once inside a dom
+			// list, since every node may only exist once inside a dom
 			} else {
 				while( target.length ){
 					fragment.appendChild(target.item(0));

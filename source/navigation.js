@@ -70,7 +70,7 @@ export const HISTORY = {
  * If you define a target and open an external URL, repeated calls to the same target will open multiple windows
  * due to the security settings.
  *
- * @param {?String} [url=null] - the location to load, if null current location is reloaded/used
+ * @param {?String} [url] - the location to load, if null current location is reloaded/used
  * @param {?Object} [params=null] - plain object of GET-parameters to add to the url, adds to existing ones in the URL and overwrites existing ones with same name
  * @param {?String} [anchor=null] - anchor/hash to set for called url, has precedence over URL hash
  * @param {?String} [target=null] - name of the window to perform the redirect to/in, use "_blank" to open a new window/tab
@@ -82,7 +82,7 @@ export const HISTORY = {
  * redirect('https://test.com', {search : 'kittens', order : 'asc'}, 'fluffykittens');
  * redirect(null, {order : 'desc'});
  */
-export function redirect(url=null, params=null, anchor=null, target=null, postParams=null){
+export function redirect(url, params=null, anchor=null, target=null, postParams=null){
 	url = orDefault(url, null, 'str');
 	params = isPlainObject(params) ? params : null;
 	anchor = orDefault(anchor, null, 'str');
@@ -211,7 +211,7 @@ export function redirect(url=null, params=null, anchor=null, target=null, postPa
  * links, which are determined by not having the same origin as the current location. For more manual control
  * over such parameters, have a look at "openWindow" instead.
  *
- * @param {?String} [url=null] - the location to load, if null current location is reloaded/used
+ * @param {?String} [url] - the location to load, if null current location is reloaded/used
  * @param {?Object} [params=null] - plain object of GET-parameters to add to the url, adds to existing ones in the URL and overwrites existing ones with same name
  * @param {?String} [anchor=null] - anchor/hash to set for called url, has precedence over URL hash
  * @param {?Object} [postParams=null] - plain object of postParameters to send with the redirect, solved with a hidden form
@@ -222,7 +222,7 @@ export function redirect(url=null, params=null, anchor=null, target=null, postPa
  * @example
  * openTab('/misc/faq.html');
  */
-export function openTab(url, params, anchor, postParams){
+export function openTab(url, params=null, anchor=null, postParams=null){
 	redirect(url, params, anchor, '_blank', postParams);
 }
 

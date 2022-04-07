@@ -87,7 +87,7 @@ export function truncate(subject, maxLength=30, suffix='...'){
 	}
 
 	if( subject.length > maxLength ){
-		subject = `${subject.substr(0, maxLength - suffix.length)}${suffix}`;
+		subject = `${subject.slice(0, maxLength - suffix.length)}${suffix}`;
 	}
 
 	return subject;

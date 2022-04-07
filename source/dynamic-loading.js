@@ -105,7 +105,7 @@ export function createFetchRequest(url, options=null){
 	options = orDefault(options, {});
 	assert(isPlainObject(options), `${MODULE_NAME}:${methodName} | options must be plain object`);
 
-	options.method = orDefault(options.method, 'GET');
+	options.method = orDefault(options.method, 'GET', 'str');
 	options.method = ['GET', 'POST', 'PUT', 'PATCH', 'HEAD', 'OPTIONS', 'DELETE'].includes(options.method.toUpperCase())
 		? options.method.toUpperCase()
 		: 'GET'
@@ -186,7 +186,7 @@ export function createFetchRequest(url, options=null){
  * @private
  * @returns {Function} a fetch implementation
  */
-function _fetch(url, options){
+function _fetch(url, options=null){
 	return createFetchRequest(url, options).execute();
 }
 

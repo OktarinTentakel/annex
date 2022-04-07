@@ -2,6 +2,7 @@ version: "3"
 
 services:
    annex:
+      container_name: annex__dev
       build:
          context: .
          dockerfile: ./docker/annex/dockerfile

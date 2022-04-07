@@ -63,7 +63,7 @@ function decodeCookieName(name){
 /**
  * @typedef CookieOptions
  * @type {Object}
- * @property {?Date|Number} [expires=null] - expiry time of the cookie, either a Date object or time in milliseconds
+ * @property {?Date|Number} [expires=null] - expiry time of the cookie, either a Date object or time in days
  * @property {?Number} [max-age=null] - max age of the cookie in seconds
  * @property {?String} [path='/'] - the cookie path, setting this to "auto" or an empty string defines auto-mode, which targets the current site path, which usually is the default, but we use '/' to set a cookie for while site, this being the common use-case
  * @property {?Boolean} [secure=false] - define if the cookie should only be transmitted via https (see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)
@@ -83,11 +83,10 @@ function normalizeCookieOptions(options){
 	}
 	options = normalizedOptions;
 
-	if( options.expires ){
+	if( hasValue(options.expires) ){
 		if( !isA(options.expires, 'date') ){
 			options.expires = new Date(Date.now() + (Math.round(parseFloat(options.expires)) * 24 * 60 * 60 * 1000));
 		}
-
 		options.expires = options.expires.toUTCString();
 	} else {
 		options.expires = null;
@@ -102,17 +101,14 @@ function normalizeCookieOptions(options){
 
 	options.domain = orDefault(options.domain, null, 'str');
 
-	options.secure = orDefault(options.secure, false, 'bool');
-
 	options.httponly = orDefault(options.httponly, false, 'bool');
 
-	options.samesite = orDefault(options.samesite, null, 'str');
-	if( hasValue(options.samesite) ){
-		options.samesite = options.samesite.toLowerCase();
-		if( !['strict', 'lax', 'none'].includes(options.samesite) ){
-			warn(`${MODULE_NAME}:setCookie | unknown samesite mode "${options.samesite}"`);
-		}
+	options.samesite = orDefault(options.samesite, 'lax', 'str').toLowerCase();
+	if( !['strict', 'lax', 'none'].includes(options.samesite) ){
+		console.warn(`${MODULE_NAME}:setCookie | unknown samesite mode "${options.samesite}"`);
 	}
+
+	options.secure = orDefault(options.secure, options.samesite === 'none', 'bool');
 
 	return options;
 }
@@ -303,7 +299,7 @@ export function setCookie(name, value, options){
 export function removeCookie(name, options){
 	assert(hasValue(name) && (name !== ''), `${MODULE_NAME}:removeCookie | no usable name`);
 
-	options = normalizeCookieOptions();
+	options = normalizeCookieOptions(options);
 	options.expires = -1;
 
 	return (setCookie(name, '', options) === null);

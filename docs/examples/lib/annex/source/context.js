@@ -236,7 +236,7 @@ export function detectInteractionType(changeCallback, initialCallbackCall=false)
  * that function takes the evaluated device type at the end of the function and expects a new device type to be
  * returned. Using this, you can tap into the process and handle edge cases yourself.
  *
- * @param {?Function} [additionalTest] - if set, is executed after determining the device type, takes the current device type as parameter and is expected to return a new one; use this to add edge case tests to overwrite the result in certain conditions
+ * @param {?Function} [additionalTest=null] - if set, is executed after determining the device type, takes the current device type as parameter and is expected to return a new one; use this to add edge case tests to overwrite the result in certain conditions
  * @returns {String} "ipad", "iphone", "ipod" or "mac"
  *
  * @memberof Context:detectAppleDevice
@@ -244,7 +244,7 @@ export function detectInteractionType(changeCallback, initialCallbackCall=false)
  * @example
  * const IS_IOS_DEVICE = ['iphone', 'ipod', 'ipad'].includes(detectAppleDevice());
  */
-export function detectAppleDevice(additionalTest){
+export function detectAppleDevice(additionalTest=null){
 	let
 		family = /iPhone|iPad|iPod|Macintosh/.exec(window.navigator.userAgent),
 		deviceType = null
@@ -279,16 +279,16 @@ export function detectAppleDevice(additionalTest){
 		switch( family ) {
 			case 'iPad':
 				deviceType = 'ipad';
-				break;
+			break;
 			case 'iPhone':
 				deviceType = 'iphone';
-				break;
+			break;
 			case 'iPod':
 				deviceType = 'ipod';
-				break;
+			break;
 			case 'Macintosh':
 				deviceType = 'mac';
-				break;
+			break;
 		}
 
 		if( isA(additionalTest, 'function') ){

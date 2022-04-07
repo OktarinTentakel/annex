@@ -59,8 +59,8 @@ function buildEs5Monolith(){
 		input : `${SOURCE_DIR}/_monolith.js`,
 		plugins : [
 			rollupBabel({
-				exclude: 'node_modules/**',
-				babelHelpers: 'bundled',
+				exclude : 'node_modules/**',
+				babelHelpers : 'bundled',
 				presets : [
 					['@babel/preset-env', {
 						corejs : 3,

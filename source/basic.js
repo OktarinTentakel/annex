@@ -63,7 +63,7 @@ export function assert(condition, message){
  * @memberof Basic:attempt
  * @alias attempt
  * @example
- * if( !attempt(function(){ foobar(); }) ){ log('foobar cannot be executed!'); }
+ * if( !attempt(function(){ foobar(); }) ){ console.log('foobar cannot be executed!'); }
  */
 export function attempt(closure){
 	assert(isA(closure, 'function'), `${MODULE_NAME}:attempt | closure is no function`);
@@ -189,8 +189,8 @@ export function isEmpty(){
  * }
  */
 export function hasMembers(obj, memberNames, verbose=false){
-	verbose = orDefault(verbose, false, 'bool');
 	memberNames = orDefault(memberNames, [], 'arr');
+	verbose = orDefault(verbose, false, 'bool');
 
 	let res = true;
 
@@ -455,9 +455,9 @@ export function isFloat(floatVal){
  * This might especially be helpful when dealing with JSON configs, so quickly check if
  * something might even be parsed JSON (which in most cases is a plain object in js).
  *
- * Be aware that this function cannot differentiate between contructor based simple objects and
+ * Be aware that this function cannot differentiate between constructor-based simple objects and
  * plain objects declared inline. So, if someone took on the work to instantiate a base object and assign
- * properties either in a function or a contructor, we accept that as a plain object.
+ * properties either in a function or a constructor, we accept that as a plain object.
  *
  * @param {*} value - the value to check
  * @returns {Boolean} true if value seems to be a plain object
@@ -553,10 +553,15 @@ export function minMax(min, value, max){
  */
 
 /**
- * Class that wraps a Promise, to allow resolving and rejecting outside of the
+ * Class that wraps a Promise, to allow resolving and rejecting outside the
  * Promise's function scope. This allows for decoupled handling of states and
  * handling promises as references in a distributed context, like a class, where
  * a Deferred might then represent an async state.
+ *
+ * Deferreds also provide accessible status information, normal Promises do not have.
+ * Accessing the "status" property returns the current status, being either "pending",
+ * "fulfilled" or "rejected". You may also check if the Deferred has been settled via
+ * "isSettled()".
  *
  * This follows ideas by jQuery and Q Promises:
  * - https://api.jquery.com/jQuery.Deferred/
@@ -568,21 +573,38 @@ export function minMax(min, value, max){
  * @name Deferred
  * @example
  * const doStuff = new Deferred();
- * doStuff.then(value => { alert(`yeah, ready with "${value}"!`); }).catch(error => { console.error(error); });
- * ...
+ * doStuff
+ *   .then(value => { alert(`yeah, ready with "${value}"!`); })
+ *   .catch(error => { console.error(error); })
+ *   .finally(() => { console.info('has been settled); })
+ * ;
  * if( foobar === 42 ){
  *   doStuff.resolve(42);
  * } else {
  *   doStuff.reject(new Error('not 42!'));
  * }
+ * console.info(doStuff.status);
  */
 export class Deferred {
 	constructor(){
+		const
+			STATUS_PENDING = 'pending',
+			STATUS_FULFILLED = 'fulfilled',
+			STATUS_REJECTED = 'rejected'
+		;
 		this.resolve = null;
 		this.reject = null;
-		this.promise = new Promise((res, rej) => {
-			this.resolve = res;
-			this.reject = rej;
+		this.status = STATUS_PENDING;
+		this.isSettled = () => [STATUS_FULFILLED, STATUS_REJECTED].includes(this.status);
+		this.promise = new Promise((resolve, reject) => {
+			this.resolve = resolution => {
+				this.status = STATUS_FULFILLED;
+				resolve(resolution);
+			};
+			this.reject = rejection => {
+				this.status = STATUS_REJECTED;
+				reject(rejection);
+			};
 		});
 	}
 
@@ -592,5 +614,64 @@ export class Deferred {
 
 	catch(f){
 		return this.promise.catch(f);
+	}
+
+	finally(f){
+		return this.promise.finally(f);
+	}
+}
+
+
+
+/**
+ * @namespace Basic:Observable
+ */
+
+/**
+ * A class offering the bare minimum feature set to observe a value and subscribe to future value changes.
+ * No automatic magic going on here, this simply follows a basic subscription pattern, where each subscription is
+ * a function, being called with a newly set value. This closely resembles the kind of observables knockout is using.
+ *
+ * @memberof Basic:Observable
+ * @name Observable
+ * @example
+ * const status = new Observable('ok');
+ * const subscription = status.subscribe(s => {
+ *     console.log(`status changed to: ${s}`);
+ * });
+ * status.setValue('oh noez');
+ * status.unsubscribe(subscription);
+ */
+export class Observable {
+	constructor(initialValue){
+		this.value = initialValue;
+		this.subscriptions = [];
+	}
+
+	getValue(){
+		return this.value;
+	}
+
+	setValue(newValue, force=false){
+		const
+			oldValue = this.value,
+			isNewValue = oldValue !== newValue
+		;
+		this.value = newValue;
+		if( isNewValue || force ){
+			this.subscriptions.forEach(s => s(newValue, oldValue));
+		}
+	}
+
+	subscribe(subscription){
+		assert(isA(subscription, 'function'), `${MODULE_NAME}:Observable.subscribe | subscription must be function`);
+		if( this.subscriptions.indexOf(subscription) < 0 ){
+			this.subscriptions = [...this.subscriptions, subscription];
+		}
+		return subscription;
+	}
+
+	unsubscribe(subscription){
+		this.subscriptions = this.subscriptions.filter(s => s !== subscription);
 	}
 }

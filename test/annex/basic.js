@@ -23,7 +23,8 @@ const {
 	isPlainObject,
 	isNaN,
 	minMax,
-	Deferred
+	Deferred,
+	Observable
 } = pkg;
 
 
@@ -330,7 +331,7 @@ test('Deferred', assert => {
 
 			if( !success ){
 				reject();
-			} else if( endCount === 3 ){
+			} else if( endCount === 5 ){
 				resolve();
 			}
 		}
@@ -341,6 +342,9 @@ test('Deferred', assert => {
 				end(value.result === 42);
 			})
 			.catch(error => { end(false); })
+			.finally(() => {
+				end(foo.status === 'fulfilled');
+			})
 		;
 
 		bar
@@ -349,11 +353,47 @@ test('Deferred', assert => {
 				assert.is(error.message, 'blimey!');
 				end(error.message === 'blimey!');
 			})
+			.finally(() => {
+				end(bar.status === 'rejected');
+			})
 		;
 
 		Promise.all([foo.promise]).then(() => { end(true); });
 
+		assert.false(bar.isSettled());
 		foo.resolve({result : 42});
 		bar.reject(new Error('blimey!'));
+		assert.true(bar.isSettled());
 	});
+});
+
+
+
+test('Observable', assert => {
+	let changeCount = 0;
+
+	const
+		foo = new Observable(42),
+		fooSubscription = foo.subscribe(() => {
+			changeCount++;
+		})
+	;
+
+	assert.is(foo.getValue(), 42);
+	foo.setValue(42);
+	foo.setValue(42, true);
+	foo.setValue(23);
+	assert.is(foo.getValue(), 23);
+
+	assert.throws(() => { foo.subscribe(42); }, {message : /must be function/});
+
+	foo.setValue({bar : 42});
+	assert.is(foo.getValue().bar, 42);
+
+	foo.unsubscribe(fooSubscription);
+	foo.setValue(1);
+	foo.setValue(2);
+	foo.setValue(3);
+
+	assert.is(changeCount, 3);
 });

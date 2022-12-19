@@ -10,7 +10,7 @@ const MODULE_NAME = 'Logging';
 
 
 
-//###( MODULE DATA )###
+//###[ DATA ]###########################################################################################################
 
 export const
 	LOG_LEVELS = ['log', 'warn', 'err'],
@@ -24,7 +24,7 @@ export let
 
 
 
-//###( HELPERS )###
+//###[ HELPERS ]########################################################################################################
 
 /*
  * generically wraps console functions for chainability even if method is unavailable or fails
@@ -126,6 +126,8 @@ const LOG_CHAINABLE_OBJECT = {
 };
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Logging:log

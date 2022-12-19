@@ -10,6 +10,8 @@ const MODULE_NAME = 'Context';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {hasValue, isA, orDefault} from './basic.js';
 import {throttle} from './functions.js';
 import {createNode} from './elements.js';
@@ -17,12 +19,14 @@ import {reschedule} from './timers.js';
 
 
 
-//###( MODULE DATA )###
+//###[ DATA ]###########################################################################################################
 
 export let CURRENT_INTERACTION_TYPE;
 CURRENT_INTERACTION_TYPE = detectInteractionType();
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Context:browserSupportsHistoryManipulation

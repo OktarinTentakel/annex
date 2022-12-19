@@ -10,11 +10,15 @@ const MODULE_NAME = 'Viewport';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {hasValue, orDefault, isA, Deferred, assert} from './basic.js';
 import {EasingFunctions} from './animation.js';
 import {requestAnimationFrame} from './timers.js';
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Viewport:isInViewport

@@ -38,9 +38,13 @@ const MODULE_NAME = 'Basic';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {log, warn} from './logging.js';
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Basic:assert
@@ -130,8 +134,88 @@ export function hasValue(){
 	let res = true;
 
 	Array.from(arguments).forEach(value => {
-		res = res &amp;&amp; ((value !== undefined) &amp;&amp; (value !== null));
+		res &amp;&amp;= ((value !== undefined) &amp;&amp; (value !== null));
 	});
+
+	return res;
+}
+
+
+
+/**
+ * @namespace Basic:size
+ */
+
+/**
+ * Determine the (value) size of a collection.
+ *
+ * A collection is an object with countable values:
+ * - Arrays return their length
+ * - Sets and Maps return their size
+ * - Strings return their (character) length
+ * - Iterators return the length of their value list
+ * - Objects return the length of their value list
+ * - any object implementing .values() returns the length of the returned value list
+ *
+ * @param {Object|Array|Set|Map|String|Iterable} target - a collection to determine the (value) size of
+ * @param {?Boolean} [countStringCharacters=true] - if we want to determine the length of a string, we'd normally like to count actual characters, but length normally returns the technical length counting more than one for unicode chars, set this to "false" to use technical length instead of characters
+ * @returns {Number|null} the size of the collection or null if no size could be determined
+ *
+ * @memberof Basic:size
+ * @alias size
+ * @example
+ * size('日本国💩👻');
+ * => 5
+ * size('日本国💩👻', false);
+ * => 7
+ * size({a : 1, b : new Date(), c : [1, 2, 3]});
+ * => 3
+ * size(['test', 'test', 'test']);
+ * => 3
+ * size(new Set(['test1', 'test2', 'test3']));
+ * => 3
+ * size(new Set(['test1', 'test2', 'test3']).values());
+ * => 3
+ * size(new Map([[1, 1], [new Date(), new Date()], ['foo', 'bar']]));
+ * => 3
+ * size(new Map([[1, 1], [new Date(), new Date()], ['foo', 'bar']]).values());
+ * => 3
+ * size(null);
+ * => null
+ * size(undefined);
+ * => null
+ */
+export function size(target, countStringCharacters=true){
+	if( isA(target?.values, 'function') ) return Array.from(target.values()).length;
+
+	let res;
+	switch( getType(target) ){
+		case 'array':
+			res = target.length;
+		break;
+
+		case 'set':
+		case 'map':
+			res = target.size;
+		break;
+
+		case 'iterator':
+			res = Array.from(target).length;
+		break;
+
+		case 'string':
+			// see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length#description
+			res = countStringCharacters ? [...target].length : target.length;
+		break;
+
+		case 'object':
+			res = Object.values(target).length;
+		break;
+
+		default:
+			res = null;
+		break;
+	}
 
 	return res;
 }
@@ -150,7 +234,7 @@ export function hasValue(){
  * any single parameter. Multiple occurrences will be merged.
  *
  * @param {...*} [...] - add any number of variables you wish to check
- * @returns {Boolean} variable(s) is/are non-empty
+ * @returns {Boolean} variable(s) is/are empty
  *
  * @memberof Basic:isEmpty
  * @alias isEmpty
@@ -179,13 +263,7 @@ export function isEmpty(){
 			res = emptyValues.includes(obj);
 
 			if( !res ){
-				if( isA(obj, 'array') ){
-					res = (obj.length === 0);
-				} else if( isA(obj, 'object') ){
-					res = Object.keys(obj).length === 0;
-				} else if( isA(obj, 'set') || isA(obj, 'map') ){
-					res = (obj.size === 0);
-				}
+				res = (size(obj) === 0);
 			}
 		}
 	});
@@ -329,6 +407,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  * - "date"
  * - "error"
  * - "generator"
+ * - "iterator"
  * - "regexp"
  * - "set"
  * - "weakset"
@@ -358,6 +437,7 @@ export function getType(value) {
 	if( deepType === 'document' ) return 'htmldocument';
 	if( deepType === 'element' ) return 'htmlelement';
 	if( /^html.*element$/.test(deepType) ) return 'htmlelement';
+	if( /^.*iterator$/.test(deepType) ) return 'iterator';
 
 	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|nodelist|window)$/)
 		? deepType
@@ -401,6 +481,7 @@ export function isA(value, type){
 			'date',
 			'error',
 			'generator',
+			'iterator',
 			'regexp',
 			'set',
 			'weakset',
@@ -536,6 +617,72 @@ export function isNaN(expression, checkForIdentity=true){
 	} else {
 		return isNaN(expression);
 	}
+}
+
+
+
+/**
+ * @namespace Basic:isEventTarget
+ */
+
+/**
+ * Returns if a value is an EventTarget, which means that it is able to dispatch and receive events.
+ * This is determined via duck-typing and not via class inheritance check, since this method is not
+ * about type-safety, but the question if we can use the target for events, which is simply determined
+ * by three essential object methods: addEventListener, removeEventListener and dispatchEvent. All
+ * objects supporting these are fine with us.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value supports event methods
+ *
+ * @memberof Basic:isEventTarget
+ * @alias isEventTarget
+ * @example
+ * if( isEventTarget(target) ){
+ *   target.dispatchEvent(new CustomEvent('foobar'));
+ * }
+ */
+export function isEventTarget(value){
+	return hasValue(value)
+		&amp;&amp; isA(value.addEventListener, 'function')
+		&amp;&amp; isA(value.removeEventListener, 'function')
+		&amp;&amp; isA(value.dispatchEvent, 'function')
+	;
+}
+
+
+
+/**
+ * @namespace Basic:isSelector
+ */
+
+const DOCUMENT_FRAGMENT = document.createDocumentFragment();
+
+/**
+ * Returns if a value is a valid selector, usable in methods such as querySelector
+ * and querySelectorAll.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a valid selector
+ *
+ * @memberof Basic:isSelector
+ * @alias isSelector
+ * @example
+ * if( isSelector(selector) ){
+ *   document.querySelector(selector)?.style.setProperty('color', 'red');
+ * }
+ */
+export function isSelector(value){
+	// almost all values like "null", "undefined" and "NaN" are accepted querySelectors, numbers are not
+	value = orDefault(value, 0, 'str');
+
+	try {
+		DOCUMENT_FRAGMENT.querySelector(value);
+	} catch(ex){
+		return false;
+	}
+
+	return true;
 }
 
 
@@ -713,13 +860,13 @@ export class Observable {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="DynamicLoading.html">DynamicLoading</a></li><li class="namespace"><a href="DynamicLoading_createCssRequest.html">DynamicLoading:createCssRequest</a></li><li class="namespace"><a href="DynamicLoading_createFetchRequest.html">DynamicLoading:createFetchRequest</a></li><li class="namespace"><a href="DynamicLoading_createHtmlRequest.html">DynamicLoading:createHtmlRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsonRequest.html">DynamicLoading:createJsonRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsRequest.html">DynamicLoading:createJsRequest</a></li><li class="namespace"><a href="DynamicLoading_polyfillFetch.html">DynamicLoading:polyfillFetch</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_bindHistoryChange.html">Navigation:bindHistoryChange</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace"><a href="Navigation_unbindHistoryChange.html">Navigation:unbindHistoryChange</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="DynamicLoading.html">DynamicLoading</a></li><li class="namespace"><a href="DynamicLoading_createCssRequest.html">DynamicLoading:createCssRequest</a></li><li class="namespace"><a href="DynamicLoading_createFetchRequest.html">DynamicLoading:createFetchRequest</a></li><li class="namespace"><a href="DynamicLoading_createHtmlRequest.html">DynamicLoading:createHtmlRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsonRequest.html">DynamicLoading:createJsonRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsRequest.html">DynamicLoading:createJsRequest</a></li><li class="namespace"><a href="DynamicLoading_polyfillFetch.html">DynamicLoading:polyfillFetch</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_bindHistoryChange.html">Navigation:bindHistoryChange</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace"><a href="Navigation_unbindHistoryChange.html">Navigation:unbindHistoryChange</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a> on Thu Apr 07 2022 17:48:01 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Mon Dec 19 2022 16:52:15 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

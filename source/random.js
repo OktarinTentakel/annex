@@ -10,9 +10,19 @@ const MODULE_NAME = 'Random';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {orDefault, assert, hasValue, isA} from './basic.js';
 
 
+
+//###[ DATA ]###########################################################################################################
+
+const RANDOM_UUIDS_USED_SINCE_RELOAD = new Set();
+
+
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Random:randomNumber
@@ -64,8 +74,6 @@ export function randomNumber(floor=0, ceiling=10, float=false, precision=2){
  * @namespace Random:randomUuid
  */
 
-const RANDOM_UUID_USED_SINCE_RELOAD = new Set();
-
 /**
  * Generate a RFC4122-compliant random UUID, as far as possible with JS.
  * Generation is heavily dependent on the quality of randomization, which in some JS-engines is weak using
@@ -94,7 +102,7 @@ export function randomUuid(withDashes=true){
 		collisions = 0
 	;
 
-	while( !hasValue(uuid) || RANDOM_UUID_USED_SINCE_RELOAD.has(uuid) ){
+	while( !hasValue(uuid) || RANDOM_UUIDS_USED_SINCE_RELOAD.has(uuid) ){
 		if( isA(getRandomValues, 'function') ){
 			uuid = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
 				(c ^ getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
@@ -109,7 +117,7 @@ export function randomUuid(withDashes=true){
 			});
 		}
 
-		if( RANDOM_UUID_USED_SINCE_RELOAD.has(uuid) ){
+		if( RANDOM_UUIDS_USED_SINCE_RELOAD.has(uuid) ){
 			collisions++;
 
 			if( collisions > 100 ){
@@ -118,7 +126,7 @@ export function randomUuid(withDashes=true){
 		}
 	}
 
-	RANDOM_UUID_USED_SINCE_RELOAD.add(uuid);
+	RANDOM_UUIDS_USED_SINCE_RELOAD.add(uuid);
 
 	return withDashes ? uuid : uuid.replace(/-/g, '');
 }

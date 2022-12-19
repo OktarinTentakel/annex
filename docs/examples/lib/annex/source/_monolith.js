@@ -1,3 +1,6 @@
+import * as _polyfills from './polyfills.js';
+export const polyfills = _polyfills;
+
 import * as _logging from './logging.js';
 export const logging = _logging;
 
@@ -21,6 +24,9 @@ export const timers = _timers;
 
 import * as _functions from './functions.js';
 export const functions = _functions;
+
+import * as _events from './events.js';
+export const events = _events;
 
 import * as _context from './context.js';
 export const context = _context;

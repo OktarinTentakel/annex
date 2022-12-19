@@ -17,7 +17,8 @@ const {
 
 test('removeFrom', assert => {
 	const
-		foo = [1, 2, {a : 'b'}, [1, 2, 3], 4],
+		oneTwoThree = [1, 2, 3],
+		foo = [1, 2, {a : 'b'}, oneTwoThree, 4],
 		bar = {foo : 'bar'}
 	;
 
@@ -26,11 +27,14 @@ test('removeFrom', assert => {
 	assert.deepEqual(removeFrom(foo, -1), [1, 2, {a : 'b'}, [1, 2, 3]]);
 	assert.deepEqual(removeFrom(foo, 3), [1, 2, {a : 'b'}, 4]);
 	assert.deepEqual(removeFrom(foo, 3, -1), [1, 2, {a : 'b'}]);
+	assert.deepEqual(removeFrom(foo, oneTwoThree, true), [1, 2, {a : 'b'}, 4]);
 	assert.throws(function(){ removeFrom({a : 1}, -1); });
 	assert.deepEqual(removeFrom([{a : 'bar', toString(){ return this.a; }}, 'bar', bar, 1], 'bar'), [bar, 1]);
-	assert.deepEqual(removeFrom([{a : 'bar'}, 'bar', bar, 1], bar), [{a : 'bar'}, 'bar', 1]);
+	assert.deepEqual(removeFrom([{a : 'bar'}, 'bar', bar, 1], bar, true), [{a : 'bar'}, 'bar', 1]);
 	assert.deepEqual(removeFrom([true, true, false, true, true], true), [false]);
-	assert.deepEqual(removeFrom([{a : 'bar', toString(){ return 'bar'; }}, 'bar', bar, 1, 2], ['bar', bar, 2], true), [1]);
-	assert.deepEqual(removeFrom([{a : 'bar', toString(){ return 'bar'; }}, 'bar', bar, 1, 2], {a : 'bar', b : bar, c : 2}, true), [1]);
-	assert.deepEqual(removeFrom([1, 2, 3, 4, 5, 'a', true, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], true), ['a', true]);
+	assert.deepEqual(removeFrom([{a : 'bar', toString(){ return 'bar'; }}, 'bar', bar, 1, 2], ['bar', bar, 2]), [1]);
+	assert.deepEqual(removeFrom([{a : 'bar', toString(){ return 'bar'; }}, 'bar', bar, 1, 2], {a : 'bar', b : bar, c : 2}), [1]);
+	assert.deepEqual(removeFrom([{a : 'bar', toString(){ return 'bar'; }}, 'bar', bar, 1, 2], new Set(['bar', bar, 2])), [1]);
+	assert.deepEqual(removeFrom([{a : 'bar', toString(){ return 'bar'; }}, 'bar', bar, 1, 2], new Map([['a', 'bar'], ['b', bar], ['c', 2]])), [1]);
+	assert.deepEqual(removeFrom([1, 2, 3, 4, 5, 'a', true, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), ['a', true]);
 });

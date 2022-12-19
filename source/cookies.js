@@ -10,12 +10,14 @@ const MODULE_NAME = 'Cookies';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {assert, isA, orDefault, hasValue} from './basic.js';
 import {warn} from './logging.js';
 
 
 
-//###( HELPERS )###
+//###[ HELPERS ]########################################################################################################
 
 /*
  * Encodes a string to be stored in a cookie.
@@ -114,6 +116,8 @@ function normalizeCookieOptions(options){
 }
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Cookies:getCookie

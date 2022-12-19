@@ -10,12 +10,14 @@ const MODULE_NAME = 'Polling';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {orDefault, isA, assert, hasValue} from './basic.js';
 import {loop, countermand} from './timers.js';
 
 
 
-//###( MODULE DATA )###
+//###[ DATA ]###########################################################################################################
 
 export const POLLS = {
 	defaultLoop : null,
@@ -23,13 +25,15 @@ export const POLLS = {
 	activePolls : {}
 };
 
+const POLL_DEFAULT_LOOP_MS = 250;
 
+
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Polling:poll
  */
-
-const POLL_DEFAULT_LOOP_MS = 250;
 
 /**
  * Waits for a certain program- or DOM-state before executing a certain action. Waiting is implemented via

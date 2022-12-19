@@ -10,9 +10,13 @@ const MODULE_NAME = 'Arrays';
 
 
 
-import {assert, isA, orDefault} from './basic.js';
+//###[ IMPORTS ]########################################################################################################
+
+import {assert, isA, isPlainObject, orDefault} from './basic.js';
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Arrays:removeFrom
@@ -27,22 +31,30 @@ import {assert, isA, orDefault} from './basic.js';
  * Keep in mind, that "from" should normally be smaller than "to" to slice from left to right. This means that the elements
  * indexed by "from" and "to" should have the right order. For example: [1,2,3,4]. Here from=-1 and to=-3 are illegal since
  * "from" references a later element than "to", but there are also viable examples where "from" is numerically bigger. If we
- * use from=2 and to=-1, "from" is numerically bigger, but references an earlier element than -1 (which is the last element), which
- * is totally okay. Just make sure "from" comes before "to" in the element's order.
+ * use from=2 and to=-1, "from" is numerically bigger, but references an earlier element than -1 (which is the last element),
+ * which is totally okay. Just make sure "from" comes before "to" in the element's order.
  *
  * If you provide a string for "from" everything matching that string with its string representation will be removed
  * (you can provide stringification for objects via the toString method, see:
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString).
  *
- * Everything else provided for "from" will determine the element(s) to remove by identity (===).
+ * Everything else (except collections) provided for "from" will determine the element(s) to remove by identity (===).
  *
- * If you want to remove several elements at once, you may provide an iterable collection (array, object) as "from" and
- * set "to" to true, to interpret "from" as a value range. This also makes it possible to actually remove numbers from
- * an array by identity: define the number(s) as an array, to signal, that these are no indices.
+ * If you want to remove several elements at once, you may provide an iterable collection as "from" and
+ * This also makes it possible to actually remove numbers from an array by identity: define the number(s) as an array,
+ * to signal, that these are no indices. If you need to remove a collection from the array by reference, either put
+ * the collection in an array or set "to" to true, to force the collection being treated as a reference.
+ *
+ * Iterable collections, usable in "from" in the sense of this method are:
+ * - PlainObject (values)
+ * - Array
+ * - Set
+ * - Map (values)
+ * To remove these by reference from target, instead of iterating them, set "to" to true.
  *
  * @param {Array} target - the array to remove elements from
- * @param {*} from - numerical index to start removing from (can also be negative to start counting from back), a string to identify elements to remove by their string representation or any other value identifying elements to remove by identity
- * @param {?Number|Boolean} [to=null] - index to end removing (can also be negative to end counting from back), if true, "from" defines several values to be removed as a collection (iterable) instead of a memory reference to check, in this case, each item in the collection defines elements to remove either by string or reference identity
+ * @param {*} from - numerical index to start removing from (can also be negative to start counting from back), a string to identify elements to remove by their string representation or any other value identifying elements to remove by identity, if this is an iterable collection, the collection is iterated instead of being treated as a reference, enforce treatment as a reference, by setting "to" to true
+ * @param {?Number|Boolean} [to=null] - index to end removing (can also be negative to end counting from back), if true, "from" defines a given iterable collection to be removed by reference, instead of removing the contained values, with this you can remove an array from an array for example
  * @throws error if target is not an array
  * @returns {Array} new array without index/range/matches
  *
@@ -59,13 +71,13 @@ import {assert, isA, orDefault} from './basic.js';
  * => [{a : 'b', toString(){ return 'b'; }}, 'b', 1]
  * removeFrom([true, true, false, true, true], true)
  * => [false]
- * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2], true);
+ * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2]);
  * => [1]
  */
 export function removeFrom(target, from, to=null){
 	assert(isA(target, 'array'), `${MODULE_NAME}:remove | target is no array`);
 
-	if( isA(from, 'number') && (to !== false) ){
+	if( isA(from, 'number') && (to !== true) ){
 		from = parseInt(from, 10);
 		to = orDefault(to, null, 'int');
 
@@ -82,11 +94,20 @@ export function removeFrom(target, from, to=null){
 			return reducedArray;
 		}, []);
 	} else {
-		const fromList = isA(from, 'object') ? Object.values(from) : Array.from(from);
+		let fromList;
+		if( isPlainObject(from) ){
+			fromList = Object.values(from);
+		} else if( isA(from, 'map') ){
+			fromList = Array.from(from.values());
+		} else if( isA(from, 'set') ){
+			fromList = Array.from(from.values());
+		} else {
+			fromList = Array.from(from);
+		}
 
-		if( (to === true) && (fromList.length > 0) ){
+		if( (fromList.length > 0) && (to !== true) ){
 			return fromList.reduce((reducedArray, item) => {
-				reducedArray = removeFrom(reducedArray, item, false);
+				reducedArray = removeFrom(reducedArray, item, true);
 				return reducedArray;
 			}, [...target]);
 		} else {

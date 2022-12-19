@@ -10,6 +10,8 @@ const MODULE_NAME = 'Navigation';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {warn} from './logging.js';
 import {hasValue, orDefault, isPlainObject, isEmpty, isA, assert} from './basic.js';
 import {createNode} from './elements.js';
@@ -17,7 +19,7 @@ import {browserSupportsHistoryManipulation} from './context.js';
 
 
 
-//###( MODULE DATA )###
+//###[ DATA ]###########################################################################################################
 
 export const HISTORY = {
 	current : {
@@ -47,6 +49,8 @@ export const HISTORY = {
 };
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Navigation:redirect

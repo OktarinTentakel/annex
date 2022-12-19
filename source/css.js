@@ -10,10 +10,14 @@ const MODULE_NAME = 'CSS';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {assert, isA, orDefault, isPlainObject, hasValue, isNaN} from './basic.js';
 import {maskForRegEx} from './strings.js';
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace CSS:applyStyles
@@ -55,10 +59,11 @@ import {maskForRegEx} from './strings.js';
  * applyStyles(document.querySelector('main'), {'font-family' : 'serif'}, false, true);
  */
 export function applyStyles(element, styles, crossBrowser=false, returnCssStyleDeclaration=false){
+	const methodName = applyStyles.name;
+
 	crossBrowser = orDefault(crossBrowser, false, 'bool');
 	returnCssStyleDeclaration = orDefault(returnCssStyleDeclaration, false, 'bool');
 
-	const methodName = 'applyStyles';
 	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${methodName} | element is not an html element`);
 	assert(isPlainObject(styles), `${MODULE_NAME}:${methodName} | styles must be a plain object`);
 

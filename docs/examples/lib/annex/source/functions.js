@@ -10,10 +10,14 @@ const MODULE_NAME = 'Functions';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {orDefault, isA, isPlainObject, assert, hasValue} from './basic.js';
 import {schedule, reschedule} from './timers.js';
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Functions:throttle

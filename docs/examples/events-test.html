@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Events Module Examples</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png">
+
+		<link rel="stylesheet" href="./main.css">
+		<style type="text/css">
+			.test {
+				padding: 1rem;
+				margin-top: 2rem;
+				outline: 1px solid steelblue;
+
+				transition: background-color 250ms ease-in-out;
+			}
+
+			.test p:first-child {
+				margin-top: 0;
+
+				color: dimgray;
+			}
+
+			.test .content {
+				padding: 1rem;
+				outline: 1px solid turquoise;
+
+				transition: background-color 250ms ease-in-out;
+			}
+
+			.test .content form {
+				padding: 1rem;
+				outline: 1px solid crimson;
+
+				transition: background-color 250ms ease-in-out;
+			}
+
+			.test .content form a {
+				display: inline-block;
+			}
+		</style>
+
+		<script defer src="./lib/handle-version-switching.js"></script>
+		<script>
+			function setup(
+				polyfillCustomEvent,
+				polyfillElementMatches,
+				on,
+				once,
+				off,
+				pause,
+				resume,
+				fire,
+				emit
+			){
+				polyfillCustomEvent();
+				polyfillElementMatches();
+
+				var
+					formSubmitOffButton = document.body.querySelector('#form-submit-off'),
+					formSubmitOnButton = document.body.querySelector('#form-submit-on'),
+					pauseBackgroundColoringButton = document.body.querySelector('#background-pause'),
+					resumeBackgroundColoringButton = document.body.querySelector('#background-resume'),
+					container = document.body.querySelector('.test'),
+					content = container.querySelector('.content'),
+					form = content.querySelector('form'),
+					input = form.querySelector('input'),
+					button = form.querySelector('button'),
+					link = form.querySelector('a'),
+					setColor = function(eventTarget){
+						var	targets = [].concat(eventTarget);
+
+						for(var i = 0; i < targets.length; i++){
+							var
+								target = targets[i];
+								targetStyle = window.getComputedStyle(target)
+								color = targetStyle.getPropertyValue('outline-color')
+							;
+
+							if( !color || (color === 'transparent') ){
+								color = targetStyle.getPropertyValue('border-color');
+							}
+
+							if( !color || (color === 'transparent') ){
+								color = targetStyle.getPropertyValue('color');
+							}
+
+							target.style.backgroundColor = color;
+
+							window.setTimeout(function(){
+								target.style.backgroundColor = '';
+							}, 1000);
+						}
+					}
+				;
+
+				on(link, 'click', function(e){
+					e.preventDefault();
+				});
+
+				on(link, 'click.bubbling', function(e){
+					setColor(e.currentTarget);
+				});
+
+				once(link, 'click.message', function(){
+					alert('I will only show on the first click.');
+				});
+
+				on([form, 'a'], 'click.bubbling', function(e){
+					setColor(e.currentTarget || e.syntheticTargetElements);
+				});
+
+				on([content, 'a'], 'click.bubbling', function(){
+					setColor(content);
+				});
+
+				on([container, 'a'], 'click.bubbling', function(){
+					setColor(container);
+				});
+
+				on([container, content], 'color.background', function(e){
+					setColor(e.currentTarget);
+				});
+
+				on([container, content, form], 'mouseenter', function(e){
+					e.currentTarget.style.outlineWidth = '3px';
+					const text = e.currentTarget.querySelector('p');
+					text.style.color = 'black';
+					text.style.fontWeight = 'bold';
+				});
+
+				on([container, content, form], 'mouseleave', function(e){
+					e.currentTarget.style.outlineWidth = '1px';
+					const text = e.currentTarget.querySelector('p');
+					text.style.color = 'dimgray';
+					text.style.fontWeight = 'normal';
+				});
+
+				on(form, 'color.background', function(){
+					setColor(form);
+				});
+
+				on(input, ['focus', 'blur'], function(){
+					emit(content, 'color');
+				});
+
+				on([form, 'input[type="text"]'], 'keyup', function(){
+					setColor(form);
+				});
+
+				function formSubmit(e){
+					e.preventDefault(e);
+					fire([form, 'a'], 'click');
+					fire(form, '*.background');
+				}
+
+				on(form, 'submit.submission', formSubmit);
+
+				on(button, 'click', function(e){
+					e.stopPropagation();
+				});
+
+				on(formSubmitOffButton, 'click', function(){
+					off(form, '*.submission');
+					alert('Submit handler removed. Submitting should now reload the page.');
+				});
+
+				on(formSubmitOnButton, 'click', function(){
+					off(form, 'submit.submission');
+					on(form, 'submit.submission', formSubmit);
+					alert('Submit handler added. Submitting should color elements again.');
+				});
+
+				on(pauseBackgroundColoringButton, 'click', function(){
+					pause([link, form, 'a', content, 'a', container, 'a'], ['click.bubbling', '*.message']);
+					alert('Handlers paused. Clicking the link should not color backgrounds anymore.');
+				});
+
+				on(resumeBackgroundColoringButton, 'click', function(){
+					resume([link, form, 'a', content, 'a', container, 'a'], 'click');
+					alert('Handlers resumed. Clicking the link should color backgrounds again.');
+				});
+			}
+		</script>
+		<script type="module">
+			if( window.__ANNEX_VERSION__ !== 'es5' ){
+				(async () => {
+					const {
+						polyfillCustomEvent,
+						polyfillElementMatches
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/polyfills.js`);
+
+					const {
+						on,
+						once,
+						off,
+						pause,
+						resume,
+						fire,
+						emit
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/events.js`);
+
+					setup(
+						polyfillCustomEvent,
+						polyfillElementMatches,
+						on,
+						once,
+						off,
+						pause,
+						resume,
+						fire,
+						emit
+					);
+				})().catch(error => {
+					console.error(error);
+				});
+			}
+		</script>
+		<script defer src="./lib/annex/dist/es5-monolith.js"></script>
+		<script defer>
+			(function(){
+				var annexPoll = window.setInterval(function(){
+					if( window.__ANNEX_VERSION__ && window.annex ){
+						window.clearInterval(annexPoll);
+
+						if( window.__ANNEX_VERSION__ === 'es5' ){
+							setup(
+								window.annex.polyfills.polyfillCustomEvent,
+								window.annex.polyfills.polyfillElementMatches,
+								window.annex.events.on,
+								window.annex.events.once,
+								window.annex.events.off,
+								window.annex.events.pause,
+								window.annex.events.resume,
+								window.annex.events.fire,
+								window.annex.events.emit
+							);
+						}
+					}
+				}, 250);
+			})();
+		</script>
+	</head>
+
+	<body>
+		<header>
+			<h1>Events Examples</h1>
+		</header>
+		<main>
+			<h3>on / once / fire / emit</h3>
+			<section class="test">
+				<p>container</p>
+				<div class="content">
+					<p>content</p>
+					<form action="">
+						<p>form</p>
+						<label>
+							focussing/blurring the input should color the content and container backgrounds, typing should color the form background
+							<input name="test" type="text" placeholder="write something and hit enter to submit"/>
+						</label>
+						<button type="submit">submitting the form should color the link and the form backgrounds</button><br/><br/>
+						<a href="">clicking this should color all element backgrounds up to the outer container</a>
+					</form>
+				</div>
+			</section>
+
+			<h3>off / on / pause / resume</h3>
+			<section>
+				<div>
+					<button id="background-pause" class="btn light-blue darken-1">pause background coloring on link click</button>
+					<button id="background-resume" class="btn light-blue darken-1">resume background coloring on link click</button>
+					<button id="form-submit-off" class="btn light-blue darken-1">remove submit handler of form</button>
+					<button id="form-submit-on" class="btn light-blue darken-1">add submit handler of form</button>
+				</div>
+			</section>
+		</main>
+	</body>
+</html>

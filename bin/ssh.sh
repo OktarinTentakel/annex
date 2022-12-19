@@ -2,4 +2,5 @@
 
 cd "${0%/*}" && \
 cd .. && \
-docker-compose exec annex bash
+docker-compose exec \
+annex bash

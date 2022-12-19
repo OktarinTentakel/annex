@@ -14,6 +14,7 @@ const {
 	attempt,
 	hasValue,
 	isEmpty,
+	size,
 	hasMembers,
 	orDefault,
 	getType,
@@ -22,6 +23,8 @@ const {
 	isFloat,
 	isPlainObject,
 	isNaN,
+	isEventTarget,
+	isSelector,
 	minMax,
 	Deferred,
 	Observable
@@ -97,6 +100,49 @@ test('hasValue', assert => {
 
 
 
+test('size', assert => {
+	let
+		bar = 0,
+		foobar = '',
+		boofar = {},
+		farbar = [],
+		barfoo = new Set(),
+		zzz = new Map(),
+		boo = 'none',
+		far = 1,
+		eBody = document.querySelectorAll('body')
+	;
+
+	assert.is(size(bar), null);
+	assert.is(size(foobar), 0);
+	assert.is(size(boofar), 0);
+	assert.is(size(farbar), 0);
+	assert.is(size(barfoo), 0);
+	assert.is(size(zzz), 0);
+	assert.is(size(boo), 4);
+	assert.is(size(far), null);
+	assert.is(size(eBody), 1);
+
+	foobar = '日本国💩👻';
+	boofar = {a : 1, b : new Date(), c : [1, 2, 3]};
+	farbar.push('test', 'test', 'test');
+	barfoo.add('test1').add('test2').add('test3');
+	zzz.set(1, 1).set(new Date(), new Date()).set('foo', 'bar');
+
+	assert.is(size(foobar), 5);
+	assert.true(size(foobar, false) > 5);
+	assert.is(size(boofar), 3);
+	assert.is(size(farbar), 3);
+	assert.is(size(barfoo), 3);
+	assert.is(size(barfoo.values()), 3);
+	assert.is(size(zzz), 3);
+	assert.is(size(zzz.values()), 3);
+	assert.is(size(null), null);
+	assert.is(size(undefined), null);
+});
+
+
+
 test('isEmpty', assert => {
 	const
 		bar = 0,
@@ -104,6 +150,7 @@ test('isEmpty', assert => {
 		boofar = {},
 		farbar = [],
 		barfoo = new Set(),
+		zzz = new Map(),
 		boo = 'none',
 		far = 1
 	;
@@ -112,15 +159,18 @@ test('isEmpty', assert => {
 	assert.true(isEmpty(foo));
 	assert.true(isEmpty(foo, bar, foobar, boofar, farbar, barfoo));
 	assert.true(isEmpty(foo, bar, foobar, {__additionalEmptyValues__ : [false]}, farbar, boofar, barfoo, boo, false, {__additionalEmptyValues__ : ['none']}));
+	assert.true(isEmpty(zzz));
 	assert.false(isEmpty(bar, foobar, far));
 
 	boofar.a = 'a';
 	barfoo.add(42);
+	zzz.set('a', 'b')
 	farbar.push(true);
 
 	assert.false(isEmpty(boofar));
 	assert.false(isEmpty(barfoo));
 	assert.false(isEmpty(farbar));
+	assert.false(isEmpty(zzz));
 });
 
 
@@ -170,7 +220,7 @@ test('getType', assert => {
 		far = [1, 2, 3],
 		boofar = /[a-z0-9]/g,
 		lala = new Set([1, 2, 3, 4, 5]),
-		wm = new WeakMap()
+		wm = new Map()
 	;
 
 	wm.set(foobar, 'foobar');
@@ -187,7 +237,8 @@ test('getType', assert => {
 	assert.not(getType(boofar), 'boofar');
 	assert.not(getType(bar.a), 'date');
 	assert.is(getType(lala), 'set');
-	assert.is(getType(wm), 'weakmap');
+	assert.is(getType(wm), 'map');
+	assert.is(getType(wm.values()), 'iterator');
 	assert.is(getType(document.querySelectorAll('.test')), 'nodelist');
 	assert.is(getType(document), 'htmldocument');
 	assert.is(getType(document.createElement('div')), 'htmlelement');
@@ -206,7 +257,7 @@ test('isA', assert => {
 		far = [1, 2, 3],
 		boofar = /[a-z0-9]/g,
 		lala = new Set([1, 2, 3, 4, 5]),
-		wm = new WeakMap()
+		wm = new Map()
 	;
 
 	wm.set(foobar, 'foobar');
@@ -223,7 +274,8 @@ test('isA', assert => {
 	assert.false(isA(boofar, 'boofar'));
 	assert.false(isA(bar.a, 'date'));
 	assert.true(isA(lala, 'set'));
-	assert.true(isA(wm, 'weakmap'));
+	assert.true(isA(wm, 'map'));
+	assert.true(isA(wm.values(), 'iterator'));
 	assert.true(isA(document.querySelectorAll('.test'), 'nodelist'));
 	assert.true(isA(document, 'htmldocument'));
 	assert.true(isA(document.createElement('div'), 'htmlelement'));
@@ -263,6 +315,8 @@ test('isFloat', assert => {
 
 test('isPlainObject', assert => {
 	assert.true(isPlainObject({}));
+	assert.true(isPlainObject({a : 1, b : new Date()}));
+	assert.true(isPlainObject(new Object()));
 	assert.false(isPlainObject(document.createElement('div')));
 	assert.false(isPlainObject(null));
 	assert.false(isPlainObject(Object.create(null)));
@@ -292,6 +346,54 @@ test('isNaN', assert => {
 	assert.false(isNaN(boo));
 	assert.false(isNaN(far));
 	assert.false(isNaN(boofar));
+});
+
+
+
+test('isEventTarget', assert => {
+	const
+		foo = document,
+		bar = document.body,
+		foobar = document.querySelector('body'),
+		boo = document.createElement('div'),
+		far = new CustomEvent('test'),
+		boofar = {a : 1},
+		zzz = {
+			addEventListener(){},
+			removeEventListener(){},
+			dispatchEvent(){}
+		}
+	;
+
+	assert.true(isEventTarget(foo));
+	assert.true(isEventTarget(bar));
+	assert.true(isEventTarget(foobar));
+	assert.true(isEventTarget(boo));
+	assert.false(isEventTarget(far));
+	assert.false(isEventTarget(boofar));
+	assert.true(isEventTarget(zzz));
+});
+
+
+
+test('isSelector', assert => {
+	const
+		foo = 'a',
+		bar = '> body',
+		foobar = 'button.btn[data-foobar][class*="test"]',
+		boo = 'div ~ div',
+		far = '#test',
+		boofar = '$test',
+		zzz = 42
+	;
+
+	assert.true(isSelector(foo));
+	assert.false(isSelector(bar));
+	assert.true(isSelector(foobar));
+	assert.true(isSelector(boo));
+	assert.true(isSelector(far));
+	assert.false(isSelector(boofar));
+	assert.false(isSelector(zzz));
 });
 
 

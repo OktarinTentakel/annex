@@ -10,11 +10,15 @@ const MODULE_NAME = 'DynamicLoading';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {warn} from './logging.js';
 import {hasValue, orDefault, isPlainObject, isA, assert, Deferred} from './basic.js';
 import {createNode, insertNode} from './elements.js';
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace DynamicLoading:createFetchRequest
@@ -99,7 +103,7 @@ import {createNode, insertNode} from './elements.js';
  * ;
  */
 export function createFetchRequest(url, options=null){
-	const methodName = 'createFetchRequest';
+	const methodName = createFetchRequest.name;
 
 	assert(hasValue(url), `${MODULE_NAME}:${methodName} | no url given`);
 	options = orDefault(options, {});

@@ -10,6 +10,8 @@ const MODULE_NAME = 'Animation';
 
 
 
+//###[ EXPORTS ]########################################################################################################
+
 /**
  * @namespace Animation:EasingFunctions
  */

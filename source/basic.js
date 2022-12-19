@@ -10,9 +10,13 @@ const MODULE_NAME = 'Basic';
 
 
 
+//###[ IMPORTS ]########################################################################################################
+
 import {log, warn} from './logging.js';
 
 
+
+//###[ EXPORTS ]########################################################################################################
 
 /**
  * @namespace Basic:assert
@@ -102,8 +106,88 @@ export function hasValue(){
 	let res = true;
 
 	Array.from(arguments).forEach(value => {
-		res = res && ((value !== undefined) && (value !== null));
+		res &&= ((value !== undefined) && (value !== null));
 	});
+
+	return res;
+}
+
+
+
+/**
+ * @namespace Basic:size
+ */
+
+/**
+ * Determine the (value) size of a collection.
+ *
+ * A collection is an object with countable values:
+ * - Arrays return their length
+ * - Sets and Maps return their size
+ * - Strings return their (character) length
+ * - Iterators return the length of their value list
+ * - Objects return the length of their value list
+ * - any object implementing .values() returns the length of the returned value list
+ *
+ * @param {Object|Array|Set|Map|String|Iterable} target - a collection to determine the (value) size of
+ * @param {?Boolean} [countStringCharacters=true] - if we want to determine the length of a string, we'd normally like to count actual characters, but length normally returns the technical length counting more than one for unicode chars, set this to "false" to use technical length instead of characters
+ * @returns {Number|null} the size of the collection or null if no size could be determined
+ *
+ * @memberof Basic:size
+ * @alias size
+ * @example
+ * size('日本国💩👻');
+ * => 5
+ * size('日本国💩👻', false);
+ * => 7
+ * size({a : 1, b : new Date(), c : [1, 2, 3]});
+ * => 3
+ * size(['test', 'test', 'test']);
+ * => 3
+ * size(new Set(['test1', 'test2', 'test3']));
+ * => 3
+ * size(new Set(['test1', 'test2', 'test3']).values());
+ * => 3
+ * size(new Map([[1, 1], [new Date(), new Date()], ['foo', 'bar']]));
+ * => 3
+ * size(new Map([[1, 1], [new Date(), new Date()], ['foo', 'bar']]).values());
+ * => 3
+ * size(null);
+ * => null
+ * size(undefined);
+ * => null
+ */
+export function size(target, countStringCharacters=true){
+	if( isA(target?.values, 'function') ) return Array.from(target.values()).length;
+
+	let res;
+	switch( getType(target) ){
+		case 'array':
+			res = target.length;
+		break;
+
+		case 'set':
+		case 'map':
+			res = target.size;
+		break;
+
+		case 'iterator':
+			res = Array.from(target).length;
+		break;
+
+		case 'string':
+			// see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length#description
+			res = countStringCharacters ? [...target].length : target.length;
+		break;
+
+		case 'object':
+			res = Object.values(target).length;
+		break;
+
+		default:
+			res = null;
+		break;
+	}
 
 	return res;
 }
@@ -122,7 +206,7 @@ export function hasValue(){
  * any single parameter. Multiple occurrences will be merged.
  *
  * @param {...*} [...] - add any number of variables you wish to check
- * @returns {Boolean} variable(s) is/are non-empty
+ * @returns {Boolean} variable(s) is/are empty
  *
  * @memberof Basic:isEmpty
  * @alias isEmpty
@@ -151,13 +235,7 @@ export function isEmpty(){
 			res = emptyValues.includes(obj);
 
 			if( !res ){
-				if( isA(obj, 'array') ){
-					res = (obj.length === 0);
-				} else if( isA(obj, 'object') ){
-					res = Object.keys(obj).length === 0;
-				} else if( isA(obj, 'set') || isA(obj, 'map') ){
-					res = (obj.size === 0);
-				}
+				res = (size(obj) === 0);
 			}
 		}
 	});
@@ -301,6 +379,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  * - "date"
  * - "error"
  * - "generator"
+ * - "iterator"
  * - "regexp"
  * - "set"
  * - "weakset"
@@ -330,6 +409,7 @@ export function getType(value) {
 	if( deepType === 'document' ) return 'htmldocument';
 	if( deepType === 'element' ) return 'htmlelement';
 	if( /^html.*element$/.test(deepType) ) return 'htmlelement';
+	if( /^.*iterator$/.test(deepType) ) return 'iterator';
 
 	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|nodelist|window)$/)
 		? deepType
@@ -373,6 +453,7 @@ export function isA(value, type){
 			'date',
 			'error',
 			'generator',
+			'iterator',
 			'regexp',
 			'set',
 			'weakset',
@@ -508,6 +589,72 @@ export function isNaN(expression, checkForIdentity=true){
 	} else {
 		return isNaN(expression);
 	}
+}
+
+
+
+/**
+ * @namespace Basic:isEventTarget
+ */
+
+/**
+ * Returns if a value is an EventTarget, which means that it is able to dispatch and receive events.
+ * This is determined via duck-typing and not via class inheritance check, since this method is not
+ * about type-safety, but the question if we can use the target for events, which is simply determined
+ * by three essential object methods: addEventListener, removeEventListener and dispatchEvent. All
+ * objects supporting these are fine with us.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value supports event methods
+ *
+ * @memberof Basic:isEventTarget
+ * @alias isEventTarget
+ * @example
+ * if( isEventTarget(target) ){
+ *   target.dispatchEvent(new CustomEvent('foobar'));
+ * }
+ */
+export function isEventTarget(value){
+	return hasValue(value)
+		&& isA(value.addEventListener, 'function')
+		&& isA(value.removeEventListener, 'function')
+		&& isA(value.dispatchEvent, 'function')
+	;
+}
+
+
+
+/**
+ * @namespace Basic:isSelector
+ */
+
+const DOCUMENT_FRAGMENT = document.createDocumentFragment();
+
+/**
+ * Returns if a value is a valid selector, usable in methods such as querySelector
+ * and querySelectorAll.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a valid selector
+ *
+ * @memberof Basic:isSelector
+ * @alias isSelector
+ * @example
+ * if( isSelector(selector) ){
+ *   document.querySelector(selector)?.style.setProperty('color', 'red');
+ * }
+ */
+export function isSelector(value){
+	// almost all values like "null", "undefined" and "NaN" are accepted querySelectors, numbers are not
+	value = orDefault(value, 0, 'str');
+
+	try {
+		DOCUMENT_FRAGMENT.querySelector(value);
+	} catch(ex){
+		return false;
+	}
+
+	return true;
 }
 
 

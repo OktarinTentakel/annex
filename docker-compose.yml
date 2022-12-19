@@ -16,4 +16,4 @@ services:
       environment:
          - TERM=xterm-256color
          - YARN_CACHE_FOLDER=/tmp
-      command: bash -c "yarn; gulp --color examples"
+      command: bash -c "yarn install; gulp --color examples"

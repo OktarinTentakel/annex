@@ -103,7 +103,7 @@ export function isInViewport(element, mustBeFullyInside=false){
  * @param {?Number} [offset=0] - offset from the viewport center to apply to the end position
  * @param {?String} [easing='easeInOutCubic'] - easing function to use, can be any of Animation.EasingFunctions
  * @param {?Boolean} [scrollEvenIfFullyInViewport=false] - if true, forces method to always scroll no matter the element's position
- * @param {?Boolean} [cancelOnUserScroll=false] - if true, scrolling animation will immediately be canceled on manual user scroll, callback will not fire in that case
+ * @param {?Boolean} [cancelOnUserScroll=false] - if true, scrolling animation will immediately be canceled on manual user scroll, promise will not resolve in that case
  * @throws error if element is not usable or if durationMs is <= 0
  * @returns {Promise} resolves when scroll complete, rejects if scroll fails or is cancelled
  *

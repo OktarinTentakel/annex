@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: images.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: images.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*!
+ * Module Images
+ */
+
+/**
+ * @namespace Images
+ */
+
+const MODULE_NAME = 'Images';
+
+
+
+//###[ IMPORTS ]########################################################################################################
+
+import {orDefault, isA, isPlainObject, assert, isEmpty, hasValue, Deferred} from './basic.js';
+import {waitForRepaint} from './timers.js';
+
+
+
+//###[ DATA ]###########################################################################################################
+
+const PRELOADED_IMAGES = {
+	unnamed : [],
+	named : {}
+};
+
+
+
+//###[ EXPORTS ]########################################################################################################
+
+/**
+ * @namespace Images:preload
+ */
+
+/**
+ * Preloads images by URL, so that subsequent usages are served from browser cache.
+ * Images can be preloaded anonymously or with a given name. So you can either just use the url again,
+ * or, to be super-sure, call the method again, with just the image name to get the preloaded image itself.
+ *
+ * The function returns a Deferred, which resolves, after the images have loaded, with either an array of preloaded
+ * images or a single image, if only one has been defined. The Deferred contains all images newly created for
+ * preloading on the provision property before the Deferred resolves.
+ *
+ * @param {(String|String[]|Object.&lt;String, String>)} images - a URL, an array of URLs or a plain object containing named URLs. In case the string is an already used name, the image object from the named preloaded images cache is returned.
+ * @returns {Deferred&lt;Image|Image[]>|Image} either a Deferred, resolving after images are preloaded, or a requested cached image
+ *
+ * @memberof Images:preload
+ * @alias preload
+ * @example
+ * preload([url1, url2, url3]).then(images => { alert(`loaded ${images.length} images`); });
+ * const provisionalImage preload({name1 : url1, name2 : url2}}).provision.name1;
+ * const preloadedImage = preload('name1');
+ */
+export function preload(images){
+	const
+		preloadedImages = [],
+		deferred = new Deferred()
+	;
+	let newImages;
+
+	if( !isPlainObject(images) &amp;&amp; !isA(images, 'array') ){
+		images = `${images}`;
+
+		if( hasValue(PRELOADED_IMAGES.named[images]) ){
+			return PRELOADED_IMAGES.named[images];
+		} else {
+			images = [images];
+		}
+	}
+
+	if( isPlainObject(images) ){
+		newImages = {};
+
+		Object.entries(images).forEach(([key, value]) => {
+			key = `${key}`;
+			value = `${value}`;
+
+			if( !hasValue(PRELOADED_IMAGES.named[key]) ){
+				newImages[key] = new Image();
+				newImages[key].src = value;
+				preloadedImages.push(newImages[key]);
+			}
+		});
+
+		PRELOADED_IMAGES.named = {...PRELOADED_IMAGES.named, ...newImages};
+	} else if( isA(images, 'array') ){
+		newImages = [];
+
+		images.forEach(value => {
+			const newImage = new Image();
+			newImage.src = `${value}`;
+			newImages.push(newImage);
+			preloadedImages.push(newImage);
+		});
+
+		PRELOADED_IMAGES.unnamed = Array.from(new Set(PRELOADED_IMAGES.unnamed.concat(newImages)));
+	}
+
+	deferred.provision = (isA(newImages, 'array') &amp;&amp; (newImages.length === 1)) ? newImages[0] : newImages;
+	loaded(preloadedImages)
+		.then(deferred.resolve)
+		.catch(deferred.reject)
+	;
+
+	return deferred;
+}
+
+
+
+/**
+ * @namespace Images:loaded
+ **/
+
+/**
+ * Fixes problems with image "load" events and fires the event even in case the image is already loaded or served from
+ * browser cache. So repeated calls to this method on the same loaded image will actually work.
+ *
+ * Also supports imgs inside picture elements, while automatically handling the polyfills respimage and picturefill if
+ * present in window. Make sure to apply this method to the img _inside_ the picture and _not_ on the picture itself!
+ *
+ * Define "dimensionsNeeded" if your definition of "loaded" includes, that the loaded image should already have usable
+ * image dimensions for layouting. Use this, if you need to do calculations based on image dimensions after load.
+ * Dimensions are determined using the images "naturalWidth".
+ *
+ * The function returns a Deferred, which resolves, after the images have loaded, with either an array of loaded
+ * images or a single image, if only one has been defined. The Deferred contains all initially given images on the
+ * provision property before the Deferred resolves.
+ *
+ * @param {Image|Array&lt;Image>} images - an image or an array of images
+ * @param {?Boolean} [dimensionsNeeded=false] - tells the check if we expect the loaded image to have readable dimensions
+ * @returns {Deferred&lt;Image|Image[]>} a Deferred, resolving after all given images have loaded
+ *
+ * @memberof Images:loaded
+ * @alias loaded
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/naturalWidth
+ * @example
+ * onLoad(image).then(image => { image.classList.remove('hidden'); });
+ * onLoad([image1, image2, image3]).then(images => { alert(`all ${images.length} images have loaded`); })
+ */
+export function loaded(images, dimensionsNeeded=false){
+	const __methodName__ = loaded.name;
+
+	images = orDefault(images, [], 'arr').filter(image => {
+		return Object.prototype.toString.call(image).slice(8, -1).toLowerCase() === 'htmlimageelement';
+	});
+	dimensionsNeeded = orDefault(dimensionsNeeded, false, 'bool');
+
+	function onLoad(e){
+		const image = e.currentTarget;
+		if( !dimensionsNeeded || (dimensionsNeeded &amp;&amp; (image.naturalWidth > 0)) ){
+			loadCount--;
+			if( loadCount &lt;= 0 ){
+				images.map(image => {
+					image.removeEventListener('load', onLoad);
+					image.removeEventListener('error', onError);
+				});
+				loaderImages.map(image => {
+					image.removeEventListener('load', onLoad);
+					image.removeEventListener('error', onError);
+				});
+				deferred.resolve((images.length === 1) ? images[0] : images);
+			}
+		} else {
+			waitForRepaint(() => { onLoad(e); });
+		}
+	}
+
+	function onError(error){
+		images.map(image => {
+			image.removeEventListener('load', onLoad);
+			image.removeEventListener('error', onError);
+		});
+		loaderImages.map(image => {
+			image.removeEventListener('load', onLoad);
+			image.removeEventListener('error', onError);
+		});
+		deferred.reject(error);
+	}
+
+	const
+		deferred = new Deferred(),
+		loaderImages = []
+	;
+	let loadCount = images.length;
+
+	deferred.provision = (images.length === 1) ? images[0] : images;
+	images.forEach(image => {
+		image.removeEventListener('load', onLoad);
+		image.addEventListener('load', onLoad);
+		image.removeEventListener('error', onError);
+		image.addEventListener('error', onError);
+
+		const
+			src = image.src,
+			parent = image.parentNode,
+			isPicture = isA(image.parentNode, 'htmlelement') ? (parent.nodeName.toLowerCase() === 'picture') : false
+		;
+
+		assert(!isEmpty(src), `${MODULE_NAME}:${__methodName__} | image has no src`);
+
+		if( isPicture || !!image.complete ){
+			let img;
+
+			if( isPicture ){
+				if( window.respimage ){
+					window.respimage({elements : [parent]});
+					img = parent.querySelector('img');
+				} else if( window.picturefill ){
+					window.picturefill({elements : [parent]});
+					img = parent.querySelector('img');
+				} else {
+					img = image;
+				}
+
+				if( !!img.complete ){
+					img = new Image();
+					img.addEventListener('load', onLoad);
+					img.addEventListener('error', onError);
+					img.src = src;
+					loaderImages.push(img);
+				} else {
+					img.removeEventListener('load', onLoad);
+					img.addEventListener('load', onLoad);
+					img.removeEventListener('error', onError);
+					img.addEventListener('error', onError);
+				}
+			} else {
+				img = new Image();
+				img.addEventListener('load', onLoad);
+				img.addEventListener('error', onError);
+				img.src = src;
+				loaderImages.push(img);
+			}
+		}
+	});
+
+	return deferred;
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="DynamicLoading.html">DynamicLoading</a></li><li class="namespace"><a href="DynamicLoading_createCssRequest.html">DynamicLoading:createCssRequest</a></li><li class="namespace"><a href="DynamicLoading_createFetchRequest.html">DynamicLoading:createFetchRequest</a></li><li class="namespace"><a href="DynamicLoading_createHtmlRequest.html">DynamicLoading:createHtmlRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsonRequest.html">DynamicLoading:createJsonRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsRequest.html">DynamicLoading:createJsRequest</a></li><li class="namespace"><a href="DynamicLoading_polyfillFetch.html">DynamicLoading:polyfillFetch</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_bindHistoryChange.html">Navigation:bindHistoryChange</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace"><a href="Navigation_unbindHistoryChange.html">Navigation:unbindHistoryChange</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Dec 21 2022 13:14:31 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -155,10 +155,10 @@ function prepareEventMethodEventInfo(eventName, defaultNamespace=null, defaultEv
  * the corresponding event names.
  */
 function gatherTargetEvents(target, namespace=null, event=null, delegation=null){
-	const methodName = gatherTargetEvents.name;
+	const __methodName__ = gatherTargetEvents.name;
 
 	const targetEvents = EVENT_MAP.get(target);
-	assert(isPlainObject(targetEvents), `${MODULE_NAME}:${methodName} | invalid target "${target}"`);
+	assert(isPlainObject(targetEvents), `${MODULE_NAME}:${__methodName__} | invalid target "${target}"`);
 
 	const gatheredTargetEvents = {};
 
@@ -302,17 +302,17 @@ function createDelegatedHandler(delegation, handler){
  */
 function createHandlerRemover(target, namespace, event, handler, delegation=null){
 	const
-		methodName = createHandlerRemover.name,
+		__methodName__ = createHandlerRemover.name,
 		targetEvents = EVENT_MAP.get(target)
 	;
 	let handlerScope = targetEvents?.[namespace]?.[event];
 
 	if( hasValue(delegation) ){
-		assert(isSelector(delegation), `${MODULE_NAME}:${methodName} | invalid delegation "${delegation}"`);
+		assert(isSelector(delegation), `${MODULE_NAME}:${__methodName__} | invalid delegation "${delegation}"`);
 		handlerScope = handlerScope.delegations[`${delegation}`];
 	}
 
-	assert(isPlainObject(handlerScope), `${MODULE_NAME}:${methodName} | invalid handlerScope`);
+	assert(isPlainObject(handlerScope), `${MODULE_NAME}:${__methodName__} | invalid handlerScope`);
 
 	return function handlerRemover(){
 		const removedHandlers = handlerScope.handlers.filter(existingHandler => existingHandler.handler === handler);
@@ -348,17 +348,17 @@ function createSelfRemovingHandler(target, namespace, event, handler, delegation
  */
 function removeLocatedHandler(target, namespace, event, handler, delegation=null){
 	const
-		methodName = removeLocatedHandler.name,
+		__methodName__ = removeLocatedHandler.name,
 		targetEvents = EVENT_MAP.get(target),
 		targetScope = targetEvents?.[namespace]?.[event]
 	;
 
-	assert(isPlainObject(targetScope), `${MODULE_NAME}:${methodName} | invalid targetScope`);
+	assert(isPlainObject(targetScope), `${MODULE_NAME}:${__methodName__} | invalid targetScope`);
 
 	let handlerScope;
 	if( hasValue(delegation) ){
 		const delegationScope = targetScope.delegations[`${delegation}`];
-		assert(isPlainObject(delegationScope), `${MODULE_NAME}:${methodName} | invalid delegation "${delegation}"`);
+		assert(isPlainObject(delegationScope), `${MODULE_NAME}:${__methodName__} | invalid delegation "${delegation}"`);
 		handlerScope = delegationScope;
 	} else {
 		handlerScope = targetScope;
@@ -416,17 +416,17 @@ function removeDelegatedHandlers(ancestor, delegation, namespace=null, event=nul
  */
 function pauseLocatedHandlers(target, namespace, event, handler, delegation=null, paused=true){
 	const
-		methodName = pauseLocatedHandlers.name,
+		__methodName__ = pauseLocatedHandlers.name,
 		targetEvents = EVENT_MAP.get(target),
 		targetScope = targetEvents?.[namespace]?.[event]
 	;
 
-	assert(isPlainObject(targetScope), `${MODULE_NAME}:${methodName} | invalid targetScope`);
+	assert(isPlainObject(targetScope), `${MODULE_NAME}:${__methodName__} | invalid targetScope`);
 
 	let handlerScope;
 	if( hasValue(delegation) ){
 		const delegationScope = targetScope.delegations[`${delegation}`];
-		assert(isPlainObject(delegationScope), `${MODULE_NAME}:${methodName} | invalid delegation "${delegation}"`);
+		assert(isPlainObject(delegationScope), `${MODULE_NAME}:${__methodName__} | invalid delegation "${delegation}"`);
 		handlerScope = delegationScope;
 	} else {
 		handlerScope = targetScope;
@@ -533,7 +533,7 @@ function createSyntheticEvent(
 	EventConstructor=null,
 	eventOptions=null
 ){
-	const methodName = createSyntheticEvent.name;
+	const __methodName__ = createSyntheticEvent.name;
 
 	event = `${event}`;
 	bubbles = orDefault(bubbles, false, 'bool');
@@ -543,7 +543,7 @@ function createSyntheticEvent(
 	let e;
 	if( isA(EventConstructor, 'function') ){
 		if( isPlainObject(payload) ){
-			console.warn(`${MODULE_NAME}:${methodName} | can't add payload to event "${EventConstructor.name}", skipping`);
+			console.warn(`${MODULE_NAME}:${__methodName__} | can't add payload to event "${EventConstructor.name}", skipping`);
 		}
 		e = new EventConstructor(event, {bubbles, cancelable, ...eventOptions});
 	} else {
@@ -624,9 +624,9 @@ function createSyntheticEvent(
  * on([foo, foo, 'button', bar], ['mousedown', 'touchstart'], e => { e.target.classList.add('interaction-start'); });
  */
 export function on(targets, events, handler, options=null, once=false){
-	const methodName = on.name;
+	const __methodName__ = on.name;
 
-	({targets, events, handler} = prepareEventMethodBaseParams(methodName, targets, events, handler));
+	({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler));
 	once = !!once || !!options?.once;
 	delete options?.once;
 
@@ -637,7 +637,7 @@ export function on(targets, events, handler, options=null, once=false){
 			prevTarget,
 			hasDelegation,
 			isDelegation
-		} = prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex);
+		} = prepareEventMethodAdditionalTargetInfo(__methodName__, targets, targetIndex);
 
 		let targetEvents = EVENT_MAP.get(target);
 		if( isDelegation ){
@@ -810,9 +810,9 @@ export function once(targets, events, handler, options=null){
  * off(buttonElement, '*.*');
  */
 export function off(targets, events, handler=null){
-	const methodName = off.name;
+	const __methodName__ = off.name;
 
-	({targets, events, handler} = prepareEventMethodBaseParams(methodName, targets, events, handler, true));
+	({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler, true));
 
 	let removedCount = 0;
 
@@ -821,7 +821,7 @@ export function off(targets, events, handler=null){
 			prevTarget,
 			hasDelegation,
 			isDelegation
-		} = prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex);
+		} = prepareEventMethodAdditionalTargetInfo(__methodName__, targets, targetIndex);
 
 		if( !hasDelegation ){
 			const targetEvents = isDelegation ? EVENT_MAP.get(prevTarget) : EVENT_MAP.get(target);
@@ -884,9 +884,9 @@ export function off(targets, events, handler=null){
  * pause([ancestorElement, '.btn[data-foobar="test"]'], '*.delegated', fSpecificHandler);
  */
 export function pause(targets, events, handler=null, paused=true){
-	const methodName = pause.name;
+	const __methodName__ = pause.name;
 
-	({targets, events, handler} = prepareEventMethodBaseParams(methodName, targets, events, handler, true));
+	({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler, true));
 
 	let pausedCount = 0;
 
@@ -895,7 +895,7 @@ export function pause(targets, events, handler=null, paused=true){
 			prevTarget,
 			hasDelegation,
 			isDelegation
-		} = prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex);
+		} = prepareEventMethodAdditionalTargetInfo(__methodName__, targets, targetIndex);
 
 		if( !hasDelegation ){
 			const targetEvents = isDelegation ? EVENT_MAP.get(prevTarget) : EVENT_MAP.get(target);
@@ -1006,9 +1006,9 @@ export function resume(targets, events, handler=null){
  * fire(buttonElement, 'click.*', {price : 666});
  */
 export function fire(targets, events, payload=null){
-	const methodName = fire.name;
+	const __methodName__ = fire.name;
 
-	({targets, events} = prepareEventMethodBaseParams(methodName, targets, events, null, true));
+	({targets, events} = prepareEventMethodBaseParams(__methodName__, targets, events, null, true));
 
 	let fireCount = 0;
 
@@ -1017,7 +1017,7 @@ export function fire(targets, events, payload=null){
 			prevTarget,
 			hasDelegation,
 			isDelegation
-		} = prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex);
+		} = prepareEventMethodAdditionalTargetInfo(__methodName__, targets, targetIndex);
 
 		if( !hasDelegation ){
 			const targetEvents = isDelegation ? EVENT_MAP.get(prevTarget) : EVENT_MAP.get(target);
@@ -1107,9 +1107,9 @@ export function fire(targets, events, payload=null){
  * emit(buttonElement, 'click.*', {price : 666}, MouseEvent, {bubbles : false});
  */
 export function emit(targets, events, payload=null, EventConstructor=null, eventOptions=null){
-	const methodName = emit.name;
+	const __methodName__ = emit.name;
 
-	({targets, events} = prepareEventMethodBaseParams(methodName, targets, events, null, true));
+	({targets, events} = prepareEventMethodBaseParams(__methodName__, targets, events, null, true));
 
 	let emitCount = 0;
 
@@ -1118,13 +1118,13 @@ export function emit(targets, events, payload=null, EventConstructor=null, event
 			prevTarget,
 			hasDelegation,
 			isDelegation
-		} = prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex);
+		} = prepareEventMethodAdditionalTargetInfo(__methodName__, targets, targetIndex);
 
 		if( !hasDelegation ){
 			events.forEach(eventName => {
 				const {event, namespace} = prepareEventMethodEventInfo(eventName);
 
-				assert(hasValue(event), `${MODULE_NAME}:${methodName} | missing event name`);
+				assert(hasValue(event), `${MODULE_NAME}:${__methodName__} | missing event name`);
 
 				if( isDelegation ){
 					Array.from(prevTarget.querySelectorAll(target)).forEach(element => {

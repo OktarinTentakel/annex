@@ -59,13 +59,13 @@ import {maskForRegEx} from './strings.js';
  * applyStyles(document.querySelector('main'), {'font-family' : 'serif'}, false, true);
  */
 export function applyStyles(element, styles, crossBrowser=false, returnCssStyleDeclaration=false){
-	const methodName = applyStyles.name;
+	const __methodName__ = applyStyles.name;
 
 	crossBrowser = orDefault(crossBrowser, false, 'bool');
 	returnCssStyleDeclaration = orDefault(returnCssStyleDeclaration, false, 'bool');
 
-	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${methodName} | element is not an html element`);
-	assert(isPlainObject(styles), `${MODULE_NAME}:${methodName} | styles must be a plain object`);
+	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | element is not an html element`);
+	assert(isPlainObject(styles), `${MODULE_NAME}:${__methodName__} | styles must be a plain object`);
 
 	const vendorPrefixes = ['-webkit-', '-moz-', '-ms-', '-o-', '-khtml-'];
 

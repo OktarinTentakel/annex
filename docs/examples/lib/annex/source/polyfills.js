@@ -36,7 +36,7 @@ import {assert, hasValue, isA} from './basic.js';
  * => makes Element.prototype.matches available, if not already present
  */
 export function polyfillElementMatches(){
-	const methodName = polyfillElementMatches.name;
+	const __methodName__ = polyfillElementMatches.name;
 
 	if( !Element.prototype.matches ){
 		Element.prototype.matches = Element.prototype.msMatchesSelector
@@ -45,7 +45,7 @@ export function polyfillElementMatches(){
 		;
 	}
 
-	assert(hasValue(Element.prototype.matches), `${MODULE_NAME}:${methodName} | browser does not support Element.matches`);
+	assert(hasValue(Element.prototype.matches), `${MODULE_NAME}:${__methodName__} | browser does not support Element.matches`);
 }
 
 

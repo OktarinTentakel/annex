@@ -110,6 +110,7 @@ function copyExamplesLibs(){
 
 function serveExamples(done){
 	connect.server({
+		https : true,
 		host : '0.0.0.0',
 		root : EXAMPLES_DIR,
 		port : 3000,

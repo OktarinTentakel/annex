@@ -54,3 +54,6 @@ export const cookies = _cookies;
 
 import * as _css from './css.js';
 export const css = _css;
+
+import * as _images from './images.js';
+export const images = _images;

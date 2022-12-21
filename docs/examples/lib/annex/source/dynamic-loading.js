@@ -103,11 +103,11 @@ import {createNode, insertNode} from './elements.js';
  * ;
  */
 export function createFetchRequest(url, options=null){
-	const methodName = createFetchRequest.name;
+	const __methodName__ = createFetchRequest.name;
 
-	assert(hasValue(url), `${MODULE_NAME}:${methodName} | no url given`);
+	assert(hasValue(url), `${MODULE_NAME}:${__methodName__} | no url given`);
 	options = orDefault(options, {});
-	assert(isPlainObject(options), `${MODULE_NAME}:${methodName} | options must be plain object`);
+	assert(isPlainObject(options), `${MODULE_NAME}:${__methodName__} | options must be plain object`);
 
 	options.method = orDefault(options.method, 'GET', 'str');
 	options.method = ['GET', 'POST', 'PUT', 'PATCH', 'HEAD', 'OPTIONS', 'DELETE'].includes(options.method.toUpperCase())

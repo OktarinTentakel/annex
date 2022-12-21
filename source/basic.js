@@ -700,6 +700,20 @@ export function minMax(min, value, max){
  */
 
 /**
+ * @typedef Deferred
+ * @type {Object}
+ * @property {Promise} promise - the wrapped promise
+ * @property {Function} resolve - resolves the wrapped promise with given value
+ * @property {Function} reject - rejects the wrapped promise with given error
+ * @property {Function} then - defines a success handler for the wrapped promise and returns its result
+ * @property {Function} catch - defines an error handler for the wrapped promise and returns its result
+ * @property {Function} finally - defines a "settled" handler for the wrapped promise and returns its result
+ * @property {String} status - holds the current resolution status, can either be "pending", "fulfilled" or "rejected"
+ * @property {Function} isSettled - returns true, if the Deferred is either "fulfilled" or "rejected"
+ * @property {?*} [provision=null] - may contain (a) provisional value(s) to use for a newly instantiated Deferred, before it has resolved to the actual value(s)
+ */
+
+/**
  * Class that wraps a Promise, to allow resolving and rejecting outside the
  * Promise's function scope. This allows for decoupled handling of states and
  * handling promises as references in a distributed context, like a class, where
@@ -708,7 +722,8 @@ export function minMax(min, value, max){
  * Deferreds also provide accessible status information, normal Promises do not have.
  * Accessing the "status" property returns the current status, being either "pending",
  * "fulfilled" or "rejected". You may also check if the Deferred has been settled via
- * "isSettled()".
+ * "isSettled()". If you want to provide a preliminary result, available before the
+ * promise has settled, you may set this result as a payload using the "provision" property.
  *
  * This follows ideas by jQuery and Q Promises:
  * - https://api.jquery.com/jQuery.Deferred/
@@ -720,6 +735,7 @@ export function minMax(min, value, max){
  * @name Deferred
  * @example
  * const doStuff = new Deferred();
+ * doStuff.provision = 'provisional value';
  * doStuff
  *   .then(value => { alert(`yeah, ready with "${value}"!`); })
  *   .catch(error => { console.error(error); })
@@ -741,6 +757,7 @@ export class Deferred {
 		;
 		this.resolve = null;
 		this.reject = null;
+		this.provision = null;
 		this.status = STATUS_PENDING;
 		this.isSettled = () => [STATUS_FULFILLED, STATUS_REJECTED].includes(this.status);
 		this.promise = new Promise((resolve, reject) => {
@@ -775,6 +792,15 @@ export class Deferred {
  */
 
 /**
+ * @typedef Observable
+ * @type {Object}
+ * @property {Function} getValue - returns the current value
+ * @property {Function} setValue - sets a new value, which will subsequently trigger all subscriptions
+ * @property {Function} subscribe - register a given function to be executed on any value change, the subscription receives the new and the old value on each execution, returns the subscription value, which can later be used to unsubscribe again
+ * @property {Function} unsubscribe - removes a given subscription again, use subscription value returned by subscribe here
+ */
+
+/**
  * A class offering the bare minimum feature set to observe a value and subscribe to future value changes.
  * No automatic magic going on here, this simply follows a basic subscription pattern, where each subscription is
  * a function, being called with a newly set value. This closely resembles the kind of observables knockout is using.
@@ -791,34 +817,36 @@ export class Deferred {
  */
 export class Observable {
 	constructor(initialValue){
-		this.value = initialValue;
-		this.subscriptions = [];
+		this.__className__ = 'Observable';
+		this._value = initialValue;
+		this._subscriptions = [];
 	}
 
 	getValue(){
-		return this.value;
+		return this._value;
 	}
 
 	setValue(newValue, force=false){
 		const
-			oldValue = this.value,
+			oldValue = this._value,
 			isNewValue = oldValue !== newValue
 		;
-		this.value = newValue;
+		this._value = newValue;
 		if( isNewValue || force ){
-			this.subscriptions.forEach(s => s(newValue, oldValue));
+			this._subscriptions.forEach(s => s(newValue, oldValue));
 		}
 	}
 
 	subscribe(subscription){
-		assert(isA(subscription, 'function'), `${MODULE_NAME}:Observable.subscribe | subscription must be function`);
-		if( this.subscriptions.indexOf(subscription) < 0 ){
-			this.subscriptions = [...this.subscriptions, subscription];
+		const __methodName__ = this.subscribe.name;
+		assert(isA(subscription, 'function'), `${MODULE_NAME}:${this.__className__}.${__methodName__} | subscription must be function`);
+		if( this._subscriptions.indexOf(subscription) < 0 ){
+			this._subscriptions = [...this._subscriptions, subscription];
 		}
 		return subscription;
 	}
 
 	unsubscribe(subscription){
-		this.subscriptions = this.subscriptions.filter(s => s !== subscription);
+		this._subscriptions = this._subscriptions.filter(s => s !== subscription);
 	}
 }

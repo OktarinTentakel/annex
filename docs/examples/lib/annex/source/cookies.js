@@ -21,6 +21,8 @@ import {warn} from './logging.js';
 
 /*
  * Encodes a string to be stored in a cookie.
+ *
+ * @private
  */
 function encodeCookieValue(value){
 	return encodeURIComponent(value).replace(/%(2[346BF]|3[AC-F]|40|5[BDE]|60|7[BCD])/g, decodeURIComponent);
@@ -30,6 +32,8 @@ function encodeCookieValue(value){
 
 /*
  * Decodes a cookie value to be used as a string in JavaScript.
+ *
+ * @private
  */
 function decodeCookieValue(value){
 	if( value[0] === '"' ){
@@ -42,6 +46,8 @@ function decodeCookieValue(value){
 
 /*
  * Makes sure a cookie name conforms to the cookie name rules and translates special chars to % representations.
+ *
+ * @private
  */
 function encodeCookieName(name){
 	return encodeURIComponent(`${name}`)
@@ -55,6 +61,8 @@ function encodeCookieName(name){
 
 /*
  * Decodes a cookie name, set prior with encodeCookieName to a standard JavaScript string again.
+ *
+ * @private
  */
 function decodeCookieName(name){
 	return decodeURIComponent(name);
@@ -75,6 +83,8 @@ function decodeCookieName(name){
 
 /*
  * Makes sure, that supplied cookie options are in a usable form for setting a cookie.
+ *
+ * @private
  */
 function normalizeCookieOptions(options){
 	options = orDefault(options, {});

@@ -16,6 +16,12 @@ import {log, warn} from './logging.js';
 
 
 
+//###[ DATA ]###########################################################################################################
+
+const DOCUMENT_FRAGMENT = document.createDocumentFragment();
+
+
+
 //###[ EXPORTS ]########################################################################################################
 
 /**
@@ -627,8 +633,6 @@ export function isEventTarget(value){
 /**
  * @namespace Basic:isSelector
  */
-
-const DOCUMENT_FRAGMENT = document.createDocumentFragment();
 
 /**
  * Returns if a value is a valid selector, usable in methods such as querySelector

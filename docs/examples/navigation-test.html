@@ -5,12 +5,12 @@
 		<title>Navigation Module Examples</title>
 
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png"/>
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png"/>
 
-		<link rel="stylesheet" href="./main.css">
-		<style type="text/css">
+		<link rel="stylesheet" href="./main.css"/>
+		<style>
 
 		</style>
 
@@ -22,8 +22,8 @@
 				openWindow,
 				reload,
 				changeCurrentUrl,
-				bindHistoryChange,
-				unbindHistoryChange
+				onHistoryChange,
+				offHistoryChange
 			){
 				document.querySelector('#redirect-1').addEventListener('click', function(e){
 					e.preventDefault();
@@ -125,32 +125,32 @@
 				};
 
 
-				document.querySelector('#bind-history-change').addEventListener('click', function(e){
+				document.querySelector('#on-history-change').addEventListener('click', function(e){
 					e.preventDefault();
 
-					bindHistoryChange(function(){
+					onHistoryChange(function(){
 						alert('I should never be called!');
 					});
 
-					bindHistoryChange(fLogBothNavigationStates, true, true);
+					onHistoryChange(fLogBothNavigationStates, true, true);
 
-					bindHistoryChange(function(currentState){
+					onHistoryChange(function(currentState){
 						console.info('current state:', currentState);
 					});
 				});
 
 
 
-				document.querySelector('#unbind-history-change-1').addEventListener('click', function(e){
+				document.querySelector('#off-history-change-1').addEventListener('click', function(e){
 					e.preventDefault();
 
-					unbindHistoryChange(fLogBothNavigationStates);
+					offHistoryChange(fLogBothNavigationStates);
 				});
 
-				document.querySelector('#unbind-history-change-2').addEventListener('click', function(e){
+				document.querySelector('#off-history-change-2').addEventListener('click', function(e){
 					e.preventDefault();
 
-					unbindHistoryChange();
+					offHistoryChange();
 				});
 			}
 		</script>
@@ -163,8 +163,8 @@
 						openWindow,
 						reload,
 						changeCurrentUrl,
-						bindHistoryChange,
-						unbindHistoryChange
+						onHistoryChange,
+						offHistoryChange
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/navigation.js`);
 
 					setup(
@@ -173,8 +173,8 @@
 						openWindow,
 						reload,
 						changeCurrentUrl,
-						bindHistoryChange,
-						unbindHistoryChange
+						onHistoryChange,
+						offHistoryChange
 					);
 				})().catch(error => {
 					console.error(error);
@@ -195,8 +195,8 @@
 								window.annex.navigation.openWindow,
 								window.annex.navigation.reload,
 								window.annex.navigation.changeCurrentUrl,
-								window.annex.navigation.bindHistoryChange,
-								window.annex.navigation.unbindHistoryChange
+								window.annex.navigation.onHistoryChange,
+								window.annex.navigation.offHistoryChange
 							);
 						}
 					}
@@ -260,28 +260,29 @@
 				</div>
 			</section>
 
-			<h3>bindHistoryChange</h3>
+			<h3>onHistoryChange</h3>
 			<section>
 				<p>
-					Click button to register event handlers for history navigation. Clicking the second link in "changeCurrentUrl"
-					and navigating back should then result in console logs stating previous, current and next state, being
-					a combination of event handlers working with only one and two states.
+					Click button to register event handlers for history navigation. Clicking the second link in
+					"changeCurrentUrl" and navigating back should then result in console logs stating the old, the new
+					and the current state.
 				</p>
 				<div>
-					<button id="bind-history-change" class="btn light-blue darken-1">Register Event Handlers</button>
+					<button id="on-history-change" class="btn light-blue darken-1">Register Event Handlers</button>
 				</div>
 			</section>
 
-			<h3>unbindHistoryChange</h3>
+			<h3>offHistoryChange</h3>
 			<section>
 				<p>
-					Click the buttons to unregister event handlers previously registered in "bindHistoryChange".
-					Clicking the first button should remove the output for previous and next states during back navigation
-					on the second link in "changeCurrentUrl". Clicking the second button should remove all handlers and output.
+					Click the buttons to unregister event handlers previously registered in "onHistoryChange".
+					Clicking the first button should remove the output for old and new states during back navigation
+					on the second link in "changeCurrentUrl".<br/>
+					Clicking the second button should remove all handlers and output.
 				</p>
 				<div>
-					<button id="unbind-history-change-1" class="btn light-blue darken-1">Unregister Event Handler With Both States</button>
-					<button id="unbind-history-change-2" class="btn light-blue darken-1">Unregister All Event Handlers</button>
+					<button id="off-history-change-1" class="btn light-blue darken-1">Unregister Event Handler With Old/New States</button>
+					<button id="off-history-change-2" class="btn light-blue darken-1">Unregister All Event Handlers</button>
 				</div>
 			</section>
 		</main>

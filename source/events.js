@@ -63,6 +63,8 @@ try {
 /*
  * Takes the standard set of event function parameters, sanitizes the values and asserts basic compatability.
  * Returns the transformed parameters as a object, with keys of the same name as the relevant parameters.
+ *
+ * @private
  */
 function prepareEventMethodBaseParams(methodName, targets, events, handler, handlerIsOptional=false){
 	targets = orDefault(targets, [], 'arr');
@@ -113,6 +115,8 @@ function prepareEventMethodBaseParams(methodName, targets, events, handler, hand
  * Prepares basic information about the current target in a list of targets.
  * The current target is identified by index, since the same target may appear multiple times in a list,
  * for example as a target and a delegation ancestor.
+ *
+ * @private
  */
 function prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex){
 	const
@@ -136,6 +140,8 @@ function prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex
  * Prepares basic information about the current event in a list of events.
  * The current event is identified by a complete eventName string containing the event itself,
  * as well as the complete dot-separated namespace.
+ *
+ * @private
  */
 function prepareEventMethodEventInfo(eventName, defaultNamespace=null, defaultEvent=null){
 	const
@@ -153,9 +159,12 @@ function prepareEventMethodEventInfo(eventName, defaultNamespace=null, defaultEv
  * Gathers matching events with namespaces for a given target (with or without a delegation).
  * Returns the found namespaces and events as a dictionary of namespaces with values of sets containing
  * the corresponding event names.
+ *
+ * @private
  */
 function gatherTargetEvents(target, namespace=null, event=null, delegation=null){
-	const __methodName__ = gatherTargetEvents.name;
+	// needs to be string, non-exported function names get mangled
+	const __methodName__ = 'gatherTargetEvents';
 
 	const targetEvents = EVENT_MAP.get(target);
 	assert(isPlainObject(targetEvents), `${MODULE_NAME}:${__methodName__} | invalid target "${target}"`);
@@ -217,6 +226,8 @@ function gatherTargetEvents(target, namespace=null, event=null, delegation=null)
  * Iterates through the event map (starting with a specific target or using all targets) and searches for
  * deserted handler definitions. Deletes definitions that do not contain any handlers anymore and recursively
  * removes the path back to the starting point(s) if it turns out to be empty afterwards.
+ *
+ * @private
  */
 function cleanUpEventMap(targets){
 	targets = hasValue(targets) ? new Set([].concat(targets)) : null;
@@ -266,6 +277,8 @@ function cleanUpEventMap(targets){
  * Takes a handler function and returns a new function wrapping the handler, making sure, that the handler only
  * executes, if the event target matches the given delegation selector. So, the returned function automatically
  * checks if the delegation is actually met.
+ *
+ * @private
  */
 function createDelegatedHandler(delegation, handler){
 	return function delegatedHandler(e){
@@ -299,10 +312,13 @@ function createDelegatedHandler(delegation, handler){
  * Takes a handler function and returns a new function, which, when executed, removes the handler from the exact
  * path in the EVENT_MAP, defined by the given target, namespace and event (and, optionally, a delegation selector).
  * Using this function, one can undo the setting of a handler, using "on" or "once".
+ *
+ * @private
  */
 function createHandlerRemover(target, namespace, event, handler, delegation=null){
 	const
-		__methodName__ = createHandlerRemover.name,
+		// needs to be string, non-exported function names get mangled
+		__methodName__ = 'createHandlerRemover',
 		targetEvents = EVENT_MAP.get(target)
 	;
 	let handlerScope = targetEvents?.[namespace]?.[event];
@@ -332,6 +348,8 @@ function createHandlerRemover(target, namespace, event, handler, delegation=null
  * Takes a handler function and returns a new function, which, when executed, calls the handler and, afterwards,
  * automatically removes the handler from the path in the EVENT_MAP, defined by the given target, namespace and event
  * (and, optionally, a delegation selector). So, the returned function is essentially a self-destructing handler.
+ *
+ * @private
  */
 function createSelfRemovingHandler(target, namespace, event, handler, delegation=null){
 	return function selfRemovingHandler(e){
@@ -345,10 +363,13 @@ function createSelfRemovingHandler(target, namespace, event, handler, delegation
 /*
  * Removes (a) handler(s) from a path in the EVENT_MAP, defined by the given target, namespace, event and handler
  * (and, optionally, a delegation selector).
+ *
+ * @private
  */
 function removeLocatedHandler(target, namespace, event, handler, delegation=null){
 	const
-		__methodName__ = removeLocatedHandler.name,
+		// needs to be string, non-exported function names get mangled
+		__methodName__ = 'removeLocatedHandler',
 		targetEvents = EVENT_MAP.get(target),
 		targetScope = targetEvents?.[namespace]?.[event]
 	;
@@ -384,6 +405,8 @@ function removeLocatedHandler(target, namespace, event, handler, delegation=null
 /*
  * Removes all handlers matching the given definition provided by target, namespace, event and handler
  * (and, optionally, a delegation selector). Leaving out namespace, event or handler works as a wildcard.
+ *
+ * @private
  */
 function removeHandlers(target, namespace=null, event=null, handler=null, delegation=null){
 	const targetEvents = gatherTargetEvents(target, namespace, event, delegation);
@@ -403,6 +426,8 @@ function removeHandlers(target, namespace=null, event=null, handler=null, delega
 
 /*
  * Shorthand-function for "removeHandlers" with more sane parameter order for delegations.
+ *
+ * @private
  */
 function removeDelegatedHandlers(ancestor, delegation, namespace=null, event=null, handler=null){
 	return removeHandlers(ancestor, namespace, event, handler, delegation);
@@ -413,10 +438,13 @@ function removeDelegatedHandlers(ancestor, delegation, namespace=null, event=nul
 /*
  * Pauses (a) handler(s) from a path in the EVENT_MAP, defined by the given target, namespace, event and handler
  * (and, optionally, a delegation selector). If paused is false, the function instead resumes the handlers.
+ *
+ * @private
  */
 function pauseLocatedHandlers(target, namespace, event, handler, delegation=null, paused=true){
 	const
-		__methodName__ = pauseLocatedHandlers.name,
+		// needs to be string, non-exported function names get mangled
+		__methodName__ = 'pauseLocatedHandlers',
 		targetEvents = EVENT_MAP.get(target),
 		targetScope = targetEvents?.[namespace]?.[event]
 	;
@@ -452,6 +480,8 @@ function pauseLocatedHandlers(target, namespace, event, handler, delegation=null
  * Pauses all handlers matching the given definition provided by target, namespace, event and handler
  * (and, optionally, a delegation selector). Leaving out namespace, event or handler works as a wildcard.
  * If paused is false, the function instead resumes the handlers.
+ *
+ * @private
  */
 function pauseHandlers(target, namespace=null, event=null, handler=null, delegation=null, paused=true){
 	const targetEvents = gatherTargetEvents(target, namespace, event, delegation);
@@ -471,6 +501,8 @@ function pauseHandlers(target, namespace=null, event=null, handler=null, delegat
 
 /*
  * Shorthand-function for "pauseHandlers" with more sane parameter order for delegations.
+ *
+ * @private
  */
 function pauseDelegatedHandlers(ancestor, delegation, namespace=null, event=null, handler=null, paused=true){
 	return pauseHandlers(ancestor, namespace, event, handler, delegation, paused);
@@ -483,6 +515,8 @@ function pauseDelegatedHandlers(ancestor, delegation, namespace=null, event=null
  * returns an action function, which checks if the handler is paused, before executing the original action.
  * Using this, we can wrap handler actions to automatically react to the handler's pause state, preventing any
  * handler execution if the handler is currently paused.
+ *
+ * @private
  */
 function createPauseAwareAction(managedHandler, nonPauseAwareAction){
 	return function pauseAwareHandler(e){
@@ -498,6 +532,8 @@ function createPauseAwareAction(managedHandler, nonPauseAwareAction){
  * Takes an event listener options object as provided by the user, to be used as the third parameter of
  * addEventListener, and returns a sanitized version, taking into regard what options the browser actually supports
  * and falling back to boolean capture values, if the browser does not know about listener options at all.
+ *
+ * @private
  */
 function compileEventListenerOptions(options){
 	if( isA(options, 'boolean') ) return options;
@@ -522,6 +558,8 @@ function compileEventListenerOptions(options){
 
 /*
  * Creates a synthetic event to dispatch on an event target.
+ *
+ * @private
  */
 function createSyntheticEvent(
 	event,
@@ -533,7 +571,8 @@ function createSyntheticEvent(
 	EventConstructor=null,
 	eventOptions=null
 ){
-	const __methodName__ = createSyntheticEvent.name;
+	// needs to be string, non-exported function names get mangled
+	const __methodName__ = 'createSyntheticEvent';
 
 	event = `${event}`;
 	bubbles = orDefault(bubbles, false, 'bool');

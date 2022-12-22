@@ -91,6 +91,8 @@ try {
 /*
  * Takes the standard set of event function parameters, sanitizes the values and asserts basic compatability.
  * Returns the transformed parameters as a object, with keys of the same name as the relevant parameters.
+ *
+ * @private
  */
 function prepareEventMethodBaseParams(methodName, targets, events, handler, handlerIsOptional=false){
 	targets = orDefault(targets, [], 'arr');
@@ -141,6 +143,8 @@ function prepareEventMethodBaseParams(methodName, targets, events, handler, hand
  * Prepares basic information about the current target in a list of targets.
  * The current target is identified by index, since the same target may appear multiple times in a list,
  * for example as a target and a delegation ancestor.
+ *
+ * @private
  */
 function prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex){
 	const
@@ -164,6 +168,8 @@ function prepareEventMethodAdditionalTargetInfo(methodName, targets, targetIndex
  * Prepares basic information about the current event in a list of events.
  * The current event is identified by a complete eventName string containing the event itself,
  * as well as the complete dot-separated namespace.
+ *
+ * @private
  */
 function prepareEventMethodEventInfo(eventName, defaultNamespace=null, defaultEvent=null){
 	const
@@ -181,9 +187,12 @@ function prepareEventMethodEventInfo(eventName, defaultNamespace=null, defaultEv
  * Gathers matching events with namespaces for a given target (with or without a delegation).
  * Returns the found namespaces and events as a dictionary of namespaces with values of sets containing
  * the corresponding event names.
+ *
+ * @private
  */
 function gatherTargetEvents(target, namespace=null, event=null, delegation=null){
-	const __methodName__ = gatherTargetEvents.name;
+	// needs to be string, non-exported function names get mangled
+	const __methodName__ = 'gatherTargetEvents';
 
 	const targetEvents = EVENT_MAP.get(target);
 	assert(isPlainObject(targetEvents), `${MODULE_NAME}:${__methodName__} | invalid target "${target}"`);
@@ -245,6 +254,8 @@ function gatherTargetEvents(target, namespace=null, event=null, delegation=null)
  * Iterates through the event map (starting with a specific target or using all targets) and searches for
  * deserted handler definitions. Deletes definitions that do not contain any handlers anymore and recursively
  * removes the path back to the starting point(s) if it turns out to be empty afterwards.
+ *
+ * @private
  */
 function cleanUpEventMap(targets){
 	targets = hasValue(targets) ? new Set([].concat(targets)) : null;
@@ -294,6 +305,8 @@ function cleanUpEventMap(targets){
  * Takes a handler function and returns a new function wrapping the handler, making sure, that the handler only
  * executes, if the event target matches the given delegation selector. So, the returned function automatically
  * checks if the delegation is actually met.
+ *
+ * @private
  */
 function createDelegatedHandler(delegation, handler){
 	return function delegatedHandler(e){
@@ -327,10 +340,13 @@ function createDelegatedHandler(delegation, handler){
  * Takes a handler function and returns a new function, which, when executed, removes the handler from the exact
  * path in the EVENT_MAP, defined by the given target, namespace and event (and, optionally, a delegation selector).
  * Using this function, one can undo the setting of a handler, using "on" or "once".
+ *
+ * @private
  */
 function createHandlerRemover(target, namespace, event, handler, delegation=null){
 	const
-		__methodName__ = createHandlerRemover.name,
+		// needs to be string, non-exported function names get mangled
+		__methodName__ = 'createHandlerRemover',
 		targetEvents = EVENT_MAP.get(target)
 	;
 	let handlerScope = targetEvents?.[namespace]?.[event];
@@ -360,6 +376,8 @@ function createHandlerRemover(target, namespace, event, handler, delegation=null
  * Takes a handler function and returns a new function, which, when executed, calls the handler and, afterwards,
  * automatically removes the handler from the path in the EVENT_MAP, defined by the given target, namespace and event
  * (and, optionally, a delegation selector). So, the returned function is essentially a self-destructing handler.
+ *
+ * @private
  */
 function createSelfRemovingHandler(target, namespace, event, handler, delegation=null){
 	return function selfRemovingHandler(e){
@@ -373,10 +391,13 @@ function createSelfRemovingHandler(target, namespace, event, handler, delegation
 /*
  * Removes (a) handler(s) from a path in the EVENT_MAP, defined by the given target, namespace, event and handler
  * (and, optionally, a delegation selector).
+ *
+ * @private
  */
 function removeLocatedHandler(target, namespace, event, handler, delegation=null){
 	const
-		__methodName__ = removeLocatedHandler.name,
+		// needs to be string, non-exported function names get mangled
+		__methodName__ = 'removeLocatedHandler',
 		targetEvents = EVENT_MAP.get(target),
 		targetScope = targetEvents?.[namespace]?.[event]
 	;
@@ -412,6 +433,8 @@ function removeLocatedHandler(target, namespace, event, handler, delegation=null
 /*
  * Removes all handlers matching the given definition provided by target, namespace, event and handler
  * (and, optionally, a delegation selector). Leaving out namespace, event or handler works as a wildcard.
+ *
+ * @private
  */
 function removeHandlers(target, namespace=null, event=null, handler=null, delegation=null){
 	const targetEvents = gatherTargetEvents(target, namespace, event, delegation);
@@ -431,6 +454,8 @@ function removeHandlers(target, namespace=null, event=null, handler=null, delega
 
 /*
  * Shorthand-function for "removeHandlers" with more sane parameter order for delegations.
+ *
+ * @private
  */
 function removeDelegatedHandlers(ancestor, delegation, namespace=null, event=null, handler=null){
 	return removeHandlers(ancestor, namespace, event, handler, delegation);
@@ -441,10 +466,13 @@ function removeDelegatedHandlers(ancestor, delegation, namespace=null, event=nul
 /*
  * Pauses (a) handler(s) from a path in the EVENT_MAP, defined by the given target, namespace, event and handler
  * (and, optionally, a delegation selector). If paused is false, the function instead resumes the handlers.
+ *
+ * @private
  */
 function pauseLocatedHandlers(target, namespace, event, handler, delegation=null, paused=true){
 	const
-		__methodName__ = pauseLocatedHandlers.name,
+		// needs to be string, non-exported function names get mangled
+		__methodName__ = 'pauseLocatedHandlers',
 		targetEvents = EVENT_MAP.get(target),
 		targetScope = targetEvents?.[namespace]?.[event]
 	;
@@ -480,6 +508,8 @@ function pauseLocatedHandlers(target, namespace, event, handler, delegation=null
  * Pauses all handlers matching the given definition provided by target, namespace, event and handler
  * (and, optionally, a delegation selector). Leaving out namespace, event or handler works as a wildcard.
  * If paused is false, the function instead resumes the handlers.
+ *
+ * @private
  */
 function pauseHandlers(target, namespace=null, event=null, handler=null, delegation=null, paused=true){
 	const targetEvents = gatherTargetEvents(target, namespace, event, delegation);
@@ -499,6 +529,8 @@ function pauseHandlers(target, namespace=null, event=null, handler=null, delegat
 
 /*
  * Shorthand-function for "pauseHandlers" with more sane parameter order for delegations.
+ *
+ * @private
  */
 function pauseDelegatedHandlers(ancestor, delegation, namespace=null, event=null, handler=null, paused=true){
 	return pauseHandlers(ancestor, namespace, event, handler, delegation, paused);
@@ -511,6 +543,8 @@ function pauseDelegatedHandlers(ancestor, delegation, namespace=null, event=null
  * returns an action function, which checks if the handler is paused, before executing the original action.
  * Using this, we can wrap handler actions to automatically react to the handler's pause state, preventing any
  * handler execution if the handler is currently paused.
+ *
+ * @private
  */
 function createPauseAwareAction(managedHandler, nonPauseAwareAction){
 	return function pauseAwareHandler(e){
@@ -526,6 +560,8 @@ function createPauseAwareAction(managedHandler, nonPauseAwareAction){
  * Takes an event listener options object as provided by the user, to be used as the third parameter of
  * addEventListener, and returns a sanitized version, taking into regard what options the browser actually supports
  * and falling back to boolean capture values, if the browser does not know about listener options at all.
+ *
+ * @private
  */
 function compileEventListenerOptions(options){
 	if( isA(options, 'boolean') ) return options;
@@ -550,6 +586,8 @@ function compileEventListenerOptions(options){
 
 /*
  * Creates a synthetic event to dispatch on an event target.
+ *
+ * @private
  */
 function createSyntheticEvent(
 	event,
@@ -561,7 +599,8 @@ function createSyntheticEvent(
 	EventConstructor=null,
 	eventOptions=null
 ){
-	const __methodName__ = createSyntheticEvent.name;
+	// needs to be string, non-exported function names get mangled
+	const __methodName__ = 'createSyntheticEvent';
 
 	event = `${event}`;
 	bubbles = orDefault(bubbles, false, 'bool');
@@ -1184,13 +1223,13 @@ export function emit(targets, events, payload=null, EventConstructor=null, event
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="DynamicLoading.html">DynamicLoading</a></li><li class="namespace"><a href="DynamicLoading_createCssRequest.html">DynamicLoading:createCssRequest</a></li><li class="namespace"><a href="DynamicLoading_createFetchRequest.html">DynamicLoading:createFetchRequest</a></li><li class="namespace"><a href="DynamicLoading_createHtmlRequest.html">DynamicLoading:createHtmlRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsonRequest.html">DynamicLoading:createJsonRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsRequest.html">DynamicLoading:createJsRequest</a></li><li class="namespace"><a href="DynamicLoading_polyfillFetch.html">DynamicLoading:polyfillFetch</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_bindHistoryChange.html">Navigation:bindHistoryChange</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace"><a href="Navigation_unbindHistoryChange.html">Navigation:unbindHistoryChange</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="DynamicLoading.html">DynamicLoading</a></li><li class="namespace"><a href="DynamicLoading_createCssRequest.html">DynamicLoading:createCssRequest</a></li><li class="namespace"><a href="DynamicLoading_createFetchRequest.html">DynamicLoading:createFetchRequest</a></li><li class="namespace"><a href="DynamicLoading_createHtmlRequest.html">DynamicLoading:createHtmlRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsonRequest.html">DynamicLoading:createJsonRequest</a></li><li class="namespace"><a href="DynamicLoading_createJsRequest.html">DynamicLoading:createJsRequest</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Wed Dec 21 2022 13:14:31 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Thu Dec 22 2022 10:22:21 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

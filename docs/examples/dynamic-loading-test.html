@@ -5,11 +5,11 @@
 		<title>Dynamic Loading Module Examples</title>
 
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png"/>
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png"/>
 
-		<link rel="stylesheet" href="./main.css">
+		<link rel="stylesheet" href="./main.css"/>
 		<style>
 			#create-json-request-inject-holder,
 			#create-js-request-inject-holder,
@@ -641,8 +641,8 @@
 
 
 			function setup(
-				createFetchRequest,
 				polyfillFetch,
+				createFetchRequest,
 				createJsonRequest,
 				createJsRequest,
 				createCssRequest,
@@ -659,8 +659,11 @@
 			if( window.__ANNEX_VERSION__ !== 'es5' ){
 				(async () => {
 					const {
+						polyfillFetch
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/polyfills.js`);
+
+					const {
 						createFetchRequest,
-						polyfillFetch,
 						createJsonRequest,
 						createJsRequest,
 						createCssRequest,
@@ -668,8 +671,8 @@
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/dynamic-loading.js`);
 
 					setup(
-						createFetchRequest,
 						polyfillFetch,
+						createFetchRequest,
 						createJsonRequest,
 						createJsRequest,
 						createCssRequest,
@@ -689,8 +692,8 @@
 
 						if( window.__ANNEX_VERSION__ === 'es5' ){
 							setup(
+								window.annex.polyfills.polyfillFetch,
 								window.annex.dynamicLoading.createFetchRequest,
-								window.annex.dynamicLoading.polyfillFetch,
 								window.annex.dynamicLoading.createJsonRequest,
 								window.annex.dynamicLoading.createJsRequest,
 								window.annex.dynamicLoading.createCssRequest,

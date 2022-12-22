@@ -109,7 +109,7 @@ export function preload(images){
 
 /**
  * @namespace Images:loaded
- **/
+ */
 
 /**
  * Fixes problems with image "load" events and fires the event even in case the image is already loaded or served from

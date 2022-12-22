@@ -13,7 +13,7 @@ const MODULE_NAME = 'DynamicLoading';
 //###[ IMPORTS ]########################################################################################################
 
 import {warn} from './logging.js';
-import {hasValue, orDefault, isPlainObject, isA, assert, Deferred} from './basic.js';
+import {hasValue, orDefault, isPlainObject, assert, Deferred} from './basic.js';
 import {createNode, insertNode} from './elements.js';
 
 
@@ -44,7 +44,7 @@ import {createNode, insertNode} from './elements.js';
 /**
  * @typedef FetchRequestExecuteFunction
  * @type {Function}
- * @returns {Promise<FetchResponse>}
+ * @returns {Deferred<FetchResponse>}
  */
 
 /**
@@ -71,8 +71,8 @@ import {createNode, insertNode} from './elements.js';
  *
  * The function signature is the same as "unfetch"'s and all non implemented features are absent here as well.
  *
- * All usual responses (40X and 50X as well) are handled via a resolved promise, only uncompletable requests, such as
- * those being prevented by a general network error, do reject with the provided error.
+ * All usual responses (40X and 50X as well) resolve, only uncompletable requests, such as those being prevented by a
+ * general network error, reject with the provided error.
  *
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options
@@ -176,52 +176,9 @@ export function createFetchRequest(url, options=null){
 
 			request.send(options.body || null);
 
-			return res.promise;
+			return res;
 		}
 	};
-}
-
-
-
-/*
- * Helper function to provide createFetchRequest with the same call signature as fetch, to make implementation
- * easily replaceable in the future.
- *
- * @private
- * @returns {Function} a fetch implementation
- */
-function _fetch(url, options=null){
-	return createFetchRequest(url, options).execute();
-}
-
-
-
-/**
- * @namespace DynamicLoading:polyfillFetch
- */
-
-/**
- * Polyfills window.fetch with a simple XMLHttpRequest-based implementation adapted from "unfetch", to provide
- * basic functionality with a compatible signature while keeping the source as small as possible.
- *
- * This polyfill should cover most basic use cases, but for complex cases you might need to polyfill something more
- * complete (for example Github's implementation: https://github.com/github/fetch).
- *
- * @param {?Boolean} [force=false] - if true, replaces a possibly present native implementation with the polyfill as well
- *
- * @memberof DynamicLoading:polyfillFetch
- * @alias polyfillFetch
- * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
- * @see https://github.com/developit/unfetch
- * @example
- * polyfillFetch(true);
- */
-export function polyfillFetch(force=false){
-	force = orDefault(force, false, 'bool');
-
-	if( force || !isA(window.fetch, 'function') ){
-		window.fetch = _fetch;
-	}
 }
 
 
@@ -238,13 +195,13 @@ export function polyfillFetch(force=false){
 /**
  * @typedef JsonFetchRequestExecuteFunction
  * @type {Function}
- * @param {?String} [resolveTo='object'] - defines what the response promise should resolve to, may either be "object", "element" or "raw"
+ * @param {?String} [resolveTo='object'] - defines what the response should resolve to, may either be "object", "element" or "raw"
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a script tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
  * @param {?String} [insertTarget.position] - defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
  * @see insertNode
- * @returns {Promise<JsonFetchResponse>}
+ * @returns {Deferred<JsonFetchResponse>}
  */
 
 /**
@@ -340,7 +297,7 @@ export function createJsonRequest(url, options=null){
 				})
 			;
 
-			return res.promise;
+			return res;
 		}
 	};
 }
@@ -359,14 +316,14 @@ export function createJsonRequest(url, options=null){
 /**
  * @typedef JsFetchRequestExecuteFunction
  * @type {Function}
- * @param {?String} [resolveTo='element'] - defines what the response promise should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a script with a src instead of doing a real request)
+ * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a script with a src instead of doing a real request)
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a script tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
  * @param {?String} [insertTarget.position] - defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
- * @param {?Boolean} [resolveSourcedOnInsert=false] - normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in a resolved promise after insertion
+ * @param {?Boolean} [resolveSourcedOnInsert=false] - normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in immediate resolution after insertion
  * @see insertNode
- * @returns {Promise<JsFetchResponse>}
+ * @returns {Deferred<JsFetchResponse>}
  */
 
 /**
@@ -395,7 +352,7 @@ export function createJsonRequest(url, options=null){
  * defining an insert target. In case you decide to insert the result directly, the default is an inline script, but
  * you may also choose to insert a sourced script tag, loading a script on insertion and executing in asynchronously
  * in turn. This is not strictly a programmatic "request" anymore, but very handy. If you are inserting a sourced
- * script, the promise resolves on load by default (and rejects on error), thereby keeping the general idea of
+ * script, the Deferred resolves on load by default (and rejects on error), thereby keeping the general idea of
  * working with a request. But you may also define a parameter on execute to force resolve immediately on insert.
  *
  * BTW: Inserting does not automatically change the resolve value, those are separate concerns.
@@ -486,7 +443,7 @@ export function createJsRequest(url, options=null){
 				;
 			}
 
-			return res.promise;
+			return res;
 		}
 	};
 }
@@ -505,15 +462,15 @@ export function createJsRequest(url, options=null){
 /**
  * @typedef CssFetchRequestExecuteFunction
  * @type {Function}
- * @param {?String} [resolveTo='element'] - defines what the response promise should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a link with a href instead of doing a real request)
+ * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a link with a href instead of doing a real request)
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a style/link tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
  * @param {?String} [insertTarget.position] - defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
  * @param {?String} [media='all'] - define the style's media attribute here to target the output device(s), could be "screen" or "print" for example
- * @param {?Boolean} [resolveSourcedOnInsert=false] - normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in a resolved promise after insertion
+ * @param {?Boolean} [resolveSourcedOnInsert=false] - normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in immediate resolution after insertion
  * @see insertNode
- * @returns {Promise<CssFetchResponse>}
+ * @returns {Deferred<CssFetchResponse>}
  */
 
 /**
@@ -539,7 +496,7 @@ export function createJsRequest(url, options=null){
  * defining an insert target. In case you decide to insert the result directly, the default is an inline style, but
  * you may also choose to insert a sourced link tag, loading a stylesheet on insertion and adding the included styles
  * on load. This is not strictly a programmatic "request" anymore, but very handy. If you are inserting a sourced
- * link, the promise resolves on load by default (and rejects on error), thereby keeping the general idea of
+ * link, the Deferred resolves on load by default (and rejects on error), thereby keeping the general idea of
  * working with a request. But you may also define a parameter on execute to force resolve immediately on insert.
  *
  * BTW: Inserting does not automatically change the resolve value, those are separate concerns.
@@ -634,7 +591,7 @@ export function createCssRequest(url, options=null){
 				;
 			}
 
-			return res.promise;
+			return res;
 		}
 	};
 }
@@ -653,7 +610,7 @@ export function createCssRequest(url, options=null){
 /**
  * @typedef HtmlFetchRequestExecuteFunction
  * @type {Function}
- * @param {?String} [resolveTo='element'] - defines what the response promise should resolve to, may either be "element" or "raw"
+ * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element" or "raw"
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as (a) node(s), otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
  * @param {?String} [insertTarget.position] - defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details
@@ -661,7 +618,7 @@ export function createCssRequest(url, options=null){
  * @param {?String} [selector=null] - if you'd like to preselect something from the result, you may define a regular query selector to find matching elements in the result
  * @param {?Boolean} [selectAll=false] - usually, if a selector is defined, we select a single element, if you need to select a list, set this to true
  * @see insertNode
- * @returns {Promise<HtmlFetchResponse>}
+ * @returns {Deferred<HtmlFetchResponse>}
  */
 
 /**
@@ -824,7 +781,7 @@ export function createHtmlRequest(url, options=null){
 				})
 			;
 
-			return res.promise;
+			return res;
 		}
 	};
 }

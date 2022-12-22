@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Fonts Module Examples</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png"/>
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png"/>
+
+		<link rel="stylesheet" href="./main.css"/>
+		<link href="https://fonts.googleapis.com/css?family=Pacifico|Poor+Story" rel="stylesheet"/>
+		<style>
+			#webfont-text1,
+			#webfont-text2 {
+				display: inline-block;
+
+				padding: 0.5rem;
+				margin: 1rem 0;
+
+				font-size: 5rem;
+				line-height: 1;
+				white-space: pre;
+
+				background: #eee;
+			}
+
+			#webfont-text-dims1,
+			#webfont-text-dims2 {
+				overflow: hidden;
+			}
+
+			#webfont-text-dims1 dt,
+			#webfont-text-dims2 dt {
+				float: left;
+				clear: left;
+
+				width: 10em;
+
+				font-weight: bold;
+			}
+
+			#webfont-text-dims1 dd,
+			#webfont-text-dims2 dd {
+				float: left;
+
+				margin-left: 1rem;
+			}
+		</style>
+
+		<script defer src="./lib/handle-version-switching.js"></script>
+		<script>
+			function setup(
+				waitForWebfonts
+			){
+				var
+					text1 = document.getElementById('webfont-text1'),
+					text2 = document.getElementById('webfont-text2'),
+					textDims1 = document.getElementById('webfont-text-dims1'),
+					textDims2 = document.getElementById('webfont-text-dims2'),
+					initialTextDims1 = Array.from(textDims1.querySelectorAll('dd'))[0],
+					finalTextDims1 = Array.from(textDims1.querySelectorAll('dd'))[1],
+					initialTextDims2 = Array.from(textDims2.querySelectorAll('dd'))[0],
+					finalTextDims2 = Array.from(textDims2.querySelectorAll('dd'))[1]
+				;
+				initialTextDims1.textContent = Math.round(text1.offsetWidth)+'x'+Math.round(text1.offsetHeight);
+				initialTextDims2.textContent = Math.round(text2.offsetWidth)+'x'+Math.round(text2.offsetHeight);
+
+				text1.style.fontFamily = "'Poor Story', cursive";
+				text2.style.fontFamily = "'Pacifico', cursive";
+
+				waitForWebfonts(['Poor Story', 'Pacifico'], 'cursive', 2000).then(function(){
+					finalTextDims1.textContent = Math.round(text1.offsetWidth)+'x'+Math.round(text1.offsetHeight);
+					finalTextDims2.textContent = Math.round(text2.offsetWidth)+'x'+Math.round(text2.offsetHeight);
+				});
+
+				waitForWebfonts('Pacifico', 'cursive', 0).catch(function(error){
+					if( error.message === 'timeout' ){
+						console.log('test timeout triggered successfully');
+					}
+				});
+			}
+		</script>
+		<script type="module">
+			if( window.__ANNEX_VERSION__ !== 'es5' ){
+				(async () => {
+					const {
+						waitForWebfonts
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/fonts.js`);
+
+					setup(
+						waitForWebfonts
+					);
+				})().catch(error => {
+					console.error(error);
+				});
+			}
+		</script>
+		<script defer src="./lib/annex/dist/es5-monolith.js"></script>
+		<script defer>
+			(function(){
+				var annexPoll = window.setInterval(function(){
+					if( window.__ANNEX_VERSION__ && window.annex ){
+						window.clearInterval(annexPoll);
+
+						if( window.__ANNEX_VERSION__ === 'es5' ){
+							setup(
+								window.annex.fonts.waitForWebfonts
+							);
+						}
+					}
+				}, 250);
+			})();
+		</script>
+	</head>
+
+	<body>
+		<header>
+			<h1>Fonts Examples</h1>
+		</header>
+		<main>
+			<h3>waitForWebfonts</h3>
+			<section>
+				This section should contain texts with an applied webfont as well as dimension information before
+				and after application of the webfont.<br/>
+				The information after application should be updated on loading of the font.<br/>
+				<span id="webfont-text1">Lorem ipsum dolor sit webfont!</span>
+				<dl id="webfont-text-dims1">
+					<dt>before webfont</dt><dd></dd>
+					<dt>after webfont</dt><dd></dd>
+				</dl>
+				<span id="webfont-text2">Foobar webfont!</span>
+				<dl id="webfont-text-dims2">
+					<dt>before webfont</dt><dd></dd>
+					<dt>after webfont</dt><dd></dd>
+				</dl>
+			</section>
+		</main>
+	</body>
+</html>

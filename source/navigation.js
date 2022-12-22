@@ -388,7 +388,7 @@ export function changeCurrentUrl(url, usePushState=false, state=null, title=null
 
 
 /**
- * @namespace Navigation:bindHistoryChange
+ * @namespace Navigation:onHistoryChange
  */
 
 /**
@@ -407,18 +407,20 @@ export function changeCurrentUrl(url, usePushState=false, state=null, title=null
  * @param {?Boolean} [usePreviousState=false] - defines if callbacks should be provided with previous state as well (in that case, changeCurrentUrl must have been used for prior navigation)
  * @throws error if callback is no function
  *
- * @memberof Navigation:bindHistoryChange
- * @alias bindHistoryChange
+ * @memberof Navigation:onHistoryChange
+ * @alias onHistoryChange
  * @see changeCurrentUrl
- * @see unbindHistoryChange
+ * @see offHistoryChange
  * @example
- * bindHistoryChange(function(){ alert('Hey, don\'t do this!'); }, true);
+ * onHistoryChange(function(){ alert('Hey, don\'t do this!'); }, true);
  */
-export function bindHistoryChange(callback, clearOld=false, usePreviousState=false){
+export function onHistoryChange(callback, clearOld=false, usePreviousState=false){
+	const __methodName__ = onHistoryChange.name;
+
 	clearOld = orDefault(clearOld, false, 'bool');
 	usePreviousState = orDefault(usePreviousState, false, 'bool');
 
-	assert(isA(callback, 'function'), `${MODULE_NAME}:bindHistoryChange | callback is no function`);
+	assert(isA(callback, 'function'), `${MODULE_NAME}:${__methodName__} | callback is no function`);
 
 	if ( browserSupportsHistoryManipulation() ) {
 		if( clearOld ){
@@ -444,18 +446,18 @@ export function bindHistoryChange(callback, clearOld=false, usePreviousState=fal
 			window.addEventListener('popstate',	HISTORY.popState.handler);
 		}
 	} else {
-		warn(`${MODULE_NAME}:bindHistoryChange | this browser does not support history api, skipping`);
+		warn(`${MODULE_NAME}:${__methodName__} | this browser does not support history api, skipping`);
 	}
 }
 
 
 
 /**
- * @namespace Navigation:unbindHistoryChange
+ * @namespace Navigation:offHistoryChange
  */
 
 /**
- * Removes registered history change handlers, that have been created with "bindHistoryChange".
+ * Removes registered history change handlers, that have been created with "onHistoryChange".
  * If a callback is provided, that callback is removed from callbacks, if the function is called
  * without parameters all callbacks are removed and the event listener for the callbacks is removed.
  *
@@ -463,17 +465,19 @@ export function bindHistoryChange(callback, clearOld=false, usePreviousState=fal
  * @throws error if callback is no function
  * @return {Boolean} true if callback(s) are/were removed, false if nothing was done
  *
- * @memberof Navigation:unbindHistoryChange
- * @alias unbindHistoryChange
+ * @memberof Navigation:offHistoryChange
+ * @alias offHistoryChange
  * @see changeCurrentUrl
- * @see bindHistoryChange
+ * @see onHistoryChange
  * @example
- * unbindHistoryChange(thatOneCallback);
- * unbindHistoryChange();
+ * offHistoryChange(thatOneCallback);
+ * offHistoryChange();
  */
-export function unbindHistoryChange(callback=null){
+export function offHistoryChange(callback=null){
+	const __methodName__ = offHistoryChange.name;
+
 	if( hasValue(callback) ){
-		assert(isA(callback, 'function'), `${MODULE_NAME}:unbindHistoryChange | callback is no function`);
+		assert(isA(callback, 'function'), `${MODULE_NAME}:${__methodName__} | callback is not a function`);
 
 		const oldCallbackCount = HISTORY.popState.callbacks.length;
 		HISTORY.popState.callbacks = HISTORY.popState.callbacks.reduce((cbs, cb) => {

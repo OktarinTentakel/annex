@@ -12,11 +12,57 @@ const MODULE_NAME = 'Polyfills';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, hasValue, isA} from './basic.js';
+import {assert, hasValue, isA, orDefault} from './basic.js';
+import {createFetchRequest} from './dynamic-loading.js';
+
+
+
+//###[ HELPERS ]########################################################################################################
+
+/*
+ * Helper function to provide createFetchRequest with the same call signature as fetch, to make implementation
+ * easily replaceable in the future.
+ *
+ * @private
+ * @returns {Function} a fetch implementation
+ */
+function fetch(url, options=null){
+	return createFetchRequest(url, options).execute();
+}
 
 
 
 //###[ EXPORTS ]########################################################################################################
+
+/**
+ * @namespace Polyfills:polyfillFetch
+ */
+
+/**
+ * Polyfills window.fetch with a simple XMLHttpRequest-based implementation adapted from "unfetch", to provide
+ * basic functionality with a compatible signature while keeping the source as small as possible.
+ *
+ * This polyfill should cover most basic use cases, but for complex cases you might need to polyfill something more
+ * complete (for example Github's implementation: https://github.com/github/fetch).
+ *
+ * @param {?Boolean} [force=false] - if true, replaces a possibly present native implementation with the polyfill as well
+ *
+ * @memberof Polyfills:polyfillFetch
+ * @alias polyfillFetch
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+ * @see https://github.com/developit/unfetch
+ * @example
+ * polyfillFetch(true);
+ */
+export function polyfillFetch(force=false){
+	force = orDefault(force, false, 'bool');
+
+	if( force || !isA(window.fetch, 'function') ){
+		window.fetch = fetch;
+	}
+}
+
+
 
 /**
  * @namespace Polyfills:polyfillElementMatches
@@ -63,7 +109,7 @@ export function polyfillElementMatches(){
  * @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
  * @example
  * polyfillCustomEvent()
- * => makes "windom.CustomEvent" and "new CustomEvent()" available, if not already present
+ * => makes "window.CustomEvent" and "new CustomEvent()" available, if not already present
  */
 export function polyfillCustomEvent(){
 	if( isA(window.CustomEvent, 'function') ) return false;

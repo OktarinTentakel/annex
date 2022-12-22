@@ -29,6 +29,8 @@ export let
 /*
  * generically wraps console functions for chainability even if method is unavailable or fails
  * used in LOG_CHAINABLE_OBJECT below
+ *
+ * @private
  */
 function genericConsoleMethodWrapper(name, logLevel=null, ...args){
 	name = `${name}`;
@@ -60,6 +62,8 @@ function genericConsoleMethodWrapper(name, logLevel=null, ...args){
 /*
  * prepare an executable wrapper version based on a specific function name
  * used in LOG_CHAINABLE_OBJECT below
+ *
+ * @private
  */
 function genericConsoleMethodWrapperFactory(name, logLevel){
 	return function(){
@@ -68,6 +72,8 @@ function genericConsoleMethodWrapperFactory(name, logLevel){
 }
 
 
+
+//###[ DATA ]###########################################################################################################
 
 /*
  * to make log calls chainable, this object is returned for every logging call, this offers extended functionality,

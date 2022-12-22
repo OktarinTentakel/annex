@@ -57,3 +57,6 @@ export const css = _css;
 
 import * as _images from './images.js';
 export const images = _images;
+
+import * as _fonts from './fonts.js';
+export const fonts = _fonts;

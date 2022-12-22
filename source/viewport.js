@@ -103,9 +103,9 @@ export function isInViewport(element, mustBeFullyInside=false){
  * @param {?Number} [offset=0] - offset from the viewport center to apply to the end position
  * @param {?String} [easing='easeInOutCubic'] - easing function to use, can be any of Animation.EasingFunctions
  * @param {?Boolean} [scrollEvenIfFullyInViewport=false] - if true, forces method to always scroll no matter the element's position
- * @param {?Boolean} [cancelOnUserScroll=false] - if true, scrolling animation will immediately be canceled on manual user scroll, promise will not resolve in that case
+ * @param {?Boolean} [cancelOnUserScroll=false] - if true, scrolling animation will immediately be canceled on manual user scroll, return value will not resolve in that case
  * @throws error if element is not usable or if durationMs is <= 0
- * @returns {Promise} resolves when scroll complete, rejects if scroll fails or is cancelled
+ * @returns {Deferred} resolves when scroll complete, rejects if scroll fails or is cancelled
  *
  * @memberof Viewport:scrollTo
  * @alias scrollTo
@@ -183,7 +183,7 @@ export function scrollTo(element, durationMs=1000, offset=0, easing='easeInOutCu
 		if( cancelOnUserScroll ){
 			const fCancelScroll = function(){
 				cancelled = true;
-				res.reject();
+				res.reject(new Error('cancelled'));
 				window.removeEventListener('DOMMouseScroll', fCancelScroll);
 				window.removeEventListener('mousewheel', fCancelScroll);
 			};

@@ -415,7 +415,7 @@ export function changeCurrentUrl(url, usePushState=false, state=null, title=null
  * onHistoryChange(function(){ alert('Hey, don\'t do this!'); }, true);
  */
 export function onHistoryChange(callback, clearOld=false, usePreviousState=false){
-	const __methodName__ = onHistoryChange.name;
+	const __methodName__ = 'onHistoryChange';
 
 	clearOld = orDefault(clearOld, false, 'bool');
 	usePreviousState = orDefault(usePreviousState, false, 'bool');
@@ -474,7 +474,7 @@ export function onHistoryChange(callback, clearOld=false, usePreviousState=false
  * offHistoryChange();
  */
 export function offHistoryChange(callback=null){
-	const __methodName__ = offHistoryChange.name;
+	const __methodName__ = 'offHistoryChange';
 
 	if( hasValue(callback) ){
 		assert(isA(callback, 'function'), `${MODULE_NAME}:${__methodName__} | callback is not a function`);

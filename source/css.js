@@ -59,7 +59,7 @@ import {maskForRegEx} from './strings.js';
  * applyStyles(document.querySelector('main'), {'font-family' : 'serif'}, false, true);
  */
 export function applyStyles(element, styles, crossBrowser=false, returnCssStyleDeclaration=false){
-	const __methodName__ = applyStyles.name;
+	const __methodName__ = 'applyStyles';
 
 	crossBrowser = orDefault(crossBrowser, false, 'bool');
 	returnCssStyleDeclaration = orDefault(returnCssStyleDeclaration, false, 'bool');

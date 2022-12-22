@@ -138,7 +138,7 @@ export function preload(images){
  * onLoad([image1, image2, image3]).then(images => { alert(`all ${images.length} images have loaded`); })
  */
 export function loaded(images, dimensionsNeeded=false){
-	const __methodName__ = loaded.name;
+	const __methodName__ = 'loaded';
 
 	images = orDefault(images, [], 'arr').filter(image => {
 		return Object.prototype.toString.call(image).slice(8, -1).toLowerCase() === 'htmlimageelement';

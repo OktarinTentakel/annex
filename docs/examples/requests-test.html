@@ -2,7 +2,7 @@
 
 <html lang="en">
 	<head>
-		<title>Dynamic Loading Module Examples</title>
+		<title>Requests Module Examples</title>
 
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png"/>
@@ -87,13 +87,15 @@
 							ok : response.ok,
 							status : response.status,
 							statusText : response.statusText,
-							headers : response.headers.entries(),
+							headers : Array.from(response.headers.entries()),
 							payload : {}
 						};
 					},
-					fFetch = function(url, options){
-						return createFetchRequest(url, options).execute();
-					}
+					originalFetch = window.fetch,
+					fFetch = function(url, options, useNative){
+						return createFetchRequest(url, options, useNative).execute();
+					},
+					fOriginalFetch = fFetch
 				;
 
 				document.querySelector('#create-fetch-request-1').addEventListener('click', function(e){
@@ -251,15 +253,59 @@
 
 
 
-				document.querySelector('#polyfill-fetch-1').addEventListener('click', function(e){
+				document.querySelector('#create-fetch-request-8').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					fFetch('https://jsonplaceholder.typicode.com/posts/1', {timeout : 1})
+						.then(function(){
+							sourceDisplay.innerHTML = 'error: timeout did not fire';
+							hljs.highlightBlock(sourceDisplay);
+						})
+						.catch(function(error){
+							sourceDisplay.innerHTML = error.message || error.name;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+
+
+				document.querySelector('#polyfill-fetch').addEventListener('click', function(e){
 					e.preventDefault();
 
 					polyfillFetch(true);
 					fFetch = function(url, options){
 						console.log('using polyfilled window.fetch');
-						return window.fetch(url, options);
+						return fOriginalFetch(url, options, true);
 					};
-					alert('now using polyfilled window.fetch, reload to reset');
+					alert('now using polyfilled window.fetch');
+				});
+
+
+
+				document.querySelector('#native-fetch').addEventListener('click', function(e){
+					e.preventDefault();
+
+					if( originalFetch && ('AbortController' in window) ){
+						window.fetch = originalFetch;
+						fFetch = function(url, options){
+							console.log('using native window.fetch');
+							return fOriginalFetch(url, options, true);
+						};
+						alert('now using native window.fetch');
+					} else {
+						alert('browser has no native fetch, skipping');
+					}
+				});
+
+				document.querySelector('#reset-fetch').addEventListener('click', function(e){
+					e.preventDefault();
+
+					window.fetch = originalFetch;
+					fFetch = fOriginalFetch;
+					alert('fetch implementation has been reset');
 				});
 			}
 
@@ -384,7 +430,7 @@
 					e.preventDefault();
 
 					sourceDisplay.innerHTML = '';
-					createJsRequest('./files/js/dynamic-loading-test.js')
+					createJsRequest('./files/js/requests-test.js')
 						.execute()
 						.then(function(jsElement){
 							sourceDisplay.innerHTML = jsElement.textContent;
@@ -398,7 +444,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createJsRequest('./files/js/dynamic-loading-test.js')
+					createJsRequest('./files/js/requests-test.js')
 						.execute(null, injectTarget, 'request-2')
 						.then(function(jsElement){
 							sourceDisplay.innerHTML = jsElement.textContent;
@@ -412,7 +458,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createJsRequest('./files/js/dynamic-loading-test.js')
+					createJsRequest('./files/js/requests-test.js')
 						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-3')
 						.then(function(rawJs){
 							sourceDisplay.innerHTML = rawJs;
@@ -426,7 +472,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createJsRequest('./files/js/dynamic-loading-test.js')
+					createJsRequest('./files/js/requests-test.js')
 						.execute('sourced-element', {element : injectTarget, position : 'prepend'}, 'request-4')
 						.then(function(jsElement){
 							sourceDisplay.innerHTML = '"'+jsElement.getAttribute('data-id')+'"';
@@ -471,7 +517,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createCssRequest('./files/css/dynamic-loading-test.css')
+					createCssRequest('./files/css/requests-test.css')
 						.execute()
 						.then(function(cssElement){
 							sourceDisplay.innerHTML = cssElement.textContent;
@@ -485,7 +531,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createCssRequest('./files/css/dynamic-loading-test.css')
+					createCssRequest('./files/css/requests-test.css')
 						.execute(null, injectTarget, 'request-2')
 						.then(function(cssElement){
 							sourceDisplay.innerHTML = cssElement.textContent;
@@ -499,7 +545,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createCssRequest('./files/css/dynamic-loading-test.css')
+					createCssRequest('./files/css/requests-test.css')
 						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-3', 'screen')
 						.then(function(rawCss){
 							sourceDisplay.innerHTML = rawCss;
@@ -513,7 +559,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createCssRequest('./files/css/dynamic-loading-test.css')
+					createCssRequest('./files/css/requests-test.css')
 						.execute('sourced-element', {element : injectTarget, position : 'prepend'}, 'request-4', 'screen')
 						.then(function(cssElement){
 							sourceDisplay.innerHTML = '"'+cssElement.getAttribute('data-id')+'"';
@@ -558,7 +604,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('./files/html/dynamic-loading-test-1.html')
+					createHtmlRequest('./files/html/requests-test-1.html')
 						.execute('raw', null, 'request-1')
 						.then(function(rawHtml){
 							var escape = document.createElement('textarea');
@@ -574,7 +620,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('./files/html/dynamic-loading-test-1.html')
+					createHtmlRequest('./files/html/requests-test-1.html')
 						.execute()
 						.then(function(htmlElement){
 							var escape = document.createElement('textarea');
@@ -590,7 +636,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('./files/html/dynamic-loading-test-1.html')
+					createHtmlRequest('./files/html/requests-test-1.html')
 						.execute(null, injectTarget, 'request-3', 'body > main > h1')
 						.then(function(htmlElement){
 							var escape = document.createElement('textarea');
@@ -606,7 +652,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('./files/html/dynamic-loading-test-1.html')
+					createHtmlRequest('./files/html/requests-test-1.html')
 						.execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-4', 'h1 ~ p', true)
 						.then(function(rawHtml){
 							var escape = document.createElement('textarea');
@@ -622,7 +668,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createHtmlRequest('./files/html/dynamic-loading-test-2.html')
+					createHtmlRequest('./files/html/requests-test-2.html')
 						.execute('element', {element : injectTarget, position : 'prepend'}, 'request-5')
 						.then(function(htmlElements){
 							var source = '';
@@ -668,7 +714,7 @@
 						createJsRequest,
 						createCssRequest,
 						createHtmlRequest
-					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/dynamic-loading.js`);
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/requests.js`);
 
 					setup(
 						polyfillFetch,
@@ -693,11 +739,11 @@
 						if( window.__ANNEX_VERSION__ === 'es5' ){
 							setup(
 								window.annex.polyfills.polyfillFetch,
-								window.annex.dynamicLoading.createFetchRequest,
-								window.annex.dynamicLoading.createJsonRequest,
-								window.annex.dynamicLoading.createJsRequest,
-								window.annex.dynamicLoading.createCssRequest,
-								window.annex.dynamicLoading.createHtmlRequest
+								window.annex.requests.createFetchRequest,
+								window.annex.requests.createJsonRequest,
+								window.annex.requests.createJsRequest,
+								window.annex.requests.createCssRequest,
+								window.annex.requests.createHtmlRequest
 							);
 						}
 					}
@@ -708,7 +754,7 @@
 
 	<body>
 		<header>
-			<h1>Dynamic Loading Module Examples</h1>
+			<h1>Requests Module Examples</h1>
 		</header>
 		<main>
 			<h3>createFetchRequest</h3>
@@ -728,17 +774,17 @@
 					<a id="create-fetch-request-5">Should query a JSON API and return a post as unformatted text in the payload</a>
 					<a id="create-fetch-request-6">Should query a local image and return its size in the payload</a>
 					<a id="create-fetch-request-7">Should query a missing local image and return an error response with a null payload</a>
+					<a id="create-fetch-request-8">Should query a JSON API, but should immediately time out</a>
 				</div>
-			</section>
-
-			<h3>polyfillFetch</h3>
-			<section>
 				<p>
-					Click the button to force polyfill window.fetch with annex' solution.
-					After that, the links above use window.fetch, which should then be our solution again.
+					Change the behaviour of the links above, by changing what kind of fetch is getting used.
+					Usually, "createFetchRequest" uses a ponyfilled XHR-based request, looking and behaving like a
+					native fetch. Using the buttons below, you can define other implementation options
 				</p>
 				<div>
-					<button id="polyfill-fetch-1" class="btn light-blue darken-1">Force polyfill window.fetch</button>
+					<button id="polyfill-fetch" class="btn light-blue darken-1">force polyfill window.fetch with annex implementation</button>
+					<button id="native-fetch" class="btn light-blue darken-1">force use of native window.fetch if available</button>
+					<button id="reset-fetch" class="btn light-blue darken-1">reset changes to fetch implementation</button>
 				</div>
 			</section>
 

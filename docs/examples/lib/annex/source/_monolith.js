@@ -46,8 +46,8 @@ export const viewport = _viewport;
 import * as _navigation from './navigation.js';
 export const navigation = _navigation;
 
-import * as _dynamicLoading from './dynamic-loading.js';
-export const dynamicLoading = _dynamicLoading;
+import * as _requests from './requests.js';
+export const requests = _requests;
 
 import * as _cookies from './cookies.js';
 export const cookies = _cookies;

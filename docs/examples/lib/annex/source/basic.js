@@ -842,7 +842,7 @@ export class Observable {
 	}
 
 	subscribe(subscription){
-		const __methodName__ = this.subscribe.name;
+		const __methodName__ = 'subscribe';
 		assert(isA(subscription, 'function'), `${MODULE_NAME}:${this.__className__}.${__methodName__} | subscription must be function`);
 		if( this._subscriptions.indexOf(subscription) < 0 ){
 			this._subscriptions = [...this._subscriptions, subscription];

@@ -8,9 +8,9 @@ let pkg;
 
 if( global.__AVA_SOURCE__ === 'es5-monolith' ){
 	await import(`../../dist/es5-monolith.js`);
-	pkg = global.annex.dynamicLoading;
+	pkg = global.annex.requests;
 } else {
-	pkg = await import(`../../${global.__AVA_SOURCE__}/dynamic-loading.js`);
+	pkg = await import(`../../${global.__AVA_SOURCE__}/requests.js`);
 }
 
 const {
@@ -43,14 +43,14 @@ test.after(assert => {
 
 
 test.serial('createFetchRequest', assert => {
-	return new Promise(function(resolve, reject){
+	return new Promise((resolve, reject) => {
 		let endCount = 0;
 		function end(error){
 			endCount++;
 
 			if( error ){
 				reject(error);
-			} else if( endCount === 7 ){
+			} else if( endCount === 8 ){
 				resolve();
 			}
 		}
@@ -68,6 +68,22 @@ test.serial('createFetchRequest', assert => {
 			})
 		;
 
+		createFetchRequest('https://jsonplaceholder.typicode.com/posts/1', {timeout : 1}).execute()
+			.then(response => {
+				return response.json();
+			})
+			.then(() => {
+				end(new Error('should have timed out'));
+			})
+			.catch(error => {
+				if( error.message === 'timeout' ){
+					end();
+				} else {
+					end(new Error('should have timed out'));
+				}
+			})
+		;
+
 		createFetchRequest('https://jsonplaceholder.typicode.com/posts', {
 			method : 'POST',
 			body : JSON.stringify({
@@ -79,16 +95,40 @@ test.serial('createFetchRequest', assert => {
 				'Content-type' : 'application/json; charset=UTF-8',
 			}
 		}).execute()
-			.then(function(response){
+			.then(response =>{
 				return response.json();
 			})
-			.then(function(post){
+			.then(post => {
 				assert.is(post.title, 'foo');
 				assert.is(post.userId, 1);
 				end();
 			})
 			.catch(error => {
 				end(error);
+			})
+		;
+
+		createFetchRequest('https://jsonplaceholder.typicode.com/posts', {
+			method : 'POST',
+			body : JSON.stringify({
+				title : 'foo',
+				body : 'bar',
+				userId : 1,
+			}),
+			headers: {
+				'Content-type' : 'application/json; charset=UTF-8',
+			},
+			timeout : 1
+		}).execute()
+			.then(() => {
+				end(new Error('should have timed out'));
+			})
+			.catch(error => {
+				if( error.message === 'timeout' ){
+					end();
+				} else {
+					end(new Error('should have timed out'));
+				}
 			})
 		;
 
@@ -101,10 +141,10 @@ test.serial('createFetchRequest', assert => {
 				'Content-type' : 'application/json; charset=UTF-8',
 			}
 		}).execute()
-			.then(function(response){
+			.then(response => {
 				return response.json();
 			})
-			.then(function(post){
+			.then(post => {
 				assert.is(post.title, 'foo');
 				end();
 			})
@@ -116,10 +156,10 @@ test.serial('createFetchRequest', assert => {
 		createFetchRequest('https://jsonplaceholder.typicode.com/posts/1', {
 			method : 'DELETE'
 		}).execute()
-			.then(function(response){
+			.then(response => {
 				return response.json();
 			})
-			.then(function(post){
+			.then(post => {
 				assert.is(Object.keys(post).length, 0);
 				end();
 			})
@@ -129,10 +169,10 @@ test.serial('createFetchRequest', assert => {
 		;
 
 		createFetchRequest('https://jsonplaceholder.typicode.com/posts/1').execute()
-			.then(function(response){
+			.then(response => {
 				return response.text();
 			})
-			.then(function(post){
+			.then(post => {
 				assert.true(post.length > 0);
 				end();
 			})
@@ -143,12 +183,12 @@ test.serial('createFetchRequest', assert => {
 
 
 		createFetchRequest('http://localhost:3000/img/annex.png').execute()
-			.then(function(response){
+			.then(response => {
 				assert.true(response.ok);
 				assert.is(response.status, 200);
 				return response.blob();
 			})
-			.then(function(image){
+			.then(image => {
 				assert.true(image.type !== undefined);
 				assert.true(image.size > 0);
 				end();
@@ -159,12 +199,12 @@ test.serial('createFetchRequest', assert => {
 		;
 
 		createFetchRequest('http://localhost:3000/img/404.png').execute()
-			.then(function(response){
+			.then(response => {
 				assert.false(response.ok);
 				assert.is(response.status, 404);
 				return response.blob();
 			})
-			.then(function(image){
+			.then(image => {
 				assert.true(image.type !== undefined);
 				end();
 			})
@@ -178,14 +218,14 @@ test.serial('createFetchRequest', assert => {
 
 
 test.serial('createJsonRequest', assert => {
-	return new Promise(function(resolve, reject){
+	return new Promise((resolve, reject) => {
 		let endCount = 0;
 		function end(error){
 			endCount++;
 
 			if( error ){
 				reject(error);
-			} else if( endCount === 4 ){
+			} else if( endCount === 5 ){
 				while( document.body.firstChild ){
 					document.body.removeChild(document.body.firstChild);
 				}
@@ -202,6 +242,20 @@ test.serial('createJsonRequest', assert => {
 			})
 			.catch(error => {
 				end(error);
+			})
+		;
+
+		createJsonRequest('https://jsonplaceholder.typicode.com/posts/1', {timeout : 1})
+			.execute()
+			.then(() => {
+				end(new Error('should have timed out'));
+			})
+			.catch(error => {
+				if( error.message === 'timeout' ){
+					end();
+				} else {
+					end(new Error('should have timed out'));
+				}
 			})
 		;
 
@@ -256,13 +310,13 @@ test.serial('createJsonRequest', assert => {
 
 
 test.serial('createJsRequest', assert => {
-	return new Promise(function(resolve, reject){
+	return new Promise((resolve, reject) => {
 		let endCount = 0;
 		function end(error){
 			endCount++;
 			if( error ){
 				reject(error);
-			} else if( endCount === 4 ){
+			} else if( endCount === 5 ){
 				while( document.body.firstChild ){
 					document.body.removeChild(document.body.firstChild);
 				}
@@ -277,9 +331,9 @@ test.serial('createJsRequest', assert => {
 
 		let now = new Date();
 
-		createJsRequest('http://localhost:3000/js/dynamic-loading-test.js')
+		createJsRequest('http://localhost:3000/js/requests-test.js')
 			.execute()
-			.then(function(jsElement){
+			.then(jsElement => {
 				assert.is(jsElement.tagName.toLowerCase(), 'script');
 				assert.is(Object.prototype.toString.call(jsElement).slice(8, -1), 'HTMLScriptElement');
 				end();
@@ -289,7 +343,21 @@ test.serial('createJsRequest', assert => {
 			})
 		;
 
-		createJsRequest('http://localhost:3000/js/dynamic-loading-test.js')
+		createJsRequest('http://localhost:3000/js/requests-test.js', {timeout : 1})
+			.execute()
+			.then(() => {
+				end(new Error('should have timed out'));
+			})
+			.catch(error => {
+				if( error.message === 'timeout' ){
+					end();
+				} else {
+					end(new Error('should have timed out'));
+				}
+			})
+		;
+
+		createJsRequest('http://localhost:3000/js/requests-test.js')
 			.execute(null, document.body, 'request-2')
 			.then(jsElement => {
 				assert.is(jsElement.tagName.toLowerCase(), 'script');
@@ -300,7 +368,7 @@ test.serial('createJsRequest', assert => {
 				assert.true(now.getTime() < window.TEST_DYNAMIC_LOADING_LAST_EXECUTION.getTime());
 				now = window.TEST_DYNAMIC_LOADING_LAST_EXECUTION;
 
-				createJsRequest('http://localhost:3000/js/dynamic-loading-test.js')
+				createJsRequest('http://localhost:3000/js/requests-test.js')
 					.execute('raw', {element : document.body, position : 'prepend'}, 'request-3')
 					.then(rawJs => {
 						const element = document.body.querySelector('[data-id="request-3"]');
@@ -312,7 +380,7 @@ test.serial('createJsRequest', assert => {
 						assert.true(now.getTime() < window.TEST_DYNAMIC_LOADING_LAST_EXECUTION.getTime());
 						now = window.TEST_DYNAMIC_LOADING_LAST_EXECUTION;
 
-						createJsRequest('http://localhost:3000/js/dynamic-loading-test.js')
+						createJsRequest('http://localhost:3000/js/requests-test.js')
 							.execute('sourced-element', {element, position : 'beforebegin'}, 'request-4', true)
 							.then(jsElement => {
 								assert.is(jsElement.tagName.toLowerCase(), 'script');
@@ -349,13 +417,13 @@ test.serial('createJsRequest', assert => {
 
 
 test.serial('createCssRequest', assert => {
-	return new Promise(function(resolve, reject){
+	return new Promise((resolve, reject) => {
 		let endCount = 0;
 		function end(error){
 			endCount++;
 			if( error ){
 				reject(error);
-			} else if( endCount === 4 ){
+			} else if( endCount === 5 ){
 				while( document.body.firstChild ){
 					document.body.removeChild(document.body.firstChild);
 				}
@@ -368,9 +436,9 @@ test.serial('createCssRequest', assert => {
 			}
 		}
 
-		createCssRequest('http://localhost:3000/css/dynamic-loading-test.css')
+		createCssRequest('http://localhost:3000/css/requests-test.css')
 			.execute()
-			.then(function(cssElement){
+			.then(cssElement => {
 				assert.is(cssElement.tagName.toLowerCase(), 'style');
 				assert.is(Object.prototype.toString.call(cssElement).slice(8, -1), 'HTMLStyleElement');
 				end();
@@ -380,7 +448,21 @@ test.serial('createCssRequest', assert => {
 			})
 		;
 
-		createCssRequest('http://localhost:3000/css/dynamic-loading-test.css')
+		createCssRequest('http://localhost:3000/css/requests-test.css', {timeout : 1})
+			.execute()
+			.then(() => {
+				end(new Error('should have timed out'));
+			})
+			.catch(error => {
+				if( error.message === 'timeout' ){
+					end();
+				} else {
+					end(new Error('should have timed out'));
+				}
+			})
+		;
+
+		createCssRequest('http://localhost:3000/css/requests-test.css')
 			.execute(null, document.body, 'request-2')
 			.then(cssElement => {
 				assert.is(cssElement.tagName.toLowerCase(), 'style');
@@ -388,7 +470,7 @@ test.serial('createCssRequest', assert => {
 				assert.true(document.body.querySelectorAll('[data-id="request-2"]').length > 0);
 				assert.is(cssElement.textContent, 'h3 {color: pink;}\n');
 
-				createCssRequest('http://localhost:3000/css/dynamic-loading-test.css')
+				createCssRequest('http://localhost:3000/css/requests-test.css')
 					.execute('raw', {element : document.body, position : 'prepend'}, 'request-3')
 					.then(rawCss => {
 						const element = document.body.querySelector('[data-id="request-3"]');
@@ -397,7 +479,7 @@ test.serial('createCssRequest', assert => {
 						assert.is(element.nextElementSibling.getAttribute('data-id'), 'request-2');
 						assert.is(rawCss, 'h3 {color: pink;}\n');
 
-						createCssRequest('http://localhost:3000/css/dynamic-loading-test.css')
+						createCssRequest('http://localhost:3000/css/requests-test.css')
 							.execute('sourced-element', {element, position : 'beforebegin'}, 'request-4', 'screen', true)
 							.then(cssElement => {
 								assert.is(cssElement.tagName.toLowerCase(), 'link');
@@ -436,13 +518,13 @@ test.serial('createCssRequest', assert => {
 
 
 test.serial('createHtmlRequest', assert => {
-	return new Promise(function(resolve, reject){
+	return new Promise((resolve, reject) => {
 		let endCount = 0;
 		function end(error){
 			endCount++;
 			if( error ){
 				reject(error);
-			} else if( endCount === 5 ){
+			} else if( endCount === 6 ){
 				while( document.body.firstChild ){
 					document.body.removeChild(document.body.firstChild);
 				}
@@ -455,9 +537,9 @@ test.serial('createHtmlRequest', assert => {
 			}
 		}
 
-		createHtmlRequest('http://localhost:3000/html/dynamic-loading-test-1.html')
+		createHtmlRequest('http://localhost:3000/html/requests-test-1.html')
 			.execute('raw', null, 'request-1')
-			.then(function(rawHtml){
+			.then(rawHtml => {
 				assert.true(rawHtml.startsWith('<!DOCTYPE html>'));
 				end();
 			})
@@ -466,9 +548,23 @@ test.serial('createHtmlRequest', assert => {
 			})
 		;
 
-		createHtmlRequest('http://localhost:3000/html/dynamic-loading-test-1.html')
+		createHtmlRequest('http://localhost:3000/html/requests-test-1.html', {timeout : 1})
+			.execute('raw', null, 'request-1')
+			.then(() => {
+				end(new Error('should have timed out'));
+			})
+			.catch(error => {
+				if( error.message === 'timeout' ){
+					end();
+				} else {
+					end(new Error('should have timed out'));
+				}
+			})
+		;
+
+		createHtmlRequest('http://localhost:3000/html/requests-test-1.html')
 			.execute()
-			.then(function(htmlElement){
+			.then(htmlElement => {
 				assert.is(htmlElement.tagName.toLowerCase(), 'html');
 				assert.is(Object.prototype.toString.call(htmlElement).slice(8, -1), 'HTMLHtmlElement');
 				end();
@@ -478,7 +574,7 @@ test.serial('createHtmlRequest', assert => {
 			})
 		;
 
-		createHtmlRequest('http://localhost:3000/html/dynamic-loading-test-1.html')
+		createHtmlRequest('http://localhost:3000/html/requests-test-1.html')
 			.execute(null, document.body, 'request-3', 'body > main > h1')
 			.then(htmlElement => {
 				assert.is(htmlElement.tagName.toLowerCase(), 'h1');
@@ -486,7 +582,7 @@ test.serial('createHtmlRequest', assert => {
 				assert.true(document.body.querySelectorAll('[data-id="request-3"]').length > 0);
 				assert.is(htmlElement.outerHTML, '<h1 data-id="request-3">Lorem Ipsum</h1>');
 
-				createHtmlRequest('http://localhost:3000/html/dynamic-loading-test-1.html')
+				createHtmlRequest('http://localhost:3000/html/requests-test-1.html')
 					.execute('raw', {element : document.body, position : 'prepend'}, 'request-4', 'h1 ~ p', true)
 					.then(rawHtml => {
 						const element = document.body.querySelectorAll('[data-id="request-4"]')[1];
@@ -495,7 +591,7 @@ test.serial('createHtmlRequest', assert => {
 						assert.is(element.nextElementSibling.getAttribute('data-id'), 'request-3');
 						assert.is(rawHtml, '<p>dolor sit amet</p><p>foobar baz foo</p>');
 
-						createHtmlRequest('http://localhost:3000/html/dynamic-loading-test-2.html')
+						createHtmlRequest('http://localhost:3000/html/requests-test-2.html')
 							.execute('element', {element, position : 'beforebegin'}, 'request-5')
 							.then(htmlElements => {
 								assert.is(htmlElements[0].tagName.toLowerCase(), 'h1');

@@ -1,12 +1,12 @@
 /*!
- * Module DynamicLoading
+ * Module Requests
  */
 
 /**
- * @namespace DynamicLoading
+ * @namespace Requests
  */
 
-const MODULE_NAME = 'DynamicLoading';
+const MODULE_NAME = 'Requests';
 
 
 
@@ -15,13 +15,14 @@ const MODULE_NAME = 'DynamicLoading';
 import {warn} from './logging.js';
 import {hasValue, orDefault, isPlainObject, assert, Deferred} from './basic.js';
 import {createNode, insertNode} from './elements.js';
+import {schedule, countermand} from './timers.js';
 
 
 
 //###[ EXPORTS ]########################################################################################################
 
 /**
- * @namespace DynamicLoading:createFetchRequest
+ * @namespace Requests:createFetchRequest
  */
 
 /**
@@ -35,8 +36,8 @@ import {createNode, insertNode} from './elements.js';
  * @property {Function} json - will return the response content as JSON
  * @property {Function} blob - will return the response content as a (binary) blob
  * @property {Object} headers - we do not implement a full spec-compliant Headers class, but emulate some of the functionality
- * @property {Function} headers.keys - returns an array containing the key for every header in the response
- * @property {Function} headers.entries - returns an array containing the [key, value] pairs for every header in the response
+ * @property {Function} headers.keys - returns an Iterable containing the key for every header in the response, transform to array with Array.from
+ * @property {Function} headers.entries - returns an Iterable containing the [key, value] pairs for every header in the response, transform to array with Array.from
  * @property {Function} headers.get - returns the value associated with the given key
  * @property {Function} headers.has - returns a boolean asserting the existence of a value for the given key among the response headers
  */
@@ -56,6 +57,7 @@ import {createNode, insertNode} from './elements.js';
  * @property {?Object} options.headers - the set headers for the request
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
+ * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
  * @property {FetchRequestExecuteFunction} execute - call this to execute the request
  */
 
@@ -69,7 +71,7 @@ import {createNode, insertNode} from './elements.js';
  * polyfill as long as we might target legacy contexts. As soon as we drop legacy contexts, we can immediately also
  * remove this method and its uses.
  *
- * The function signature is the same as "unfetch"'s and all non implemented features are absent here as well.
+ * The function signature is the same as "unfetch"'s and all non-implemented features are absent here as well.
  *
  * All usual responses (40X and 50X as well) resolve, only uncompletable requests, such as those being prevented by a
  * general network error, reject with the provided error.
@@ -80,9 +82,10 @@ import {createNode, insertNode} from './elements.js';
  * @param {?Object} [options.headers] - an object containing additional information to be sent with the request (e.g. {"Content-Type": "application/json"} to indicate a JSON-typed request body)
  * @param {?String} [options.credentials] - accepts an "include" string, which will allow both CORS and same origin requests to work with cookies; the method won't send or receive cookies otherwise; the "same-origin" value is not supported
  * @param {?Object|String} [options.body] - the content to be transmitted in request's body; common content types include FormData, JSON, Blob, ArrayBuffer or plain text
+ * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @returns {FetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
- * @memberof DynamicLoading:createFetchRequest
+ * @memberof Requests:createFetchRequest
  * @alias createFetchRequest
  * @see https://github.com/developit/unfetch
  * @see https://github.com/developit/unfetch#fetchurl-string-options-object
@@ -102,8 +105,8 @@ import {createNode, insertNode} from './elements.js';
  *             .then(r => { open(r.headers.get('location')); return r.json(); })
  * ;
  */
-export function createFetchRequest(url, options=null){
-	const __methodName__ = createFetchRequest.name;
+export function createFetchRequest(url, options=null, useNative=false){
+	const __methodName__ = 'createFetchRequest';
 
 	assert(hasValue(url), `${MODULE_NAME}:${__methodName__} | no url given`);
 	options = orDefault(options, {});
@@ -115,76 +118,125 @@ export function createFetchRequest(url, options=null){
 		: 'GET'
 	;
 
+	// 0 would be unlimited/unset/default
+	options.timeout = orDefault(options.timeout, 10000, 'int');
+	options.timeout = (options.timeout < 0) ? 0 : options.timeout;
+
 	return {
 		url,
 		options,
-		execute(){
-			const
-				res = new Deferred(),
-				request = new XMLHttpRequest(),
-				headerKeys = [],
-				headerEntries = [],
-				headers = {},
-				response = () => ({
-					ok : (parseInt(request.status, 10) >= 200) && (parseInt(request.status, 10) <= 299),
-					statusText : request.statusText,
-					status : request.status,
-					url : request.responseURL,
-					text : () => Promise.resolve(request.responseText),
-					json : () => Promise.resolve(request.responseText).then(JSON.parse),
-					blob : () => Promise.resolve(new Blob([request.response])),
-					clone : response,
-					headers : {
-						keys(){
-							return headerKeys;
-						},
-						entries(){
-							return headerEntries;
-						},
-						get(key){
-							return headers[key.toLowerCase()];
-						},
-						has(key){
-							return key.toLowerCase() in headers;
+		execute : !useNative || ((useNative === 'auto') && (!('fetch' in window) || !('AbortController' in window)))
+			? function(){
+				const
+					res = new Deferred(),
+					request = new XMLHttpRequest(),
+					headerKeys = new Set(),
+					headerEntries = new Map(),
+					response = () => ({
+						ok : (parseInt(request.status, 10) >= 200) && (parseInt(request.status, 10) <= 299),
+						statusText : request.statusText,
+						status : request.status,
+						url : request.responseURL,
+						text : () => Promise.resolve(request.responseText),
+						json : () => Promise.resolve(request.responseText).then(JSON.parse),
+						blob : () => Promise.resolve(new Blob([request.response])),
+						clone : response,
+						headers : {
+							keys(){
+								return headerKeys;
+							},
+							entries(){
+								return headerEntries;
+							},
+							get(key){
+								return headerEntries.get(key);
+							},
+							has(key){
+								return headerKeys.has(key);
+							}
+						}
+					})
+				;
+
+				request.open(options.method, url, true);
+
+				if( options.timeout > 0 ){
+					request.timeout = options.timeout;
+					request.ontimeout = () => { res.reject(new Error('timeout')); };
+				}
+
+				request.onload = () => {
+					request.getAllResponseHeaders().replace(/^(.*?):[^\S\n]*([\s\S]*?)$/gm, (m, key, value) => {
+						key = `${key}`;
+						headerKeys.add(key);
+						if( headerEntries.has(key) ){
+							headerEntries.set(key, `${headerEntries.get(key)},${value}`);
+						} else {
+							headerEntries.set(key, `${value}`);
+						}
+					});
+
+					res.resolve(response());
+				};
+
+				request.onerror = res.reject;
+
+				request.withCredentials = (options.credentials === 'include');
+
+				if( hasValue(options.headers) ){
+					for( let i in options.headers ){
+						if( options.headers.hasOwnProperty(i) ){
+							request.setRequestHeader(i, options.headers[i]);
 						}
 					}
-				})
-			;
-
-			request.open(options.method, url, true);
-
-			request.onload = () => {
-				request.getAllResponseHeaders().replace(/^(.*?):[^\S\n]*([\s\S]*?)$/gm, (m, key, value) => {
-					key = key.toLowerCase();
-					headerKeys.push(key);
-					headerEntries.push([key, value]);
-					headers[key] = headers[key] ? `${headers[key]},${value}` : value;
-				});
-
-				res.resolve(response());
-			};
-
-			request.onerror = res.reject;
-
-			request.withCredentials = (options.credentials === 'include');
-
-			for( let i in options.headers ){
-				if( options.headers.hasOwnProperty(i) ){
-					request.setRequestHeader(i, options.headers[i]);
 				}
+
+				request.send(options.body ?? null);
+
+				return res;
 			}
+			: function(){
+				assert(
+					('fetch' in window) && ('AbortController' in window),
+					`${MODULE_NAME}:${__methodName__} | broken native implementation, either "fetch" or "AbortController" is missing, switch to polyfill`
+				);
 
-			request.send(options.body || null);
+				const
+					res = new Deferred(),
+					timeout = options.timeout
+				;
 
-			return res;
-		}
+				let timeoutTimer, abortController;
+
+				if( (timeout > 0) && ('AbortController' in window) ){
+					abortController = new AbortController();
+					options.signal = abortController.signal;
+				}
+
+				window.fetch(url, options)
+					.then(response => {
+						countermand(timeoutTimer);
+						res.resolve(response);
+					})
+					.catch(error => {
+						countermand(timeoutTimer);
+						res.reject(error);
+					})
+				;
+
+				if( (timeout > 0) && ('AbortController' in window) ){
+					timeoutTimer = schedule(timeout, () => { abortController.abort(); });
+				}
+
+				return res;
+			}
 	};
 }
 
 
 
 /**
- * @namespace DynamicLoading:createJsonRequest
+ * @namespace Requests:createJsonRequest
  */
 
 /**
@@ -213,6 +265,7 @@ export function createFetchRequest(url, options=null){
  * @property {?Object} options.headers - the set headers for the request
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
+ * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
  * @property {JsonFetchRequestExecuteFunction} execute - call this to execute the request
  */
 
@@ -229,9 +282,10 @@ export function createFetchRequest(url, options=null){
  *
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options (see: createFetchRequests for details)
+ * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @returns {JsonFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
- * @memberof DynamicLoading:createJsonRequest
+ * @memberof Requests:createJsonRequest
  * @alias createJsonRequest
  * @see createFetchRequest
  * @example
@@ -247,18 +301,22 @@ export function createFetchRequest(url, options=null){
  *         .then(rawJson => { console.log(`"${rawJson}" has been inserted at the beginning of the document's body`); })
  * ;
  */
-export function createJsonRequest(url, options=null){
+export function createJsonRequest(url, options=null, useNative=false){
+	const __methodName__ = 'createJsonRequest';
+
 	return {
 		url,
 		options,
 		execute(resolveTo='object', insertTarget=null, dataId=null){
 			const res = new Deferred();
 
-			createFetchRequest(url, options).execute()
+			createFetchRequest(url, options, useNative).execute()
 				.then(response => {
-					const contentType = (response.headers.get('content-type') ?? '').split(';')[0].trim();
+					const contentType = (
+						response.headers.get('content-type') ?? response.headers.get('Content-Type') ?? ''
+					).split(';')[0].trim();
 					if( contentType !== 'application/json' ){
-						warn(`${MODULE_NAME}:createJsonRequest | content-type "${contentType}" is not valid for JSON, use "application/json"`);
+						warn(`${MODULE_NAME}:${__methodName__} | content-type "${contentType}" is not valid for JSON, use "application/json"`);
 					}
 
 					return response.json();
@@ -305,7 +363,7 @@ export function createJsonRequest(url, options=null){
 
 
 /**
- * @namespace DynamicLoading:createJsRequest
+ * @namespace Requests:createJsRequest
  */
 
 /**
@@ -335,6 +393,7 @@ export function createJsonRequest(url, options=null){
  * @property {?Object} options.headers - the set headers for the request
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
+ * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
  * @property {JsFetchRequestExecuteFunction} execute - call this to execute the request
  */
 
@@ -359,9 +418,10 @@ export function createJsonRequest(url, options=null){
  *
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options (see: createFetchRequests for details)
+ * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @returns {JsFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
- * @memberof DynamicLoading:createJsRequest
+ * @memberof Requests:createJsRequest
  * @alias createJsRequest
  * @see createFetchRequest
  * @example
@@ -382,7 +442,9 @@ export function createJsonRequest(url, options=null){
  *         .then(jsElement => { alert(`has been injected: "${jsElement.getAttribute('data-id')}"`); })
  * ;
  */
-export function createJsRequest(url, options=null){
+export function createJsRequest(url, options=null, useNative=false){
+	const __methodName__ = 'createJsRequest';
+
 	return {
 		url,
 		options,
@@ -425,11 +487,13 @@ export function createJsRequest(url, options=null){
 			if( resolveTo === sourceElementValue ){
 				fInsertAndResolve(createNode('script', {src : url}));
 			} else {
-				createFetchRequest(url, options).execute()
+				createFetchRequest(url, options, useNative).execute()
 					.then(response => {
-						const contentType = (response.headers.get('content-type') ?? '').split(';')[0].trim();
+						const contentType = (
+							response.headers.get('content-type') ?? response.headers.get('Content-Type') ?? ''
+						).split(';')[0].trim();
 						if( contentType !== 'application/javascript' ){
-							warn(`${MODULE_NAME}:createJsRequest | content-type "${contentType}" is not valid for JavaScript, use "application/javascript"`);
+							warn(`${MODULE_NAME}:${__methodName__} | content-type "${contentType}" is not valid for JavaScript, use "application/javascript"`);
 						}
 
 						return response.text();
@@ -451,7 +515,7 @@ export function createJsRequest(url, options=null){
 
 
 /**
- * @namespace DynamicLoading:createCssRequest
+ * @namespace Requests:createCssRequest
  */
 
 /**
@@ -482,6 +546,7 @@ export function createJsRequest(url, options=null){
  * @property {?Object} options.headers - the set headers for the request
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
+ * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
  * @property {CssFetchRequestExecuteFunction} execute - call this to execute the request
  */
 
@@ -503,9 +568,10 @@ export function createJsRequest(url, options=null){
  *
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options (see: createFetchRequests for details)
+ * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @returns {CssFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
- * @memberof DynamicLoading:createCssRequest
+ * @memberof Requests:createCssRequest
  * @alias createCssRequest
  * @see createFetchRequest
  * @example
@@ -526,7 +592,9 @@ export function createJsRequest(url, options=null){
  *         .then(cssElement => { alert(`has been injected: "${cssElement.getAttribute('data-id')+}"`); })
  * ;
  */
-export function createCssRequest(url, options=null){
+export function createCssRequest(url, options=null, useNative=false){
+	const __methodName__ = 'createCssRequest';
+
 	return {
 		url,
 		options,
@@ -573,11 +641,13 @@ export function createCssRequest(url, options=null){
 				}
 				fInsertAndResolve(createNode('link', linkAttrs));
 			} else {
-				createFetchRequest(url, options).execute()
+				createFetchRequest(url, options, useNative).execute()
 					.then(response => {
-						const contentType = (response.headers.get('content-type') ?? '').split(';')[0].trim();
+						const contentType = (
+							response.headers.get('content-type') ?? response.headers.get('Content-Type') ?? ''
+						).split(';')[0].trim();
 						if( contentType !== 'text/css' ){
-							warn(`${MODULE_NAME}:createCssRequest | content-type "${contentType}" is not valid for CSS, use "text/css"`);
+							warn(`${MODULE_NAME}:${__methodName__} | content-type "${contentType}" is not valid for CSS, use "text/css"`);
 						}
 
 						return response.text();
@@ -599,7 +669,7 @@ export function createCssRequest(url, options=null){
 
 
 /**
- * @namespace DynamicLoading:createHtmlRequest
+ * @namespace Requests:createHtmlRequest
  */
 
 /**
@@ -630,6 +700,7 @@ export function createCssRequest(url, options=null){
  * @property {?Object} options.headers - the set headers for the request
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
+ * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
  * @property {HtmlFetchRequestExecuteFunction} execute - call this to execute the request
  */
 
@@ -650,9 +721,10 @@ export function createCssRequest(url, options=null){
  *
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options (see: createFetchRequests for details)
+ * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @returns {HtmlFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
- * @memberof DynamicLoading:createHtmlRequest
+ * @memberof Requests:createHtmlRequest
  * @alias createHtmlRequest
  * @see createFetchRequest
  * @example
@@ -668,16 +740,18 @@ export function createCssRequest(url, options=null){
  *     .execute(null, injectTarget, 'request-3', 'body > main > h1')
  *         .then(htmlElement => { alert(`has been injected: "${htmlElement.outerHTML}"`); })
  * ;
- * createHtmlRequest('/files/html/dynamic-loading-test-1.html')
+ * createHtmlRequest('/files/html/requests-test-1.html')
  *     .execute('raw', {element : injectTarget, position : 'beforebegin'}, 'request-4', 'h1 ~ p', true)
  *         .then(rawHtml => { alert(`has been injected: "${rawHtml}"`); })
  * ;
- * createHtmlRequest('/files/html/dynamic-loading-test-2.html')
+ * createHtmlRequest('/files/html/requests-test-2.html')
  *     .execute('element', {element : injectTarget, position : 'prepend'}, 'request-5', 'p', true)
  *         .then(htmlElements => { alert(`has been injected: "${htmlElements.map(e => e.outerHTML).join('')}"`); })
  * ;
  */
-export function createHtmlRequest(url, options=null){
+export function createHtmlRequest(url, options=null, useNative=false){
+	const __methodName__ = 'createHtmlRequest';
+
 	return {
 		url,
 		options,
@@ -718,22 +792,23 @@ export function createHtmlRequest(url, options=null){
 				}
 			;
 
-			createFetchRequest(url, options).execute()
+			createFetchRequest(url, options, useNative).execute()
 				.then(response => {
-					const contentType = (response.headers.get('content-type') ?? '').split(';')[0].trim();
+					const contentType = (
+						response.headers.get('content-type') ?? response.headers.get('Content-Type') ?? ''
+					).split(';')[0].trim();
 					if( contentType !== 'text/html' ){
-						warn(`${MODULE_NAME}:createHtmlRequest | content-type "${contentType}" is not valid for HTML, use "text/html"`);
+						warn(`${MODULE_NAME}:${__methodName__} | content-type "${contentType}" is not valid for HTML, use "text/html"`);
 					}
 
 					return response.text();
 				})
 				.then(html => {
 					const
-						searchableHtml = html.toLowerCase(),
-						isWholeDocument = searchableHtml.includes('<html'),
+						isWholeDocument = html.includes('<html') || html.includes('<HTML'),
 						isDocument = isWholeDocument
-							|| searchableHtml.includes('<head')
-							|| searchableHtml.includes('<body')
+							|| (html.includes('<head') || html.includes('<HEAD'))
+							|| (html.includes('<body') || html.includes('<BODY'))
 						,
 						fragmentNode = (new DOMParser())
 							.parseFromString(html, 'text/html')

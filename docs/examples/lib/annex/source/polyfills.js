@@ -13,29 +13,14 @@ const MODULE_NAME = 'Polyfills';
 //###[ IMPORTS ]########################################################################################################
 
 import {assert, hasValue, isA, orDefault} from './basic.js';
-import {createFetchRequest} from './dynamic-loading.js';
-
-
-
-//###[ HELPERS ]########################################################################################################
-
-/*
- * Helper function to provide createFetchRequest with the same call signature as fetch, to make implementation
- * easily replaceable in the future.
- *
- * @private
- * @returns {Function} a fetch implementation
- */
-function fetch(url, options=null){
-	return createFetchRequest(url, options).execute();
-}
+import {createFetchRequest} from './requests.js';
 
 
 
 //###[ EXPORTS ]########################################################################################################
 
 /**
- * @namespace DynamicLoading:polyfillFetch
+ * @namespace Polyfills:polyfillFetch
  */
 
 /**
@@ -47,7 +32,7 @@ function fetch(url, options=null){
  *
  * @param {?Boolean} [force=false] - if true, replaces a possibly present native implementation with the polyfill as well
  *
- * @memberof DynamicLoading:polyfillFetch
+ * @memberof Polyfills:polyfillFetch
  * @alias polyfillFetch
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  * @see https://github.com/developit/unfetch
@@ -58,7 +43,9 @@ export function polyfillFetch(force=false){
 	force = orDefault(force, false, 'bool');
 
 	if( force || !isA(window.fetch, 'function') ){
-		window.fetch = fetch;
+		window.fetch = function(url, options=null){
+			return createFetchRequest(url, options).execute();
+		};
 	}
 }
 
@@ -82,7 +69,7 @@ export function polyfillFetch(force=false){
  * => makes Element.prototype.matches available, if not already present
  */
 export function polyfillElementMatches(){
-	const __methodName__ = polyfillElementMatches.name;
+	const __methodName__ = 'polyfillElementMatches';
 
 	if( !Element.prototype.matches ){
 		Element.prototype.matches = Element.prototype.msMatchesSelector

@@ -9,6 +9,7 @@ import inject from 'gulp-inject-string';
 import connect from 'gulp-connect';
 import serveStatic from 'st';
 import yargs from 'yargs';
+import {deleteAsync as del} from 'del';
 
 import * as rollup from 'rollup';
 import {babel as rollupBabel} from '@rollup/plugin-babel';
@@ -33,6 +34,12 @@ const
 
 
 //###[ FUNCTIONS ]######################################################################################################
+
+function clearDist(){
+	return del(`${DIST_DIR}/**/*`);
+}
+
+
 
 function buildJs(){
 	return gulp.src([`${SOURCE_DIR}/**/*.js`, `!${SOURCE_DIR}/_monolith.js`])
@@ -179,7 +186,7 @@ gulp.task('test', shell.task(`npm test${testTopic}`));
 gulp.task('test-dist', shell.task(`npm run test-dist${testTopic}`));
 gulp.task('test-es5-monolith', shell.task(`npm run test-es5-monolith${testTopic}`));
 
-gulp.task('build', gulp.series('test', buildJs, 'test-dist', buildEs5Monolith, 'test-es5-monolith', copyExamplesLibs));
+gulp.task('build', gulp.series('test', clearDist, buildJs, 'test-dist', buildEs5Monolith, 'test-es5-monolith', copyExamplesLibs));
 
 gulp.task('examples', gulp.series('build', serveExamples, 'watch'));
 

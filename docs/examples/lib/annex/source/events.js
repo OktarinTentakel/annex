@@ -163,7 +163,6 @@ function prepareEventMethodEventInfo(eventName, defaultNamespace=null, defaultEv
  * @private
  */
 function gatherTargetEvents(target, namespace=null, event=null, delegation=null){
-	// needs to be string, non-exported function names get mangled
 	const __methodName__ = 'gatherTargetEvents';
 
 	const targetEvents = EVENT_MAP.get(target);
@@ -317,7 +316,6 @@ function createDelegatedHandler(delegation, handler){
  */
 function createHandlerRemover(target, namespace, event, handler, delegation=null){
 	const
-		// needs to be string, non-exported function names get mangled
 		__methodName__ = 'createHandlerRemover',
 		targetEvents = EVENT_MAP.get(target)
 	;
@@ -368,7 +366,6 @@ function createSelfRemovingHandler(target, namespace, event, handler, delegation
  */
 function removeLocatedHandler(target, namespace, event, handler, delegation=null){
 	const
-		// needs to be string, non-exported function names get mangled
 		__methodName__ = 'removeLocatedHandler',
 		targetEvents = EVENT_MAP.get(target),
 		targetScope = targetEvents?.[namespace]?.[event]
@@ -443,7 +440,6 @@ function removeDelegatedHandlers(ancestor, delegation, namespace=null, event=nul
  */
 function pauseLocatedHandlers(target, namespace, event, handler, delegation=null, paused=true){
 	const
-		// needs to be string, non-exported function names get mangled
 		__methodName__ = 'pauseLocatedHandlers',
 		targetEvents = EVENT_MAP.get(target),
 		targetScope = targetEvents?.[namespace]?.[event]
@@ -571,7 +567,6 @@ function createSyntheticEvent(
 	EventConstructor=null,
 	eventOptions=null
 ){
-	// needs to be string, non-exported function names get mangled
 	const __methodName__ = 'createSyntheticEvent';
 
 	event = `${event}`;
@@ -663,7 +658,7 @@ function createSyntheticEvent(
  * on([foo, foo, 'button', bar], ['mousedown', 'touchstart'], e => { e.target.classList.add('interaction-start'); });
  */
 export function on(targets, events, handler, options=null, once=false){
-	const __methodName__ = on.name;
+	const __methodName__ = 'on';
 
 	({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler));
 	once = !!once || !!options?.once;
@@ -849,7 +844,7 @@ export function once(targets, events, handler, options=null){
  * off(buttonElement, '*.*');
  */
 export function off(targets, events, handler=null){
-	const __methodName__ = off.name;
+	const __methodName__ = 'off';
 
 	({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler, true));
 
@@ -923,7 +918,7 @@ export function off(targets, events, handler=null){
  * pause([ancestorElement, '.btn[data-foobar="test"]'], '*.delegated', fSpecificHandler);
  */
 export function pause(targets, events, handler=null, paused=true){
-	const __methodName__ = pause.name;
+	const __methodName__ = 'pause';
 
 	({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler, true));
 
@@ -1045,7 +1040,7 @@ export function resume(targets, events, handler=null){
  * fire(buttonElement, 'click.*', {price : 666});
  */
 export function fire(targets, events, payload=null){
-	const __methodName__ = fire.name;
+	const __methodName__ = 'fire';
 
 	({targets, events} = prepareEventMethodBaseParams(__methodName__, targets, events, null, true));
 
@@ -1146,7 +1141,7 @@ export function fire(targets, events, payload=null){
  * emit(buttonElement, 'click.*', {price : 666}, MouseEvent, {bubbles : false});
  */
 export function emit(targets, events, payload=null, EventConstructor=null, eventOptions=null){
-	const __methodName__ = emit.name;
+	const __methodName__ = 'emit';
 
 	({targets, events} = prepareEventMethodBaseParams(__methodName__, targets, events, null, true));
 

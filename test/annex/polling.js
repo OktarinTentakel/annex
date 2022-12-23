@@ -29,16 +29,16 @@ test.cb('poll', assert => {
 
 	const fooPoll = poll(
 		'foo-poll',
-		function(){
+		() => {
 			return (foo > 0) && (foo < 3);
 		},
-		function(changed){
+		changed => {
 			firedCounter++;
 			if( changed ){
 				changedCounter++;
 			}
 		},
-		function(changed){
+		changed => {
 			elseCounter++;
 			if( changed ){
 				elseChangedCounter++;
@@ -49,10 +49,10 @@ test.cb('poll', assert => {
 
 	const barPoll = poll(
 		'bar-poll',
-		function(){
+		() => {
 			return foo > 0;
 		},
-		function(){
+		() => {
 			bar++;
 			if( foo > 1 ){
 				return true;
@@ -63,25 +63,25 @@ test.cb('poll', assert => {
 		true
 	);
 
-	window.setTimeout(function(){
+	window.setTimeout(() => {
 		foo++;
 		fooPoll.fire();
 		barPoll.fire();
 	}, 250);
 
-	window.setTimeout(function(){
+	window.setTimeout(() => {
 		foo++;
 		fooPoll.fire(true);
 		barPoll.fire();
 		assert.false(barPoll.isActive);
 	}, 500);
 
-	window.setTimeout(function(){
+	window.setTimeout(() => {
 		foo++;
 		fooPoll.fire(false);
 	}, 750);
 
-	window.setTimeout(function(){
+	window.setTimeout(() => {
 		assert.true(fooPoll.isActive);
 		assert.is(foo, 3);
 		assert.is(firedCounter, 4);
@@ -106,36 +106,36 @@ test.cb('unpoll', assert => {
 
 	const fooPoll2 = poll(
 		'foo-poll2',
-		function(){
+		() => {
 			return (foo > 0) && (foo < 3);
 		},
-		function(){
+		() => {
 			boo++;
 		},
 		null,
 		240
 	);
 
-	window.setTimeout(function(){
+	window.setTimeout(() => {
 		foo++;
 		bar = unpoll('bar-poll2');
 		assert.true(fooPoll2.isActive);
 	}, 250);
 
-	window.setTimeout(function(){
+	window.setTimeout(() => {
 		foo++;
 		foobar = unpoll(fooPoll2);
 		assert.false(fooPoll2.isActive);
 	}, 500);
 
-	window.setTimeout(function(){
+	window.setTimeout(() => {
 		foo++;
 		assert.is(POLLS.activePollCount, 1);
 		assert.is(Object.keys(POLLS.activePolls).length, 1);
 		assert.deepEqual(Object.keys(POLLS.activePolls), ['foo-poll']);
 	}, 750);
 
-	window.setTimeout(function(){
+	window.setTimeout(() => {
 		baz = unpoll('foo-poll');
 		assert.is(foo, 3);
 		assert.is(boo, 1);

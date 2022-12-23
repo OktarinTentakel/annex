@@ -132,15 +132,15 @@ test.cb('defer', assert => {
 	fTestInc(2);
 	assert.is(foo, 0);
 
-	defer(function(){
+	defer(() => {
 		assert.is(foo, 2);
 	})();
 
-	defer(function(){
+	defer(() => {
 		foo += 10;
 	}, 1990)();
 
-	const bar = defer(function(){
+	const bar = defer(() => {
 		foo += 10;
 	}, 1999)();
 

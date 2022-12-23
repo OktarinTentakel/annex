@@ -110,8 +110,8 @@ test('randomNumber', assert => {
 	}
 	assert.true(check);
 
-	assert.throws(function(){ randomNumber(10, 1); });
-	assert.throws(function(){ randomNumber(10.555, 1.01, true); });
+	assert.throws(() => { randomNumber(10, 1); });
+	assert.throws(() => { randomNumber(10.555, 1.01, true); });
 });
 
 

@@ -22,6 +22,62 @@ export let
 	TRY_TO_LOG_TO_PARENT = false
 ;
 
+/*
+ * to make log calls chainable, this object is returned for every logging call, this offers extended functionality,
+ * going far beyond log/warn/err, while keeping a very narrow interface for everyday stuff
+ */
+const LOG_CHAINABLE_OBJECT = {
+	__documentation_for_chainable_object_of_log_execution__(){
+		return 'Use this object to chain logging calls. All standard methods are supported'
+			+' (see https://developer.mozilla.org/en-US/docs/Web/API/Console) and are executed'
+			+' with silent fails if not supported by the browser. See other methods in this'
+			+' object for an overview. Use disable()/enable() to deactivate/activate all debug outputs'
+			+' (exceptions are assert, clear, error and warn) to the console centrally'
+		;
+	},
+	setLogLevel(level){
+		level = `${level}`;
+
+		if( LOG_LEVELS.includes(level) ){
+			LOG_LEVEL = level;
+		}
+
+		return log();
+	},
+	tryToLogToParent(setting){
+		setting = (setting === undefined) ? true : !!setting;
+		TRY_TO_LOG_TO_PARENT = setting;
+
+		return log();
+	},
+	assert : genericConsoleMethodWrapperFactory('assert'),
+	clear : genericConsoleMethodWrapperFactory('clear'),
+	count : genericConsoleMethodWrapperFactory('count'),
+	dir : genericConsoleMethodWrapperFactory('dir'),
+	dirxml : genericConsoleMethodWrapperFactory('dirxml'),
+	dirXml : genericConsoleMethodWrapperFactory('dirxml'),
+	error(){
+		return err(...Array.from(arguments));
+	},
+	group : genericConsoleMethodWrapperFactory('group'),
+	groupCollapsed : genericConsoleMethodWrapperFactory('groupCollapsed'),
+	groupEnd : genericConsoleMethodWrapperFactory('groupEnd'),
+	info : genericConsoleMethodWrapperFactory('info'),
+	log(){
+		return log(...Array.from(arguments));
+	},
+	profile : genericConsoleMethodWrapperFactory('profile'),
+	profileEnd : genericConsoleMethodWrapperFactory('profileEnd'),
+	table : genericConsoleMethodWrapperFactory('table'),
+	time : genericConsoleMethodWrapperFactory('time'),
+	timeEnd : genericConsoleMethodWrapperFactory('timeEnd'),
+	timeStamp : genericConsoleMethodWrapperFactory('timeStamp'),
+	trace : genericConsoleMethodWrapperFactory('trace'),
+	warn(){
+		return warn(...Array.from(arguments));
+	}
+};
+
 
 
 //###[ HELPERS ]########################################################################################################
@@ -70,66 +126,6 @@ function genericConsoleMethodWrapperFactory(name, logLevel){
 		return genericConsoleMethodWrapper(name, logLevel, ...Array.from(arguments));
 	};
 }
-
-
-
-//###[ DATA ]###########################################################################################################
-
-/*
- * to make log calls chainable, this object is returned for every logging call, this offers extended functionality,
- * going far beyond log/warn/err, while keeping a very narrow interface for everyday stuff
- */
-const LOG_CHAINABLE_OBJECT = {
-	__documentation_for_chainable_object_of_log_execution__(){
-		return 'Use this object to chain logging calls. All standard methods are supported'
-		+' (see https://developer.mozilla.org/en-US/docs/Web/API/Console) and are executed'
-		+' with silent fails if not supported by the browser. See other methods in this'
-		+' object for an overview. Use disable()/enable() to deactivate/activate all debug outputs'
-		+' (exceptions are assert, clear, error and warn) to the console centrally'
-		;
-	},
-	setLogLevel(level){
-		level = `${level}`;
-
-		if( LOG_LEVELS.includes(level) ){
-			LOG_LEVEL = level;
-		}
-
-		return log();
-	},
-	tryToLogToParent(setting){
-		setting = (setting === undefined) ? true : !!setting;
-		TRY_TO_LOG_TO_PARENT = setting;
-
-		return log();
-	},
-	assert : genericConsoleMethodWrapperFactory('assert'),
-	clear : genericConsoleMethodWrapperFactory('clear'),
-	count : genericConsoleMethodWrapperFactory('count'),
-	dir : genericConsoleMethodWrapperFactory('dir'),
-	dirxml : genericConsoleMethodWrapperFactory('dirxml'),
-	dirXml : genericConsoleMethodWrapperFactory('dirxml'),
-	error(){
-		return err(...Array.from(arguments));
-	},
-	group : genericConsoleMethodWrapperFactory('group'),
-	groupCollapsed : genericConsoleMethodWrapperFactory('groupCollapsed'),
-	groupEnd : genericConsoleMethodWrapperFactory('groupEnd'),
-	info : genericConsoleMethodWrapperFactory('info'),
-	log(){
-		return log(...Array.from(arguments));
-	},
-	profile : genericConsoleMethodWrapperFactory('profile'),
-	profileEnd : genericConsoleMethodWrapperFactory('profileEnd'),
-	table : genericConsoleMethodWrapperFactory('table'),
-	time : genericConsoleMethodWrapperFactory('time'),
-	timeEnd : genericConsoleMethodWrapperFactory('timeEnd'),
-	timeStamp : genericConsoleMethodWrapperFactory('timeStamp'),
-	trace : genericConsoleMethodWrapperFactory('trace'),
-	warn(){
-		return warn(...Array.from(arguments));
-	}
-};
 
 
 

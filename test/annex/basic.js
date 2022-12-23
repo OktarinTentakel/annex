@@ -25,6 +25,7 @@ const {
 	isNaN,
 	isEventTarget,
 	isSelector,
+	isPotentialId,
 	minMax,
 	Deferred,
 	Observable
@@ -41,19 +42,19 @@ test('assert', _assert => {
 		foobar = {a : 1}
 	;
 
-	_assert.notThrows(function(){
+	_assert.notThrows(() => {
 		assert(foo.length === 3, 'not the right length');
 	});
 
-	_assert.throws(function(){
-		assert(function(){ return foo.length < 3; }(), 'not the right length');
+	_assert.throws(() => {
+		assert((() => { return foo.length < 3; })(), 'not the right length');
 	}, null, 'not the right length');
 
-	_assert.throws(function(){
+	_assert.throws(() => {
 		assert(Array.isArray(foobar), 'this is not an array dude');
 	}, null, 'this is not an array dude');
 
-	_assert.notThrows(function(){
+	_assert.notThrows(() => {
 		assert(Array.isArray(bar), 'this is not an array dude');
 	});
 });
@@ -67,18 +68,18 @@ test('attempt', assert => {
 	;
 	let json;
 
-	if( !attempt(function(){ json = JSON.parse(noJsonString) }) ){
+	if( !attempt(() => { json = JSON.parse(noJsonString) }) ){
 		json = {};
 	}
 	assert.deepEqual(json, {});
 
-	if( !attempt(function(){ json = JSON.parse(jsonString) }) ){
+	if( !attempt(() => { json = JSON.parse(jsonString) }) ){
 		json = {};
 	}
 	assert.deepEqual(json, [{a : {b : 'c'}}]);
 
-	assert.true(attempt(function(){ json = 42 * 42; }));
-	assert.false(attempt(function(){ return foo + bar; }));
+	assert.true(attempt(() => { json = 42 * 42; }));
+	assert.false(attempt(() => { return foo + bar; }));
 });
 
 
@@ -215,7 +216,7 @@ test('getType', assert => {
 	const
 		foo = true,
 		bar = {a : 'b'},
-		foobar = function(){ return 42.42; },
+		foobar = () => 42.42,
 		boo = new Date(),
 		far = [1, 2, 3],
 		boofar = /[a-z0-9]/g,
@@ -252,7 +253,7 @@ test('isA', assert => {
 	const
 		foo = true,
 		bar = {a : 'b'},
-		foobar = function(){ return 42.42; },
+		foobar = () => 42.42,
 		boo = new Date(),
 		far = [1, 2, 3],
 		boofar = /[a-z0-9]/g,
@@ -398,6 +399,18 @@ test('isSelector', assert => {
 
 
 
+test('isPotentialId', assert => {
+	assert.true(!!isPotentialId('666'));
+	assert.false(isPotentialId('0666'));
+	assert.is(isPotentialId('prefix-42', 'prefix-'), '42');
+	assert.true(!!isPotentialId('prefix-042', 'prefix-', '[0-9]+'));
+	assert.is(isPotentialId('prefix-042_postfix', 'prefix-', '[0-9]+', '_postfix'), '042');
+	assert.false(isPotentialId('prefix-042_postfix', 'prefix-', null, '_postfix'));
+	assert.true(!!isPotentialId('42_postfix', null, null, '_postfix'));
+});
+
+
+
 test('minMax', assert => {
 	const
 		foo = minMax(1, 5, 10),
@@ -412,7 +425,7 @@ test('minMax', assert => {
 	assert.is(foo, 5);
 	assert.is(bar, 666.66);
 	assert.is(foobar, 'b');
-	assert.throws(function(){ minMax(boo[0], boo[1], boo[2]); });
+	assert.throws(() => { minMax(boo[0], boo[1], boo[2]); });
 	assert.is(far, -150.5);
 	assert.is(boofar, 13);
 	assert.is(brafoo, -42.42);

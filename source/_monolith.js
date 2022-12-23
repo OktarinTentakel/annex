@@ -43,6 +43,9 @@ export const animation = _animation;
 import * as _viewport from './viewport.js';
 export const viewport = _viewport;
 
+import * as _urls from './urls.js';
+export const urls = _urls;
+
 import * as _navigation from './navigation.js';
 export const navigation = _navigation;
 

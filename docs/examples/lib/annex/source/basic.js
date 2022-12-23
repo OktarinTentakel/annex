@@ -67,7 +67,7 @@ export function assert(condition, message){
  * Do not encapsulate complex code in the closure and mind recursively occurring exceptions!
  *
  * @param {Function} closure - the code to test
- * @throws error is closure is not a function
+ * @throws error if closure is not a function
  * @returns {Boolean} true if no exception occurred
  *
  * @memberof Basic:attempt
@@ -659,6 +659,51 @@ export function isSelector(value){
 	}
 
 	return true;
+}
+
+
+
+/**
+ * @namespace Basic:isPotentialId
+ */
+
+/**
+ * Determines if a given value is potentially a valid id for something, because it matches a format of given
+ * prefix, postfix and id regex. "Potential", because we can only assume by the format, we do not actually know
+ * if the id really matches anything like a database entry for example.
+ *
+ * @param {(String|Number)} value - the value to test, will be stringified
+ * @param {?String} [prefix=''] - a prefix for the id
+ * @param {?String} [idRex='[1-9][0-9]*'] - the regex string to use to identify the id part of the value
+ * @param {?String} [postfix=''] - a postfix for the id
+ * @param {?Boolean} [maskFixes=true] - usually, prefixes are not treated as regexes and are automatically masked, if you'd like to define complex pre- and postfixes using regexes, set this to false
+ * @returns {String|Boolean} if value is potential id according to format, the id is returned as a string (still usable as a truthy value), otherwise the return value is false
+ *
+ * @memberof Basic:isPotentialId
+ * @alias isPotentialId
+ * @example
+ * if( isPotentialId(id, 'test_(', '[0-9]+', ')') ){
+ *   createJsonRequest(`/backend/${id}`).then(() => { alert('done'); });
+ * }
+ */
+export function isPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix='', maskFixes=true){
+	value = `${value}`;
+	prefix = orDefault(prefix, '', 'str');
+	idRex = orDefault(idRex, '[1-9][0-9]*', 'str');
+	postfix = orDefault(postfix, '', 'str');
+	maskFixes = orDefault(maskFixes, true, 'bool');
+
+	const mask = str => `${str}`.replace(/([\-\[\]\/{}()*+?.\\^$|])/g, "\\$&");
+
+	let rex;
+	if( maskFixes ){
+		rex = new RegExp(`^${mask(prefix)}(${idRex})${mask(postfix)}$`);
+	} else {
+		rex = new RegExp(`^${prefix}(${idRex})${postfix}$`);
+	}
+
+	const matches = rex.exec(value);
+	return hasValue(matches) ? matches[1] : false;
 }
 
 

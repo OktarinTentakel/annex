@@ -3,19 +3,21 @@
 import fs from 'fs';
 import gulp from'gulp';
 import shell from 'gulp-shell';
+import yargs from 'yargs';
+
 import sourcemaps from 'gulp-sourcemaps';
 import terser from 'gulp-terser';
 import inject from 'gulp-inject-string';
 import connect from 'gulp-connect';
-import serveStatic from 'st';
-import yargs from 'yargs';
+
 import {deleteAsync as del} from 'del';
+import serveStatic from 'st';
 
 import * as rollup from 'rollup';
 import {babel as rollupBabel} from '@rollup/plugin-babel';
-import rollupNodeResolve from '@rollup/plugin-node-resolve';
 import rollupCommonJs from '@rollup/plugin-commonjs';
-import {terser as rollUpTerser} from 'rollup-plugin-terser';
+import rollupNodeResolve from '@rollup/plugin-node-resolve';
+import rollUpTerser from '@rollup/plugin-terser';
 import rollupIncludePaths from 'rollup-plugin-includepaths';
 
 
@@ -62,9 +64,24 @@ function buildJs(){
 
 
 function buildEs5Monolith(){
-	return rollup.rollup({
+	const rollupConfig = {
 		input : `${SOURCE_DIR}/_monolith.js`,
+		output : {
+			file : `${DIST_DIR}/es5-monolith.js`,
+			format : 'umd',
+			name : 'annex',
+			sourcemap : true,
+			banner : ''
+				+'/*!\n'
+				+` * ${PACKAGE_CONFIG.name} v${PACKAGE_CONFIG.version}\n`
+				+' */\n'
+		},
 		plugins : [
+			rollupIncludePaths({
+				paths : [SOURCE_DIR]
+			}),
+			rollupNodeResolve(),
+			rollupCommonJs(),
 			rollupBabel({
 				exclude : 'node_modules/**',
 				babelHelpers : 'bundled',
@@ -76,29 +93,15 @@ function buildEs5Monolith(){
 					}]
 				]
 			}),
-			rollupNodeResolve(),
-			rollupCommonJs(),
-			rollupIncludePaths({
-				paths : [SOURCE_DIR]
-			}),
 			rollUpTerser({
 				output : {
 					comments : /^\**!|@preserve|@license|@cc_on/i
 				}
 			})
 		]
-	}).then(bundle => {
-		return bundle.write({
-			file : `${DIST_DIR}/es5-monolith.js`,
-			format : 'umd',
-			name : 'annex',
-			sourcemap : true,
-			banner : ''
-				+'/*!\n'
-				+` * ${PACKAGE_CONFIG.name} v${PACKAGE_CONFIG.version}\n`
-				+' */\n'
-		});
-	});
+	};
+
+	return rollup.rollup(rollupConfig).then(bundle => bundle.write(rollupConfig.output));
 }
 
 

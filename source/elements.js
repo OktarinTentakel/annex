@@ -75,6 +75,7 @@ export function createNode(tag, attributes=null, content=null){
 	}
 
 	const node = outerNode.firstChild;
+	outerNode.removeChild(node);
 
 	if( hasValue(attributes) ){
 		for( let attribute in attributes ){
@@ -113,6 +114,7 @@ export function createNode(tag, attributes=null, content=null){
  * @param {HTMLElement} target - the element to which the node will be inserted in relation to
  * @param {HTMLElement|String} node - the node to insert, either as element or source string
  * @param {?String} [position='beforeend'] - the position to insert the node in relation to target, the default value appends the node as the last child in target
+ * @throws error if target is not a node
  * @returns {HTMLElement} the inserted DOM-node
  *
  * @memberof Elements:insertNode
@@ -122,11 +124,13 @@ export function createNode(tag, attributes=null, content=null){
  * insertNode(document.querySelector('.list-container'), '<li>Item 42</li>', 'prepend');
  */
 export function insertNode(target, node, position='beforeend'){
-	if( !isA(node, 'htmlelement') ){
-		node = createNode(`${element}`);
-	}
+	const __methodName__ = 'insertNode';
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.injectNode | given target is not an HTMLElement`);
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | given target is not an HTMLElement`);
+
+	if( !isA(node, 'htmlelement') ){
+		node = createNode(`${node}`);
+	}
 
 	switch( position ){
 		case 'beforebegin':
@@ -151,6 +155,48 @@ export function insertNode(target, node, position='beforeend'){
 	}
 
 	target.insertAdjacentElement(position, node);
+
+	return node;
+}
+
+
+
+/**
+ * @namespace Elements:replaceNode
+ */
+
+/**
+ * Replaces a node with another one.
+ *
+ * If the node is not an element, the parameter is treated as source and a node is created
+ * automatically based on that.
+ *
+ * The target node needs a parent node for this function to work.
+ *
+ * @param {HTMLElement} target - the element to replace
+ * @param {HTMLElement|String} node - the node to replace the target with
+ * @throws error if target is not a node or does not have a parent node
+ * @returns {HTMLElement} the replacement node
+ *
+ * @memberof Elements:replaceNode
+ * @alias replaceNode
+ * @example
+ * replaceNode(document.querySelector('.hint'), newHintElement);
+ * replaceNode(document.querySelector('.hint'), '<p class="hint">Sale tomorrow!</p>');
+ */
+export function replaceNode(target, node){
+	const __methodName__ = 'replaceNode';
+
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | given target is not an HTMLElement`);
+
+	if( !isA(node, 'htmlelement') ){
+		node = createNode(`${node}`);
+	}
+
+	assert(isA(target.parentNode, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | given target does not have a parent)`);
+
+	insertNode(target, node, 'after');
+	target.parentNode.removeChild(target);
 
 	return node;
 }

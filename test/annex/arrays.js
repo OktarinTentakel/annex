@@ -28,7 +28,7 @@ test('removeFrom', assert => {
 	assert.deepEqual(removeFrom(foo, 3), [1, 2, {a : 'b'}, 4]);
 	assert.deepEqual(removeFrom(foo, 3, -1), [1, 2, {a : 'b'}]);
 	assert.deepEqual(removeFrom(foo, oneTwoThree, true), [1, 2, {a : 'b'}, 4]);
-	assert.throws(function(){ removeFrom({a : 1}, -1); });
+	assert.throws(() => { removeFrom({a : 1}, -1); });
 	assert.deepEqual(removeFrom([{a : 'bar', toString(){ return this.a; }}, 'bar', bar, 1], 'bar'), [bar, 1]);
 	assert.deepEqual(removeFrom([{a : 'bar'}, 'bar', bar, 1], bar, true), [{a : 'bar'}, 'bar', 1]);
 	assert.deepEqual(removeFrom([true, true, false, true, true], true), [false]);

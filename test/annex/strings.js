@@ -48,7 +48,7 @@ test('truncate', assert => {
 	assert.is(truncate(bar), bar);
 	assert.is(truncate(bar, 6), 'abc...');
 	assert.is(truncate(bar, 3, '---'), '---');
-	assert.throws(function(){ truncate(bar, 1, '---'); });
+	assert.throws(() => { truncate(bar, 1, '---'); });
 	assert.is(truncate(foobar, 6, '.'), 'üäöÜÄ.');
 	assert.is(truncate(foobar, 7), foobar);
 });
@@ -115,12 +115,12 @@ test('format', assert => {
 	assert.is(
 		format(
 			'This is {4}: We need just {1.2:int} {foo} {3} kill {1.0} humans {2:float(0.0)} times over.',
-			{foo : 'ape'}, [function(){ return 3; }, 2, 1.1], 42.45, 'to', function(){ return true; }
+			{foo : 'ape'}, [() => 3, 2, 1.1], 42.45, 'to', () => true
 		),
 		'This is true: We need just 1 ape to kill 3 humans 42.5 times over.'
 	);
-	assert.throws(function(){ format('{0} {1} {2} {}', 1, 2, 3, 4); });
-	assert.throws(function(){ format('{} {1} {2} {3}', 1, 2, 3, 4); });
+	assert.throws(() => { format('{0} {1} {2} {}', 1, 2, 3, 4); });
+	assert.throws(() => { format('{} {1} {2} {3}', 1, 2, 3, 4); });
 	assert.is(
 		format(
 			'{names.first} {names.last} is {info.personal.age:int} years old and his/her favorite floating number is {info.favorites.float:float(0.00)}.',

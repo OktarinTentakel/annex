@@ -125,7 +125,7 @@ export function createFetchRequest(url, options=null, useNative=false){
 	return {
 		url,
 		options,
-		execute : !useNative || ((useNative === 'auto') && (!('fetch' in window) || !('AbortController' in window)))
+		execute : !useNative || ((useNative === 'auto') && !('fetch' in window))
 			? function(){
 				const
 					res = new Deferred(),
@@ -196,11 +196,6 @@ export function createFetchRequest(url, options=null, useNative=false){
 				return res;
 			}
 			: function(){
-				assert(
-					('fetch' in window) && ('AbortController' in window),
-					`${MODULE_NAME}:${__methodName__} | broken native implementation, either "fetch" or "AbortController" is missing, switch to polyfill`
-				);
-
 				const
 					res = new Deferred(),
 					timeout = options.timeout

@@ -62,7 +62,7 @@ try {
 
 /*
  * Takes the standard set of event function parameters, sanitizes the values and asserts basic compatability.
- * Returns the transformed parameters as a object, with keys of the same name as the relevant parameters.
+ * Returns the transformed parameters as an object, with keys of the same name as the relevant parameters.
  *
  * @private
  */

@@ -12,7 +12,13 @@ const MODULE_NAME = 'Elements';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, hasValue, assert} from './basic.js'
+import {orDefault, isA, isPlainObject, hasValue, assert, size} from './basic.js';
+
+
+
+//###[ DATA ]###########################################################################################################
+
+const NOT_AN_HTMLELEMENT_ERROR = 'given node/target is not an HTMLElement';
 
 
 
@@ -114,7 +120,7 @@ export function createNode(tag, attributes=null, content=null){
  * @param {HTMLElement} target - the element to which the node will be inserted in relation to
  * @param {HTMLElement|String} node - the node to insert, either as element or source string
  * @param {?String} [position='beforeend'] - the position to insert the node in relation to target, the default value appends the node as the last child in target
- * @throws error if target is not a node
+ * @throws error if target is not an HTMLElement
  * @returns {HTMLElement} the inserted DOM-node
  *
  * @memberof Elements:insertNode
@@ -126,7 +132,7 @@ export function createNode(tag, attributes=null, content=null){
 export function insertNode(target, node, position='beforeend'){
 	const __methodName__ = 'insertNode';
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | given target is not an HTMLElement`);
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	if( !isA(node, 'htmlelement') ){
 		node = createNode(`${node}`);
@@ -175,7 +181,7 @@ export function insertNode(target, node, position='beforeend'){
  *
  * @param {HTMLElement} target - the element to replace
  * @param {HTMLElement|String} node - the node to replace the target with
- * @throws error if target is not a node or does not have a parent node
+ * @throws error if target is not an HTMLElement or does not have a parent
  * @returns {HTMLElement} the replacement node
  *
  * @memberof Elements:replaceNode
@@ -187,7 +193,7 @@ export function insertNode(target, node, position='beforeend'){
 export function replaceNode(target, node){
 	const __methodName__ = 'replaceNode';
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | given target is not an HTMLElement`);
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	if( !isA(node, 'htmlelement') ){
 		node = createNode(`${node}`);
@@ -223,13 +229,15 @@ export function replaceNode(target, node){
  * someElement.textContent = getTextContent('<p onlick="destroyWorld();">red button <a>meow<span>woof</span></a></p>');
  */
 export function getTextContent(target, onlyFirstLevel=false){
+	const __methodName__ = 'getTextContent';
+
 	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
 
 	if( isA(target, 'string') ){
 		target = createNode(target);
 	}
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}:getTextContent | target is neither node nor markup`);
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | target is neither node nor markup`);
 
 	if( onlyFirstLevel ){
 		let textContent = '';
@@ -244,4 +252,281 @@ export function getTextContent(target, onlyFirstLevel=false){
 	} else {
 		return target.textContent;
 	}
+}
+
+
+
+/**
+ * @namespace Elements:isInDom
+ */
+
+/**
+ * Returns if an element is currently part of the DOM or in a detached state.
+ *
+ * @param {HTMLElement} node - the element to check, whether it is currently in the dom or detached
+ * @throws error if node is not a usable HTML element
+ * @returns {Boolean} true if the element is part of the DOM at the moment
+ *
+ * @memberof Elements:isInDom
+ * @alias isInDom
+ * @example
+ * if( !isInDom(el) ){
+ *     elementMetaInformation.delete(el);
+ * }
+ */
+export function isInDom(node){
+	const __methodName__ = 'isInDom';
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	return isA(document.contains, 'function') ? document.contains(node) : document.body.contains(node);
+}
+
+
+
+/**
+ * @namespace Elements:getData
+ */
+
+/**
+ * Returns the element's currently set data attribute value(s).
+ *
+ * This method has two major differences from the standard browser dataset-implementations:
+ * 1. Property names are _not_ handled camel-cased in any way.
+ *    The data attribute `data-my-naughty-dog` property does _not_ magically become `myNaughtyDog` on access,
+ *    but keeps the original notation, just losing the prefix, so access it, by using `my-naughty-dog`
+ * 2. All property values are treated as JSON first and foremost, falling back to string values, if the
+ *    value is not parsable. This means, that `{"foo" : "bar"}` becomes an object, `[1, 2, 3]` becomes an array,
+ *    `42` becomes a number, `true` becomes a boolean and `null` becomes a null-value. But `foobar` actually becomes
+ *    the string "foobar". JSON-style double quotes are removed, when handling a single string.
+ *
+ * Keep in mind that things like `new Date()` will not work out of the box, since this is not included in the JSON
+ * standard, but has to be serialized/deserialized.
+ *
+ * @param {HTMLElement} node - the element to read data from
+ * @param {?String|Array<String>} [properties=null] - if set, returns value(s) of that specific property/properties (single value for exactly one property, dictionary for multiple), if left out, all properties are returned as a dictionary object
+ * @throws error if node is not a usable HTML element
+ * @returns {*|Object|null} JSON-parsed attribute value(s) with string fallback; either a single value for exactly one property, a dictionary of values for multiple or a call without properties (meaning all) or null, in case no data was found
+ *
+ * @memberof Elements:getData
+ * @alias getData
+ * @see setData
+ * @see removeData
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
+ * @example
+ * getData(createNode('<div data-my-naughty-dog="42"></div>'), 'my-naughty-dog')
+ * => 42
+ * getData(createNode('<div data-my-naughty-dog='{"foo" : [1, "two", true]}'></div>'), 'my-naughty-dog')
+ * => {"foo" : [1, "two", true]}
+ * getData(createNode('<div data-my-naughty-dog='1, "two", true'></div>'), 'my-naughty-dog')
+ * => '1, "two", true'
+ * getData(createNode('<div data-my-naughty-dog="42" data-foo="true" data-bar="test"></div>'), ['foo', 'bar'])
+ * => {"foo" : true, "bar" : "test"}
+ * getData(createNode('<div data-my-naughty-dog="42" data-foo="true" data-bar="test"></div>'))
+ * => {"my-naughty-dog" : 42,"foo" : true, "bar" : "test"}
+ */
+export function getData(node, properties=null){
+	const __methodName__ = 'getData';
+
+	properties = orDefault(properties, null, 'arr');
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	let data = {};
+
+	if( hasValue(properties) ){
+		properties.forEach(property => {
+			let attributeValue = node.getAttribute(`data-${property}`);
+			if( hasValue(attributeValue) ){
+				try {
+					data[property] = JSON.parse(attributeValue);
+				} catch(ex){
+					data[property] = attributeValue;
+				}
+			}
+		});
+	} else {
+		Array.from(node.attributes).forEach(attribute => {
+			if( attribute.name.startsWith('data-') ){
+				const property = attribute.name.replace(/^data-/, '');
+				try {
+					data[property] = JSON.parse(attribute.value);
+				} catch(ex){
+					data[property] = attribute.value;
+				}
+			}
+		});
+	}
+
+	if( size(data) === 0 ){
+		data = null;
+	} else if( (properties?.length === 1) ){
+		data = data[properties[0]] ?? null;
+	}
+
+	return data;
+}
+
+
+
+/**
+ * @namespace Elements:setData
+ */
+
+/**
+ * Writes data to an element, by setting data-attributes.
+ *
+ * Setting a value of `undefined` or an empty string removes the attribute.
+ *
+ * This method has two major differences from the standard browser dataset-implementations:
+ * 1. Property names are _not_ handled camel-cased in any way.
+ *    The data attribute `my-naughty-dog` property is _not_ magically created from `myNaughtyDog`,
+ *    but the original notation will be kept, just adding the prefix, so set `data-my-naughty-dog`
+ *    by using `my-naughty-dog`
+ * 2. All property values are treated as JSON first and foremost, falling back to basic string values, if the
+ *    value is not stringifiable as JSON. If the top-level value ends up to be a simple JSON string like '"foo"'
+ *    or "'foo'", the double quotes are removed before writing the value.
+ *
+ * Keep in mind that things like `new Date()` will not work out of the box, since this is not included in the JSON
+ * standard, but has to be serialized/deserialized.
+ *
+ * @param {HTMLElement} node - the element to write data to
+ * @param {Object<String,*>|String} dataSet - the data to write to the element, properties have to be exact data-attribute names without the data-prefix, values are stringified (first with JSON.stringify and then as-is as a fallback), if value is a function it gets executed and the return value will be used from there on; if this is a string, this defines a single property to set, with the singleValue being the value to set
+ * @param {?*} [singleValue=null] - if you only want to set exactly one property, you may set dataSet to the property name as a string and provide the value via this parameter instead
+ * @throws error if node is not a usable HTML element or if dataSet is not a plain object if no single value has been given
+ * @returns {Object<String,*>|*|null} the value(s) actually written to the element's data-attributes as they would be returned by getData (removed attributes are marked with `undefined`); null will be returned if nothing was changed; if only a single value was set, only that value will be returned
+ *
+ * @memberof Elements:setData
+ * @alias setData
+ * @see getData
+ * @see removeData
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+ * @example
+ * setData(element, {foobar : 'hello kittens!'});
+ * => {foobar : 'hello kittens!'}
+ * setData(element, 'foobar', 'hello kittens!');
+ * => 'hello kittens!'
+ * setData(element, {foobar : {a : 'foo', b : [1, 2, 3], c : {d : true}}});
+ * => {foobar : {a : 'foo', b : [1, 2, 3], c : {d : true}}}
+ * setData(element, 'foobar', {a : 'foo', b : [1, 2, 3], c : {d : true}});
+ * => {a : 'foo', b : [1, 2, 3], c : {d : true}}
+ * setData(element, {foobar : () => { return 'hello kittens!'; }});
+ * => {foobar : 'hello kittens!'}
+ * setData(element, {foobar : undefined});
+ * => {foobar : undefined}
+ * setData(element, boofar, '');
+ * => undefined
+ */
+export function setData(node, dataSet, singleValue=null){
+	const __methodName__ = 'setData';
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	let singleKey = null;
+	if( hasValue(singleValue) ){
+		singleKey = `${dataSet}`;
+		dataSet = {
+			[singleKey] : singleValue
+		};
+	}
+
+	assert(isPlainObject(dataSet), `${MODULE_NAME}:${__methodName__} | dataSet is not a plain object`);
+
+	const appliedValues = {};
+
+	Object.entries(dataSet).forEach(([property, value]) => {
+		if( isA(value, 'function') ){
+			value = value();
+		}
+
+		if( value !== undefined ){
+			let stringifiedValue, getValue;
+			try {
+				stringifiedValue = JSON.stringify(value);
+				getValue = JSON.parse(stringifiedValue);
+			} catch(ex){
+				stringifiedValue = `${value}`;
+				getValue = stringifiedValue;
+			}
+			stringifiedValue = stringifiedValue.replace(/^['"]/, '').replace(/['"]$/, '').trim();
+
+			if( stringifiedValue !== '' ){
+				appliedValues[property] = getValue;
+				node.setAttribute(`data-${property}`, stringifiedValue);
+			} else if( node.hasAttribute(`data-${property}`) ){
+				appliedValues[property] = undefined;
+				node.removeAttribute(`data-${property}`);
+			}
+		} else if( node.hasAttribute(`data-${property}`) ){
+			appliedValues[property] = undefined;
+			node.removeAttribute(`data-${property}`);
+		}
+	});
+
+	if( hasValue(singleKey) ){
+		return (singleKey in appliedValues) ?  appliedValues[singleKey] : null;
+	} else {
+		return (size(appliedValues) > 0) ? appliedValues : null;
+	}
+}
+
+
+
+/**
+ * @namespace Elements:removeData
+ */
+
+/**
+ * Removes data from an element, by removing corresponding data-attributes.
+ *
+ * This method has a major difference from the standard browser dataset-implementations:
+ * Property names are _not_ handled camel-cased in any way.
+ * The data attribute's `my-naughty-dog` property is _not_ magically created from `myNaughtyDog`,
+ * but the original notation will be kept, just adding the prefix,
+ * so use `my-naughty-dog` to remove `data-my-naughty-dog`
+ *
+ * @param {HTMLElement} node - the element to remove data from
+ * @param {?String|Array<String>} [properties=null] - if set, removes specified property/properties, if left out, all data properties are removed
+ * @throws error if node is not a usable HTML element
+ * @returns {*|Object<String,*>|null} the removed data values as they would be returned from getData (single value for one property, dictionaries for multiple or all) or null if nothing was removed
+ *
+ * @memberof Elements:removeData
+ * @alias removeData
+ * @see getData
+ * @see setData
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+ * @example
+ * const testNode = createNode(`<span data-foobar="test" data-boofar="null" data-baz='{"a" : ["1", 2, 3.3], "b" : true}'></span>`)
+ * removeData(testNode, 'foobar')
+ * => 'test' (testNode.outerHTML === `<span data-boofar="null" data-baz='{"a" : ["1", 2, 3.3], "b" : true}'></span>`)
+ * removeData(testNode, ['foobar', 'baz', 'test'])
+ * => {foobar : 'test', baz : {"a" : ["1", 2, 3.3], "b" : true}} (testNode.outerHTML === `<span data-boofar="null"></span>`)
+ * removeData(testNode)
+ * => {foobar : 'test', boofar : null, baz : {"a" : ["1", 2, 3.3], "b" : true}} (testNode.outerHTML === `<span></span>`)
+ * removeData(testNode, 'test')
+ * => null
+ */
+export function removeData(node, properties=null){
+	const __methodName__ = 'removeData';
+
+	properties = orDefault(properties, null, 'arr');
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	let data = getData(node, properties);
+	if( hasValue(data) ){
+		if( properties?.length === 1 ){
+			setData(node, {[properties[0]] : undefined});
+		} else {
+			setData(node, Object.keys(data).reduce((removalDataSet, property) => {
+				removalDataSet[property] = undefined;
+				return removalDataSet;
+			}, {}));
+		}
+	} else {
+		data = null;
+	}
+
+	return data;
 }

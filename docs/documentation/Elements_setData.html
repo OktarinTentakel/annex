@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Polyfills</title>
+    <title>JSDoc: Namespace: Elements:setData</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Polyfills</h1>
+    <h1 class="page-title">Namespace: Elements:setData</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Polyfills</h2>
+        <h2>Elements:setData</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="polyfills.js.html">polyfills.js</a>, <a href="polyfills.js.html#line5">line 5</a>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line373">line 373</a>
     </li></ul></dd>
     
 
@@ -99,6 +99,319 @@
     
 
     
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="setData"><span class="type-signature"></span>setData<span class="signature">(node, dataSet, singleValue<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Object.&lt;String, *>|*|null}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Writes data to an element, by setting data-attributes.
+
+Setting a value of `undefined` or an empty string removes the attribute.
+
+This method has two major differences from the standard browser dataset-implementations:
+1. Property names are _not_ handled camel-cased in any way.
+   The data attribute `my-naughty-dog` property is _not_ magically created from `myNaughtyDog`,
+   but the original notation will be kept, just adding the prefix, so set `data-my-naughty-dog`
+   by using `my-naughty-dog`
+2. All property values are treated as JSON first and foremost, falling back to basic string values, if the
+   value is not stringifiable as JSON. If the top-level value ends up to be a simple JSON string like '"foo"'
+   or "'foo'", the double quotes are removed before writing the value.
+
+Keep in mind that things like `new Date()` will not work out of the box, since this is not included in the JSON
+standard, but has to be serialized/deserialized.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>node</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">the element to write data to</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dataSet</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object.&lt;String, *></span>
+|
+
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">the data to write to the element, properties have to be exact data-attribute names without the data-prefix, values are stringified (first with JSON.stringify and then as-is as a fallback), if value is a function it gets executed and the return value will be used from there on; if this is a string, this defines a single property to set, with the singleValue being the value to set</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>singleValue</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">if you only want to set exactly one property, you may set dataSet to the property name as a string and provide the value via this parameter instead</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line421">line 421</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Elements_getData.html">getData</a></li>
+        
+            <li><a href="Elements_removeData.html">removeData</a></li>
+        
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset">https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+    <div class="param-desc">
+    
+        error if node is not a usable HTML element or if dataSet is not a plain object if no single value has been given
+    
+    </div>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    the value(s) actually written to the element's data-attributes as they would be returned by getData (removed attributes are marked with `undefined`); null will be returned if nothing was changed; if only a single value was set, only that value will be returned
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object.&lt;String, *></span>
+|
+
+<span class="param-type">*</span>
+|
+
+<span class="param-type">null</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>setData(element, {foobar : 'hello kittens!'});
+=> {foobar : 'hello kittens!'}
+setData(element, 'foobar', 'hello kittens!');
+=> 'hello kittens!'
+setData(element, {foobar : {a : 'foo', b : [1, 2, 3], c : {d : true}}});
+=> {foobar : {a : 'foo', b : [1, 2, 3], c : {d : true}}}
+setData(element, 'foobar', {a : 'foo', b : [1, 2, 3], c : {d : true}});
+=> {a : 'foo', b : [1, 2, 3], c : {d : true}}
+setData(element, {foobar : () => { return 'hello kittens!'; }});
+=> {foobar : 'hello kittens!'}
+setData(element, {foobar : undefined});
+=> {foobar : undefined}
+setData(element, boofar, '');
+=> undefined</code></pre>
+
+
+
+        
+    
 
     
 
@@ -119,7 +432,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 03 2023 14:02:37 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 03 2023 14:02:36 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

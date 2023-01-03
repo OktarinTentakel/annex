@@ -17,7 +17,8 @@ const {
 	pause,
 	resume,
 	fire,
-	emit
+	emit,
+	offDetachedElements
 } = pkg;
 
 
@@ -38,11 +39,13 @@ test.beforeEach(() => {
 });
 
 test.afterEach(() => {
-	document.body.removeChild(foo);
+	try {
+		document.body.removeChild(foo);
+	} catch(ex){}
 
 	foo = null;
 	bar = null;
-	baz = null
+	baz = null;
 });
 
 
@@ -255,6 +258,9 @@ test.serial('pause', assert => {
 	assert.is(eventsFiredCount, 0);
 
 	assert.is(pause(baz, 'foobar'), 0);
+
+	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	assert.is(EVENT_MAP.size, 0);
 });
 
 
@@ -297,6 +303,9 @@ test.serial('resume', assert => {
 	assert.is(eventsFiredCount, 6);
 
 	assert.is(resume(baz, 'foobar'), 0);
+
+	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	assert.is(EVENT_MAP.size, 0);
 });
 
 
@@ -346,6 +355,9 @@ test.serial('fire', assert => {
 	assert.is(payloadsReceived, 3);
 
 	assert.is(fire(baz, 'foobar'), 0);
+
+	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	assert.is(EVENT_MAP.size, 0);
 });
 
 
@@ -372,7 +384,7 @@ test.serial('emit', assert => {
 			on([foo, 'a', foo, '.btn[data-foobar="test"]'], 'click.delegated', handler2);
 			on([bar, baz], 'click', handler2);
 			on(document.body, ['click', 'crash'], handler2);
-			on(foo, 'click.test', handler1)
+			on(foo, 'click.test', handler1);
 		}
 	;
 
@@ -397,4 +409,60 @@ test.serial('emit', assert => {
 	assert.throws(() => { emit(bar, '*.__default'); });
 
 	assert.is(emit(baz, 'foobar'), 1);
+
+	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	assert.is(EVENT_MAP.size, 0);
+});
+
+
+
+test.serial('offDetachedElements', assert => {
+	let eventsFiredCount = 0;
+	const
+		handler = () => {
+			eventsFiredCount++;
+		},
+		createScenario = () => {
+			on(foo, 'Crash.test.dümmy', handler);
+			on(foo, ['CRASH.test', 'crAsh.site', 'crash.dÚmmy'], handler);
+			on([foo, 'a', foo, '.btn[data-foobar="test"]'], 'click.delegated', handler);
+			on([bar, baz], 'click', handler);
+			on(document.body, ['click', 'crash'], handler);
+			on(foo, 'click.test', handler);
+		}
+	;
+
+	createScenario();
+	assert.is(offDetachedElements(), 0);
+	foo.removeChild(baz);
+	assert.is(offDetachedElements([foo, bar, baz]), 1);
+	document.body.removeChild(foo);
+	assert.is(offDetachedElements(bar), 1);
+	bar.dispatchEvent(new CustomEvent('click'));
+	foo.dispatchEvent(new CustomEvent('click'));
+	assert.is(eventsFiredCount, 1);
+	document.body.appendChild(foo);
+	foo.dispatchEvent(new CustomEvent('click'));
+	assert.is(eventsFiredCount, 2);
+	assert.is(offDetachedElements(foo), 0);
+	foo.dispatchEvent(new CustomEvent('click'));
+	assert.is(eventsFiredCount, 3);
+	document.body.removeChild(foo);
+	assert.is(offDetachedElements(), 1);
+	foo.dispatchEvent(new CustomEvent('click'));
+	baz.dispatchEvent(new CustomEvent('click'));
+	assert.is(eventsFiredCount, 3);
+
+	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	assert.is(EVENT_MAP.size, 0);
+
+	foo.appendChild(bar);
+	foo.appendChild(baz);
+	document.body.appendChild(foo);
+	createScenario();
+	document.body.removeChild(foo);
+	assert.is(offDetachedElements(), 3);
+
+	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	assert.is(EVENT_MAP.size, 0);
 });

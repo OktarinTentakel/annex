@@ -13,7 +13,11 @@ const {
 	createNode,
 	insertNode,
 	replaceNode,
-	getTextContent
+	getTextContent,
+	isInDom,
+	getData,
+	setData,
+	removeData
 } = pkg;
 
 
@@ -114,4 +118,122 @@ test('getTextContent', assert => {
 	assert.is(getTextContent(source), 'red button meowwoof');
 	assert.is(getTextContent(createNode(source)), 'red button meowwoof');
 	assert.is(getTextContent(createNode(source), true), 'red button ');
+});
+
+
+
+test('isInDom', assert => {
+	const
+		outer = createNode('article'),
+		inner = createNode('section'),
+		innerMost = createNode('p')
+	;
+	inner.appendChild(innerMost);
+	outer.appendChild(inner);
+
+	assert.false(isInDom(outer));
+	assert.false(isInDom(inner));
+	assert.false(isInDom(innerMost));
+
+	document.body.appendChild(outer);
+
+	assert.true(isInDom(outer));
+	assert.true(isInDom(inner));
+	assert.true(isInDom(innerMost));
+
+	outer.removeChild(inner);
+
+	assert.true(isInDom(outer));
+	assert.false(isInDom(inner));
+	assert.false(isInDom(innerMost));
+
+	assert.throws(() => { isInDom('not an element'); });
+});
+
+
+
+test('getData', assert => {
+	const
+		eFoo = createNode(`<div data-foobar='[{"a" : "abc", "b" : true}, {"c" : {"d" : [1, 2, 3]}}, {"e" : 42.42}]'></div>`),
+		eBar = createNode(`<span data-foobar='{a : new Date()}'></span>`),
+		eBaz = createNode(`<span data-foobar="test" data-boofar="null" data-baz='{"a" : ["1", 2, 3.3], "b" : true}'></span>`)
+	;
+
+	assert.deepEqual(getData(eFoo, 'foobar'), [{a : 'abc', b : true}, {c : {d : [1, 2, 3]}}, {e : 42.42}]);
+	assert.deepEqual(getData(eBar, ['foobar', 'boofar']), {foobar : '{a : new Date()}'});
+	assert.is(getData(eFoo, 'boofar'), null);
+	assert.is(getData(eFoo, ['boofar', 'booboo']), null);
+	assert.deepEqual(getData(eBaz, ['foobar', 'boofar', 'baz']), {foobar : 'test', boofar : null, baz : {a : ['1', 2, 3.3], b : true}});
+	assert.deepEqual(getData(eBaz, 'baz'), {a : ['1', 2, 3.3], b : true});
+	assert.deepEqual(getData(eBaz), {foobar : 'test', boofar : null, baz : {"a" : ["1", 2, 3.3], "b" : true}});
+});
+
+
+
+test('setData', assert => {
+	const
+		eFoo = createNode(`<div data-foobar='[{"a" : "abc", "b" : true}, {"c" : {"d" : [1, 2, 3]}}, {"e" : 42.42}]'></div>`),
+		eBar = createNode(`<span data-boofar='{a : new Date()}'></span>`),
+		timeStamp = new Date()
+	;
+
+	assert.deepEqual(setData(eFoo, {foobar : () => { return 'hello kittens!'; }}), {foobar : 'hello kittens!'});
+	assert.is(getData(eFoo, 'foobar'), 'hello kittens!');
+	assert.is(eFoo.getAttribute('data-foobar'), 'hello kittens!');
+	assert.deepEqual(setData(eFoo, {foobar : undefined}), {'foobar' : undefined});
+	assert.is(setData(eFoo, {baz : undefined}), null);
+	assert.is(getData(eFoo, 'foobar'), null);
+	assert.is(eFoo.getAttribute('data-foobar'), null);
+	assert.is(setData(eFoo, {foobar : undefined}), null);
+	assert.deepEqual(setData(eFoo, {'foobar' : 'hello kittens!'}), {foobar : 'hello kittens!'});
+	assert.deepEqual(setData(eFoo, 'foobar', 'hello kittens!'), 'hello kittens!');
+	assert.is(getData(eFoo, 'foobar'), 'hello kittens!');
+	assert.is(eFoo.getAttribute('data-foobar'), 'hello kittens!');
+
+	assert.deepEqual(setData(eFoo, 'foobar', {a : 'foo', b : [1, 2, 3], c : {d : true}}), {a : 'foo', b : [1, 2, 3], c : {d : true}});
+	assert.deepEqual(setData(eFoo, {'foobar' : {a : 'foo', b : [1, 2, 3], c : {d : true}}}), {'foobar' : {a : 'foo', b : [1, 2, 3], c : {d : true}}});
+	assert.deepEqual(getData(eFoo, 'foobar'), {a : 'foo', b : [1, 2, 3], c : {d : true}});
+	assert.is(eFoo.getAttribute('data-foobar'), '{\"a\":\"foo\",\"b\":[1,2,3],\"c\":{\"d\":true}}');
+	assert.is(setData(eFoo, 'foobar', ''), undefined);
+	assert.deepEqual(setData(eFoo, {}), null);
+	assert.is(eFoo.getAttribute('data-foobar'), null);
+
+	assert.deepEqual(setData(eBar, {boofar : '', baz : 42}), {boofar : undefined, baz : 42});
+	assert.is(getData(eBar, 'boofar'), null);
+	assert.deepEqual(setData(eBar, {'boofar' : [timeStamp, 1, true]}), {'boofar' : [timeStamp.toISOString(), 1, true]});
+	assert.deepEqual(getData(eBar, 'boofar'), [timeStamp.toISOString(), 1, true]);
+	assert.is(eBar.getAttribute('data-boofar'), `["${timeStamp.toISOString()}",1,true]`);
+
+	assert.is(getData(eBar, 'abcd'), null);
+});
+
+
+
+test('removeData', assert => {
+	const
+		eFoo = createNode(`<div data-foobar='[{"a" : "abc", "b" : true}, {"c" : {"d" : [1, 2, 3]}}, {"e" : 42.42}]'></div>`),
+		eBar = createNode(`<span data-boofar='{a : new Date()}'></span>`),
+		eBaz = createNode(`<span data-foobar="test" data-boofar="null" data-baz='{"a" : ["1", 2, 3.3], "b" : true}'></span>`)
+	;
+
+	assert.deepEqual(removeData(eFoo), {foobar : [{"a" : "abc", "b" : true}, {"c" : {"d" : [1, 2, 3]}}, {"e" : 42.42}]});
+	assert.is(removeData(eFoo, 'test'), null);
+
+	assert.is(removeData(eBar, 'boofar'), '{a : new Date()}');
+	assert.is(removeData(eBar, 'boofar'), null);
+	assert.is(eBar.dataset.boofar, undefined);
+	assert.deepEqual(Object.keys(eBar.dataset), []);
+	assert.is(eBar.outerHTML, '<span></span>');
+
+	assert.deepEqual(removeData(eBaz, ['baz', 'boofar', 'batman']), {boofar : null, baz : {"a" : ["1", 2, 3.3], "b" : true}});
+	assert.is(eBaz.dataset.baz, undefined);
+	assert.is(eBaz.dataset.foobar, 'test');
+	assert.deepEqual(Object.keys(eBaz.dataset), ['foobar']);
+	assert.is(eBaz.outerHTML, '<span data-foobar="test"></span>');
+	assert.deepEqual(removeData(eBaz), {foobar : 'test'});
+	assert.is(removeData(eBar, 'foobar'), null);
+	assert.is(eBar.dataset.foobar, undefined);
+	assert.deepEqual(Object.keys(eBar.dataset), []);
+	assert.is(eBar.outerHTML, '<span></span>');
+	assert.is(removeData(eBaz), null);
 });

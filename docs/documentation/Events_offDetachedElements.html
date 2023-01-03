@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Polyfills</title>
+    <title>JSDoc: Namespace: Events:offDetachedElements</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Polyfills</h1>
+    <h1 class="page-title">Namespace: Events:offDetachedElements</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Polyfills</h2>
+        <h2>Events:offDetachedElements</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="polyfills.js.html">polyfills.js</a>, <a href="polyfills.js.html#line5">line 5</a>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line1187">line 1187</a>
     </li></ul></dd>
     
 
@@ -99,6 +99,220 @@
     
 
     
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="offDetachedElements"><span class="type-signature"></span>offDetachedElements<span class="signature">(targets<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Number}</span></h4>
+
+    
+
+
+
+<div class="description">
+    This method completely removes all handlers and listeners for provided targets in case that they
+are actually an element and not part of the DOM (anymore).
+
+The most common use-case for this is to clean the event map after dynamically removing an element from the interface
+during runtime, maybe as a reaction to a user interaction.
+
+Since we are overlaying the DOM event system with a separate (non-weak) event map, handlers in the map do not
+automatically disappear if the event targets, being elements, are removed from the DOM. In that case, we have to
+actually unregister events again, for which this is a handy little helper method.
+
+There are two common ways to use this:
+1. Just call it with the removed element, after removal of the element. This will only remove all data for that
+   element, if it actually is an element and is not currently in the DOM.
+2. Call it without parameters, to iterate all current targets, check if they are elements and currently not in the
+   DOM and remove all handlers and listeners in that case.
+
+So, you can either directly clean-up anything you remove or remove everything, that needs removing and do a general
+clean-up after everything has been done.
+
+Be aware, that the definition of what an element is and if that element is part of the dom is defined by the actual
+event target. So delegations are not automatically covered by this, since they rely on the ancestor element for
+event handling.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>targets</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">EventTarget</span>
+|
+
+<span class="param-type">Array.&lt;EventTarget></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">the target(s) to remove from the event map, if not set, all event targets in the current event map are used</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line1232">line 1232</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    the number of targets for which registered handlers and listeners have been removed
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>button.remove();
+offDetachedElements(button);
+=> 1
+link.innerText = 'test';
+button.remove();
+offDetachedElements([link, button]);
+=> 1
+offDetachedElements()
+=> number of all currently registered targets, being elements and not in the dom</code></pre>
+
+
+
+        
+    
 
     
 
@@ -119,7 +333,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 03 2023 14:02:37 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 03 2023 14:02:36 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

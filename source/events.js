@@ -15,6 +15,7 @@ const MODULE_NAME = 'Events';
 import {assert, isA, isEventTarget, isPlainObject, orDefault, hasValue, isEmpty, isSelector} from './basic.js';
 import {slugify} from './strings.js';
 import {removeFrom} from './arrays.js';
+import {isInDom} from './elements.js';
 
 
 
@@ -1179,4 +1180,70 @@ export function emit(targets, events, payload=null, EventConstructor=null, event
 	});
 
 	return emitCount;
+}
+
+
+
+/**
+ * @namespace Events:offDetachedElements
+ */
+
+/**
+ * This method completely removes all handlers and listeners for provided targets in case that they
+ * are actually an element and not part of the DOM (anymore).
+ *
+ * The most common use-case for this is to clean the event map after dynamically removing an element from the interface
+ * during runtime, maybe as a reaction to a user interaction.
+ *
+ * Since we are overlaying the DOM event system with a separate (non-weak) event map, handlers in the map do not
+ * automatically disappear if the event targets, being elements, are removed from the DOM. In that case, we have to
+ * actually unregister events again, for which this is a handy little helper method.
+ *
+ * There are two common ways to use this:
+ * 1. Just call it with the removed element, after removal of the element. This will only remove all data for that
+ *    element, if it actually is an element and is not currently in the DOM.
+ * 2. Call it without parameters, to iterate all current targets, check if they are elements and currently not in the
+ *    DOM and remove all handlers and listeners in that case.
+ *
+ * So, you can either directly clean-up anything you remove or remove everything, that needs removing and do a general
+ * clean-up after everything has been done.
+ *
+ * Be aware, that the definition of what an element is and if that element is part of the dom is defined by the actual
+ * event target. So delegations are not automatically covered by this, since they rely on the ancestor element for
+ * event handling.
+ *
+ * @param {?EventTarget|Array<EventTarget>} [targets=null] - the target(s) to remove from the event map, if not set, all event targets in the current event map are used
+ * @returns {Number} the number of targets for which registered handlers and listeners have been removed
+ *
+ * @memberof Events:offDetachedElements
+ * @alias offDetachedElements
+ * @example
+ * button.remove();
+ * offDetachedElements(button);
+ * => 1
+ * link.innerText = 'test';
+ * button.remove();
+ * offDetachedElements([link, button]);
+ * => 1
+ * offDetachedElements()
+ * => number of all currently registered targets, being elements and not in the dom
+ */
+
+export function offDetachedElements(targets){
+	targets = orDefault(targets, [], 'arr');
+
+	if( targets.length === 0 ){
+		targets = Array.from(EVENT_MAP.keys());
+	}
+
+	let offCount = 0;
+
+	targets.forEach(target => {
+		if( isA(target, 'htmlelement') && !isInDom(target) && EVENT_MAP.has(target) ){
+			offCount++;
+			off(target, '*');
+		}
+	});
+
+	return offCount;
 }

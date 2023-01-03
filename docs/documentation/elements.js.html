@@ -40,7 +40,13 @@ const MODULE_NAME = 'Elements';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, hasValue, assert} from './basic.js'
+import {orDefault, isA, isPlainObject, hasValue, assert, size} from './basic.js';
+
+
+
+//###[ DATA ]###########################################################################################################
+
+const NOT_AN_HTMLELEMENT_ERROR = 'given node/target is not an HTMLElement';
 
 
 
@@ -142,7 +148,7 @@ export function createNode(tag, attributes=null, content=null){
  * @param {HTMLElement} target - the element to which the node will be inserted in relation to
  * @param {HTMLElement|String} node - the node to insert, either as element or source string
  * @param {?String} [position='beforeend'] - the position to insert the node in relation to target, the default value appends the node as the last child in target
- * @throws error if target is not a node
+ * @throws error if target is not an HTMLElement
  * @returns {HTMLElement} the inserted DOM-node
  *
  * @memberof Elements:insertNode
@@ -154,7 +160,7 @@ export function createNode(tag, attributes=null, content=null){
 export function insertNode(target, node, position='beforeend'){
 	const __methodName__ = 'insertNode';
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | given target is not an HTMLElement`);
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	if( !isA(node, 'htmlelement') ){
 		node = createNode(`${node}`);
@@ -203,7 +209,7 @@ export function insertNode(target, node, position='beforeend'){
  *
  * @param {HTMLElement} target - the element to replace
  * @param {HTMLElement|String} node - the node to replace the target with
- * @throws error if target is not a node or does not have a parent node
+ * @throws error if target is not an HTMLElement or does not have a parent
  * @returns {HTMLElement} the replacement node
  *
  * @memberof Elements:replaceNode
@@ -215,7 +221,7 @@ export function insertNode(target, node, position='beforeend'){
 export function replaceNode(target, node){
 	const __methodName__ = 'replaceNode';
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | given target is not an HTMLElement`);
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	if( !isA(node, 'htmlelement') ){
 		node = createNode(`${node}`);
@@ -251,13 +257,15 @@ export function replaceNode(target, node){
  * someElement.textContent = getTextContent('&lt;p onlick="destroyWorld();">red button &lt;a>meow&lt;span>woof&lt;/span>&lt;/a>&lt;/p>');
  */
 export function getTextContent(target, onlyFirstLevel=false){
+	const __methodName__ = 'getTextContent';
+
 	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
 
 	if( isA(target, 'string') ){
 		target = createNode(target);
 	}
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}:getTextContent | target is neither node nor markup`);
+	assert(isA(target, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | target is neither node nor markup`);
 
 	if( onlyFirstLevel ){
 		let textContent = '';
@@ -273,6 +281,283 @@ export function getTextContent(target, onlyFirstLevel=false){
 		return target.textContent;
 	}
 }
+
+
+
+/**
+ * @namespace Elements:isInDom
+ */
+
+/**
+ * Returns if an element is currently part of the DOM or in a detached state.
+ *
+ * @param {HTMLElement} node - the element to check, whether it is currently in the dom or detached
+ * @throws error if node is not a usable HTML element
+ * @returns {Boolean} true if the element is part of the DOM at the moment
+ *
+ * @memberof Elements:isInDom
+ * @alias isInDom
+ * @example
+ * if( !isInDom(el) ){
+ *     elementMetaInformation.delete(el);
+ * }
+ */
+export function isInDom(node){
+	const __methodName__ = 'isInDom';
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	return isA(document.contains, 'function') ? document.contains(node) : document.body.contains(node);
+}
+
+
+
+/**
+ * @namespace Elements:getData
+ */
+
+/**
+ * Returns the element's currently set data attribute value(s).
+ *
+ * This method has two major differences from the standard browser dataset-implementations:
+ * 1. Property names are _not_ handled camel-cased in any way.
+ *    The data attribute `data-my-naughty-dog` property does _not_ magically become `myNaughtyDog` on access,
+ *    but keeps the original notation, just losing the prefix, so access it, by using `my-naughty-dog`
+ * 2. All property values are treated as JSON first and foremost, falling back to string values, if the
+ *    value is not parsable. This means, that `{"foo" : "bar"}` becomes an object, `[1, 2, 3]` becomes an array,
+ *    `42` becomes a number, `true` becomes a boolean and `null` becomes a null-value. But `foobar` actually becomes
+ *    the string "foobar". JSON-style double quotes are removed, when handling a single string.
+ *
+ * Keep in mind that things like `new Date()` will not work out of the box, since this is not included in the JSON
+ * standard, but has to be serialized/deserialized.
+ *
+ * @param {HTMLElement} node - the element to read data from
+ * @param {?String|Array&lt;String>} [properties=null] - if set, returns value(s) of that specific property/properties (single value for exactly one property, dictionary for multiple), if left out, all properties are returned as a dictionary object
+ * @throws error if node is not a usable HTML element
+ * @returns {*|Object|null} JSON-parsed attribute value(s) with string fallback; either a single value for exactly one property, a dictionary of values for multiple or a call without properties (meaning all) or null, in case no data was found
+ *
+ * @memberof Elements:getData
+ * @alias getData
+ * @see setData
+ * @see removeData
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
+ * @example
+ * getData(createNode('&lt;div data-my-naughty-dog="42">&lt;/div>'), 'my-naughty-dog')
+ * => 42
+ * getData(createNode('&lt;div data-my-naughty-dog='{"foo" : [1, "two", true]}'>&lt;/div>'), 'my-naughty-dog')
+ * => {"foo" : [1, "two", true]}
+ * getData(createNode('&lt;div data-my-naughty-dog='1, "two", true'>&lt;/div>'), 'my-naughty-dog')
+ * => '1, "two", true'
+ * getData(createNode('&lt;div data-my-naughty-dog="42" data-foo="true" data-bar="test">&lt;/div>'), ['foo', 'bar'])
+ * => {"foo" : true, "bar" : "test"}
+ * getData(createNode('&lt;div data-my-naughty-dog="42" data-foo="true" data-bar="test">&lt;/div>'))
+ * => {"my-naughty-dog" : 42,"foo" : true, "bar" : "test"}
+ */
+export function getData(node, properties=null){
+	const __methodName__ = 'getData';
+
+	properties = orDefault(properties, null, 'arr');
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	let data = {};
+
+	if( hasValue(properties) ){
+		properties.forEach(property => {
+			let attributeValue = node.getAttribute(`data-${property}`);
+			if( hasValue(attributeValue) ){
+				try {
+					data[property] = JSON.parse(attributeValue);
+				} catch(ex){
+					data[property] = attributeValue;
+				}
+			}
+		});
+	} else {
+		Array.from(node.attributes).forEach(attribute => {
+			if( attribute.name.startsWith('data-') ){
+				const property = attribute.name.replace(/^data-/, '');
+				try {
+					data[property] = JSON.parse(attribute.value);
+				} catch(ex){
+					data[property] = attribute.value;
+				}
+			}
+		});
+	}
+
+	if( size(data) === 0 ){
+		data = null;
+	} else if( (properties?.length === 1) ){
+		data = data[properties[0]] ?? null;
+	}
+
+	return data;
+}
+
+
+
+/**
+ * @namespace Elements:setData
+ */
+
+/**
+ * Writes data to an element, by setting data-attributes.
+ *
+ * Setting a value of `undefined` or an empty string removes the attribute.
+ *
+ * This method has two major differences from the standard browser dataset-implementations:
+ * 1. Property names are _not_ handled camel-cased in any way.
+ *    The data attribute `my-naughty-dog` property is _not_ magically created from `myNaughtyDog`,
+ *    but the original notation will be kept, just adding the prefix, so set `data-my-naughty-dog`
+ *    by using `my-naughty-dog`
+ * 2. All property values are treated as JSON first and foremost, falling back to basic string values, if the
+ *    value is not stringifiable as JSON. If the top-level value ends up to be a simple JSON string like '"foo"'
+ *    or "'foo'", the double quotes are removed before writing the value.
+ *
+ * Keep in mind that things like `new Date()` will not work out of the box, since this is not included in the JSON
+ * standard, but has to be serialized/deserialized.
+ *
+ * @param {HTMLElement} node - the element to write data to
+ * @param {Object&lt;String,*>|String} dataSet - the data to write to the element, properties have to be exact data-attribute names without the data-prefix, values are stringified (first with JSON.stringify and then as-is as a fallback), if value is a function it gets executed and the return value will be used from there on; if this is a string, this defines a single property to set, with the singleValue being the value to set
+ * @param {?*} [singleValue=null] - if you only want to set exactly one property, you may set dataSet to the property name as a string and provide the value via this parameter instead
+ * @throws error if node is not a usable HTML element or if dataSet is not a plain object if no single value has been given
+ * @returns {Object&lt;String,*>|*|null} the value(s) actually written to the element's data-attributes as they would be returned by getData (removed attributes are marked with `undefined`); null will be returned if nothing was changed; if only a single value was set, only that value will be returned
+ *
+ * @memberof Elements:setData
+ * @alias setData
+ * @see getData
+ * @see removeData
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+ * @example
+ * setData(element, {foobar : 'hello kittens!'});
+ * => {foobar : 'hello kittens!'}
+ * setData(element, 'foobar', 'hello kittens!');
+ * => 'hello kittens!'
+ * setData(element, {foobar : {a : 'foo', b : [1, 2, 3], c : {d : true}}});
+ * => {foobar : {a : 'foo', b : [1, 2, 3], c : {d : true}}}
+ * setData(element, 'foobar', {a : 'foo', b : [1, 2, 3], c : {d : true}});
+ * => {a : 'foo', b : [1, 2, 3], c : {d : true}}
+ * setData(element, {foobar : () => { return 'hello kittens!'; }});
+ * => {foobar : 'hello kittens!'}
+ * setData(element, {foobar : undefined});
+ * => {foobar : undefined}
+ * setData(element, boofar, '');
+ * => undefined
+ */
+export function setData(node, dataSet, singleValue=null){
+	const __methodName__ = 'setData';
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	let singleKey = null;
+	if( hasValue(singleValue) ){
+		singleKey = `${dataSet}`;
+		dataSet = {
+			[singleKey] : singleValue
+		};
+	}
+
+	assert(isPlainObject(dataSet), `${MODULE_NAME}:${__methodName__} | dataSet is not a plain object`);
+
+	const appliedValues = {};
+
+	Object.entries(dataSet).forEach(([property, value]) => {
+		if( isA(value, 'function') ){
+			value = value();
+		}
+
+		if( value !== undefined ){
+			let stringifiedValue, getValue;
+			try {
+				stringifiedValue = JSON.stringify(value);
+				getValue = JSON.parse(stringifiedValue);
+			} catch(ex){
+				stringifiedValue = `${value}`;
+				getValue = stringifiedValue;
+			}
+			stringifiedValue = stringifiedValue.replace(/^['"]/, '').replace(/['"]$/, '').trim();
+
+			if( stringifiedValue !== '' ){
+				appliedValues[property] = getValue;
+				node.setAttribute(`data-${property}`, stringifiedValue);
+			} else if( node.hasAttribute(`data-${property}`) ){
+				appliedValues[property] = undefined;
+				node.removeAttribute(`data-${property}`);
+			}
+		} else if( node.hasAttribute(`data-${property}`) ){
+			appliedValues[property] = undefined;
+			node.removeAttribute(`data-${property}`);
+		}
+	});
+
+	if( hasValue(singleKey) ){
+		return (singleKey in appliedValues) ?  appliedValues[singleKey] : null;
+	} else {
+		return (size(appliedValues) > 0) ? appliedValues : null;
+	}
+}
+
+
+
+/**
+ * @namespace Elements:removeData
+ */
+
+/**
+ * Removes data from an element, by removing corresponding data-attributes.
+ *
+ * This method has a major difference from the standard browser dataset-implementations:
+ * Property names are _not_ handled camel-cased in any way.
+ * The data attribute's `my-naughty-dog` property is _not_ magically created from `myNaughtyDog`,
+ * but the original notation will be kept, just adding the prefix,
+ * so use `my-naughty-dog` to remove `data-my-naughty-dog`
+ *
+ * @param {HTMLElement} node - the element to remove data from
+ * @param {?String|Array&lt;String>} [properties=null] - if set, removes specified property/properties, if left out, all data properties are removed
+ * @throws error if node is not a usable HTML element
+ * @returns {*|Object&lt;String,*>|null} the removed data values as they would be returned from getData (single value for one property, dictionaries for multiple or all) or null if nothing was removed
+ *
+ * @memberof Elements:removeData
+ * @alias removeData
+ * @see getData
+ * @see setData
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+ * @example
+ * const testNode = createNode(`&lt;span data-foobar="test" data-boofar="null" data-baz='{"a" : ["1", 2, 3.3], "b" : true}'>&lt;/span>`)
+ * removeData(testNode, 'foobar')
+ * => 'test' (testNode.outerHTML === `&lt;span data-boofar="null" data-baz='{"a" : ["1", 2, 3.3], "b" : true}'>&lt;/span>`)
+ * removeData(testNode, ['foobar', 'baz', 'test'])
+ * => {foobar : 'test', baz : {"a" : ["1", 2, 3.3], "b" : true}} (testNode.outerHTML === `&lt;span data-boofar="null">&lt;/span>`)
+ * removeData(testNode)
+ * => {foobar : 'test', boofar : null, baz : {"a" : ["1", 2, 3.3], "b" : true}} (testNode.outerHTML === `&lt;span>&lt;/span>`)
+ * removeData(testNode, 'test')
+ * => null
+ */
+export function removeData(node, properties=null){
+	const __methodName__ = 'removeData';
+
+	properties = orDefault(properties, null, 'arr');
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	let data = getData(node, properties);
+	if( hasValue(data) ){
+		if( properties?.length === 1 ){
+			setData(node, {[properties[0]] : undefined});
+		} else {
+			setData(node, Object.keys(data).reduce((removalDataSet, property) => {
+				removalDataSet[property] = undefined;
+				return removalDataSet;
+			}, {}));
+		}
+	} else {
+		data = null;
+	}
+
+	return data;
+}
 </code></pre>
         </article>
     </section>
@@ -283,13 +568,13 @@ export function getTextContent(target, onlyFirstLevel=false){
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Dec 23 2022 18:41:19 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 03 2023 14:02:36 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

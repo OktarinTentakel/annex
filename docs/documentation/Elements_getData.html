@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Polyfills</title>
+    <title>JSDoc: Namespace: Elements:getData</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Polyfills</h1>
+    <h1 class="page-title">Namespace: Elements:getData</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Polyfills</h2>
+        <h2>Elements:getData</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="polyfills.js.html">polyfills.js</a>, <a href="polyfills.js.html#line5">line 5</a>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line287">line 287</a>
     </li></ul></dd>
     
 
@@ -99,6 +99,278 @@
     
 
     
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="getData"><span class="type-signature"></span>getData<span class="signature">(node, properties<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {*|Object|null}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Returns the element's currently set data attribute value(s).
+
+This method has two major differences from the standard browser dataset-implementations:
+1. Property names are _not_ handled camel-cased in any way.
+   The data attribute `data-my-naughty-dog` property does _not_ magically become `myNaughtyDog` on access,
+   but keeps the original notation, just losing the prefix, so access it, by using `my-naughty-dog`
+2. All property values are treated as JSON first and foremost, falling back to string values, if the
+   value is not parsable. This means, that `{"foo" : "bar"}` becomes an object, `[1, 2, 3]` becomes an array,
+   `42` becomes a number, `true` becomes a boolean and `null` becomes a null-value. But `foobar` actually becomes
+   the string "foobar". JSON-style double quotes are removed, when handling a single string.
+
+Keep in mind that things like `new Date()` will not work out of the box, since this is not included in the JSON
+standard, but has to be serialized/deserialized.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>node</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">the element to read data from</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>properties</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+|
+
+<span class="param-type">Array.&lt;String></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">if set, returns value(s) of that specific property/properties (single value for exactly one property, dictionary for multiple), if left out, all properties are returned as a dictionary object</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line329">line 329</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Elements_setData.html">setData</a></li>
+        
+            <li><a href="Elements_removeData.html">removeData</a></li>
+        
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset">https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset</a></li>
+        
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+    <div class="param-desc">
+    
+        error if node is not a usable HTML element
+    
+    </div>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    JSON-parsed attribute value(s) with string fallback; either a single value for exactly one property, a dictionary of values for multiple or a call without properties (meaning all) or null, in case no data was found
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">*</span>
+|
+
+<span class="param-type">Object</span>
+|
+
+<span class="param-type">null</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>getData(createNode('&lt;div data-my-naughty-dog="42">&lt;/div>'), 'my-naughty-dog')
+=> 42
+getData(createNode('&lt;div data-my-naughty-dog='{"foo" : [1, "two", true]}'>&lt;/div>'), 'my-naughty-dog')
+=> {"foo" : [1, "two", true]}
+getData(createNode('&lt;div data-my-naughty-dog='1, "two", true'>&lt;/div>'), 'my-naughty-dog')
+=> '1, "two", true'
+getData(createNode('&lt;div data-my-naughty-dog="42" data-foo="true" data-bar="test">&lt;/div>'), ['foo', 'bar'])
+=> {"foo" : true, "bar" : "test"}
+getData(createNode('&lt;div data-my-naughty-dog="42" data-foo="true" data-bar="test">&lt;/div>'))
+=> {"my-naughty-dog" : 42,"foo" : true, "bar" : "test"}</code></pre>
+
+
+
+        
+    
 
     
 
@@ -119,7 +391,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 03 2023 14:02:37 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 03 2023 14:02:36 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

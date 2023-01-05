@@ -41,12 +41,20 @@ const MODULE_NAME = 'Elements';
 //###[ IMPORTS ]########################################################################################################
 
 import {orDefault, isA, isPlainObject, hasValue, assert, size} from './basic.js';
+import {randomUuid} from './random.js';
+import {clone} from './objects.js';
 
 
 
 //###[ DATA ]###########################################################################################################
 
 const NOT_AN_HTMLELEMENT_ERROR = 'given node/target is not an HTMLElement';
+let BROWSER_HAS_CSS_SCOPE_SUPPORT;
+try {
+	document.querySelector(':scope *');
+} catch(ex){
+	BROWSER_HAS_CSS_SCOPE_SUPPORT = false;
+}
 
 
 
@@ -558,6 +566,265 @@ export function removeData(node, properties=null){
 
 	return data;
 }
+
+
+
+/**
+ * @namespace Elements:find
+ */
+
+/**
+ * Searches for and returns descendant nodes of a given node matching a CSS selector, just as querySelector(All).
+ *
+ * The main difference to querySelector(All) is, that this method automatically scopes the query, making sure, that the
+ * given selector is actually fulfilled _inside_ the scope of the base element and not always regarding the whole
+ * document. So, basically this implementation always automatically adds `:scope` to the beginning of the selector
+ * if no scope has been defined (as soon as a scope is defined anywhere in the selector, no auto-handling will be done).
+ * The function always takes care of handling browsers, that do no support `:scope` yet, by using a randomized query
+ * attribute approach.
+ *
+ * The second (minor) difference is, that this function actually returns an array and does not return a NodeList. The
+ * reason being quite simple: Arrays have far better support for basic list operations than NodeList. An example:
+ * Getting the first found node is straightforward in both cases (item(0) vs. at(0)), but getting the last node becomes
+ * hairy pretty quickly since, item() does not accept negative indices, whereas at() does. So, with an array, we can get
+ * the last node simple by using at(-1). Arrays simply have the better API nowadays and since the NodeList would be
+ * static here anyway ...
+ *
+ * The last little difference is, that the base node for this function may not be the document itself, since
+ * attribute-based scoping fallback does not work on the document, since we cannot define attributes on the document
+ * itself. Just use document.body instead.
+ *
+ * @param {HTMLElement} node - the element to search in
+ * @param {?String} [selector='*'] - the element query selector to apply to node, to find fitting elements
+ * @param {?Boolean} [onlyOne=false] - if true, uses querySelector instead of querySelectorAll and therefore returns a single node or null instead of an array
+ * @throws error if node is not a usable HTML element
+ * @return {Array&lt;Node>|Node|null} descendant nodes matching the selector, a single node or null if onlyOne is true
+ *
+ * @memberof Elements:find
+ * @alias find
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelectorAll#user_notes
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
+ * @example
+ * find(document.body, 'section ul > li a[href*="#"]');
+ * find(element, '> aside img[src]');
+ * find(element, '> aside img[src]', true);
+ * find(element, 'aside > :scope figcaption');
+ * find(element, '*');
+ * find(element, '[data-test="foobar"] ~ li a[href]'));
+ * find(element, 'a[href]').at(-1);
+ */
+export function find(node, selector='*', onlyOne=false){
+	const
+		__methodName__ = 'find',
+		scopeRex = /:scope(?![\w-])/gi
+	;
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	selector = orDefault(selector, '*', 'str').trim();
+	if( !(scopeRex.test(selector)) ){
+		selector = `:scope ${selector}`;
+	}
+	onlyOne = orDefault(onlyOne, false, 'bool');
+
+	if( BROWSER_HAS_CSS_SCOPE_SUPPORT ){
+		return onlyOne ? node.querySelector(selector) : Array.from(node.querySelectorAll(selector));
+	} else {
+		const fallbackScopeAttribute = `find-scope-${randomUuid()}`;
+		selector = selector.replace(scopeRex, `[${fallbackScopeAttribute}]`);
+
+		node.setAttribute(fallbackScopeAttribute, '');
+		const found = onlyOne ? node.querySelector(selector) : Array.from(node.querySelectorAll(selector));
+		node.removeAttribute(fallbackScopeAttribute);
+
+		return found;
+	}
+}
+
+
+
+/**
+ * @namespace Elements:findOne
+ */
+
+/**
+ * Searches for and returns one descendant node of a given node matching a CSS selector, just as querySelector.
+ *
+ * The main difference to querySelector is, that this method automatically scopes the query, making sure, that the
+ * given selector is actually fulfilled _inside_ the scope of the base element and not always regarding the whole
+ * document. So, basically this implementation always automatically adds `:scope` to the beginning of the selector
+ * if no scope has been defined (as soon as a scope is defined anywhere in the selector, no auto-handling will be done).
+ * The function always takes care of handling browsers, that do no support `:scope` yet, by using a randomized query
+ * attribute approach.
+ *
+ * The function is a shorthand for `find()` with `onlyOne` being true. The main reason this method existing, is, that
+ * querySelector has a 2:1 performance advantage over querySelectorAll and nullish coalescing is easier using a
+ * possible null result.
+ *
+ * @param {HTMLElement} node - the element to search in
+ * @param {?String} [selector='*'] - the element query selector to apply to node, to find fitting element
+ * @throws error if node is not a usable HTML element
+ * @return {Node|null} descendant nodes matching the selector
+ *
+ * @memberof Elements:findOne
+ * @alias findOne
+ * @see find
+ * @example
+ * findOne(document.body, 'section ul > li a[href*="#"]');
+ * findOne(element, '> aside img[src]');
+ * findOne(element, 'aside > :scope figcaption');
+ * findOne(element, '*');
+ * findOne(element, '[data-test="foobar"] ~ li a[href]'));
+ */
+export function findOne(node, selector='*'){
+	return find(node, selector, true);
+}
+
+
+
+/**
+ * @namespace Elements:findTextNodes
+ */
+
+/**
+ * Extracts all pure text nodes from an Element, starting in the element itself.
+ *
+ * Think of this function as a sort of find() where the result are not nodes, that query selectors can find, but pure
+ * text nodes. So you'll get a set of recursively discovered text nodes without tags, representing the pure text content
+ * of an element.
+ *
+ * If you define to set onlyFirstLevel, you'll be able to retrieve all text on the first level of an element _not_
+ * included in any tag (paragraph contents without special formats as b/i/em/strong for example).
+ *
+ * @param {HTMLElement} node - the element to search for text nodes inside
+ * @param {?Function} [filter=null] - a filter function to restrict the returned set, gets called with the textNode (you can access the parent via .parentNode)
+ * @param {?Boolean} [onlyFirstLevel=false] - defines if the function should only return text nodes from the very first level of children
+ * @throws error if node is not a usable HTML element
+ * @return {Array&lt;Node>} a list of text nodes
+ *
+ * @memberof Elements:findTextNodes
+ * @alias findTextNodes
+ * @example
+ * const styledSentence = createElement('&lt;div>arigatou &lt;p>gozaimasu &lt;span>deshita&lt;/span>&lt;/p> mr. roboto&lt;p>!&lt;span>!!&lt;/span>&lt;/p>&lt;/div>');
+ * findTextNodes(styledSentence).length;
+ * => 6
+ * findTextNodes(styledSentence, null, true).length;
+ * => 2
+ * findTextNodes(styledSentence, textNode => textNode.textContent.length &lt; 9).length;
+ * => 3
+ * findTextNodes(styledSentence).map(node => node.textContent).join('');
+ * 	=> 'arigatou gozaimasu deshita mr. roboto!!!';
+ */
+export function findTextNodes(node, filter=null, onlyFirstLevel=false){
+	filter = isA(filter, 'function') ? filter : () => true;
+	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
+
+	const
+		textNodeType = 3,
+		isValidTextNode = node => {
+			return (node.nodeType === textNodeType)
+				&amp;&amp; (node.textContent.trim() !== '')
+				&amp;&amp; !!filter(node)
+			;
+		},
+		extractTextNodes = node => {
+			if( isValidTextNode(node) ){
+				return [].concat(node);
+			} else {
+				return Array.from(node.childNodes).reduce((textNodes, childNode) => {
+					return isValidTextNode(childNode)
+						? textNodes.concat(childNode)
+						: (
+							!!onlyFirstLevel
+							? textNodes
+							: textNodes.concat(extractTextNodes(childNode))
+						)
+					;
+				}, []);
+			}
+		}
+	;
+
+	return extractTextNodes(node);
+}
+
+
+
+/**
+ * @namespace Elements:measureHiddenDimensions
+ */
+
+/**
+ * Measures hidden elements by using a sandbox div. In some layout situations you may not be able to measure hidden
+ * or especially detached elements correctly, sometimes simply because they are not rendered, other times because
+ * they are rendered in a context where the browser does not keep correct styling information due to optimizations
+ * considering visibility of the element.
+ *
+ * This method works by cloning a node and inserting it in a well hidden sandbox element for the time of the measurement,
+ * after which the sandbox is immediately removed again. This method allows you to measure "hidden" elements inside the
+ * DOM without the need to actually move elements around or show them visibly.
+ *
+ * Keep in mind, that only measurements inherent to the element itself are measurable if sandbox is inserted into the
+ * body. Layout information from surrounding containers is, of course, not available. You can remedy this by setting the
+ * context correctly. Keep in mind, that direct child selectors may not work in the context since the sandbox itself
+ * constitutes a new level between context and element. In these cases you might have to adapt you selectors.
+ *
+ * @param {HTMLElement} node - the element to measure
+ * @param {?String} [method='outer'] - the kind of measurement to take, allowed values are "outer"/"offset", "inner"/"client" or "scroll"
+ * @param {?String} [selector=null] - selector to apply to element to find target
+ * @param {?HTMLElement} [context=document.body] - context to use as container for measurement
+ * @throws error if node is not a usable HTML element
+ * @returns {Object&lt;String,Number>} a plain object holding width and height measured according to the defined method
+ *
+ * @memberof Elements:measureHiddenDimensions
+ * @alias measureHiddenDimensions
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model/Determining_the_dimensions_of_elements#how_big_is_the_content
+ * @example
+ * measureHiddenDimensions(document.body.querySelector('div.hidden:first'), 'inner');
+ * measureHiddenDimensions(document.body, 'outer, 'div.hidden:first', document.body.querySelector('main'));
+ */
+export function measureHiddenDimensions(node, method='outer', selector=null, context=document.body){
+	const __methodName__ = 'measureHidden';
+
+	const methods = {
+		offset : {width : 'offsetWidth', height : 'offsetHeight'},
+		outer : {width : 'offsetWidth', height : 'offsetHeight'},
+		client : {width : 'clientWidth', height : 'clientHeight'},
+		inner : {width : 'clientWidth', height : 'clientHeight'},
+		scroll : {width : 'scrollWidth', height : 'scrollHeight'}
+	};
+	method = methods[orDefault(method, 'outer', 'str')] ?? methods.outer;
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isA(context, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | context is no an htmlelement`);
+
+	const
+		sandbox = createNode('div', {
+			'id' : `sandbox-${randomUuid()}`,
+			'class' : 'sandbox',
+			'style' : 'display:block; opacity:0; visibility:hidden; pointer-events:none; position:absolute; top:-10000px; left:-10000px;'
+		}),
+		measureClone = clone(node)
+	;
+
+	context.appendChild(sandbox);
+	sandbox.appendChild(measureClone);
+
+	const
+		target = hasValue(selector) ? measureClone.querySelector(selector) : measureClone,
+		width = target?.[method.width] ?? 0,
+		height = target?.[method.height] ?? 0,
+		dimensions = {
+			width,
+			height,
+			toString(){ return `${width}x${height}`; }
+		}
+	;
+
+	context.removeChild(sandbox);
+
+	return dimensions;
+}
 </code></pre>
         </article>
     </section>
@@ -568,13 +835,13 @@ export function removeData(node, properties=null){
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_find.html">Elements:find</a></li><li class="namespace"><a href="Elements_findOne.html">Elements:findOne</a></li><li class="namespace"><a href="Elements_findTextNodes.html">Elements:findTextNodes</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_measureHiddenDimensions.html">Elements:measureHiddenDimensions</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillArrayAt.html">Polyfills:polyfillArrayAt</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_caf.html">Timers:caf</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_raf.html">Timers:raf</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 03 2023 14:02:36 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Thu Jan 05 2023 15:41:53 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -111,3 +111,37 @@ export function polyfillCustomEvent(){
 
 	window.CustomEvent = CustomEvent;
 }
+
+
+
+/**
+ * @namespace Polyfills:polyfillArrayAt
+ */
+
+/**
+ * Adds support for Array.prototype.at, which is a fairly recent feature, compared to most other basic array
+ * operations, resulting in even modern Chrome, Firefox and Safari versions not having implemented this.
+ * But adding this is quite forward, it just being general array index access with possible negative index.
+ *
+ * @memberof Polyfills:polyfillArrayAt
+ * @alias polyfillArrayAt
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at
+ * @example
+ * polyfillArrayAt()
+ * => adds Array.prototype.at if not already defined
+ */
+export function polyfillArrayAt(){
+	if( isA(Array.prototype.at, 'function') ) return false;
+
+	Object.defineProperty(Array.prototype, 'at', {
+		value : function(n){
+			n = Math.trunc(n) || 0;
+			if( n < 0 ) n += this.length;
+			if( (n < 0) || (n >= this.length) ) return undefined;
+			return this[n];
+		},
+		writable : true,
+		enumerable : false,
+		configurable : true
+	});
+}

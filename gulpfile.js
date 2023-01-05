@@ -184,10 +184,10 @@ gulp.task('watch', function(done){
 
 gulp.task('documentation', shell.task([`rm -rf ${DOCUMENTATION_DIR}`, 'jsdoc -c jsdoc.config.json --verbose']));
 
-const testTopic = ARGV.topic ? ` -- --topic=${ARGV.topic}` : '';
-gulp.task('test', shell.task(`npm test${testTopic}`));
-gulp.task('test-dist', shell.task(`npm run test-dist${testTopic}`));
-gulp.task('test-es5-monolith', shell.task(`npm run test-es5-monolith${testTopic}`));
+const testTopic = ARGV.topic ? ` --topic=${ARGV.topic}` : '';
+gulp.task('test', shell.task(`yarn run test${testTopic}`));
+gulp.task('test-dist', shell.task(`yarn run test-dist${testTopic}`));
+gulp.task('test-es5-monolith', shell.task(`yarn run test-es5-monolith${testTopic}`));
 
 gulp.task('build', gulp.series('test', clearDist, buildJs, 'test-dist', buildEs5Monolith, 'test-es5-monolith', copyExamplesLibs));
 

@@ -66,7 +66,6 @@ Some of the Batteries Included
 - image and webfont callback helpers
 - form helpers for data
 - event tools
-- ...
 
 
 
@@ -175,6 +174,23 @@ After installation, just include single functions/symbols from the semantic pack
 
 `import {log} from 'annex/source/logging';`
 
+It might be a good idea, to set a path alias in your bundler, to skip the source path.
+
+In Webpack a path alias would look like this (see [documentation](https://webpack.js.org/configuration/resolve/#resolvealias)):
+
+```js
+{
+  resolve: {
+    alias: {
+      annex : path.resolve(__dirname, 'node_modules/@client/annex/source/')
+    }
+  }
+}
+```
+
+Which would allow you an import like this:
+`import {log} from 'annex/logging';`
+
 If you want to serve packages without bundling, as they are, you can do so, by serving them as type module scripts.
 For this purpose I included a `dist` dir, containing minified, ES6 scripts. Use these, you would do:
 
@@ -184,6 +200,13 @@ In this case, make sure all dist file are publicly available and are in the same
 
 Of course you can also import `dist` files via a bundler, but in that case you would lose the capability to jump to
 readable source in your IDE and you would also lose all JSDOC strings.
+
+Be aware, that all module source code is written in fairly up-to-date ES6, disregarding legacy concerns. So, whether
+you are bundling the modules or using them verbatim, keep the browser support in mind and make sure to set up
+transpilation during bundling, matching your browser matrix, if necessary. All features I'm using are transpilable
+with [Babel](https://babeljs.io/) and polyfillable with [core-js](https://github.com/zloirock/core-js)
+(have a look at the gulpfile for a working webpack setup). Anything additionally necessary, I've included as a 
+polyfill function in the "polyfills" module (stuff like CustomEvents, which are not included in core-js).
 
 If you need to use ES5, I also included a monolithic ES5 version in `dist` as a UMD. So you can easily load the script
 with

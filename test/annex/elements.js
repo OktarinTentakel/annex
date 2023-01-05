@@ -17,7 +17,10 @@ const {
 	isInDom,
 	getData,
 	setData,
-	removeData
+	removeData,
+	find,
+	findOne,
+	findTextNodes
 } = pkg;
 
 
@@ -147,6 +150,8 @@ test('isInDom', assert => {
 	assert.false(isInDom(inner));
 	assert.false(isInDom(innerMost));
 
+	document.body.removeChild(outer);
+
 	assert.throws(() => { isInDom('not an element'); });
 });
 
@@ -236,4 +241,148 @@ test('removeData', assert => {
 	assert.deepEqual(Object.keys(eBar.dataset), []);
 	assert.is(eBar.outerHTML, '<span></span>');
 	assert.is(removeData(eBaz), null);
+});
+
+
+
+const FIND_SCENARIO_HTML = `
+	<header>
+		<hgroup>
+			<h1>Header</h1>
+			<h2>Subheader</h2>
+		</hgroup>
+	</header>
+	<nav>
+		<ul>
+			<li><a href="#">Menu Option 1</a></li>
+			<li><a href="#">Menu Option 2</a></li>
+			<li><a href="#">Menu Option 3</a></li>
+		</ul>
+	</nav>
+	<section>
+		<article>
+			<header>
+				<h1>Article #1</h1>
+			</header>
+			<section>
+				This is the first article. This is <mark>highlighted</mark>.
+			</section>
+		</article>
+		<article>
+			<header>
+				<h1>Article #2</h1>
+			</header>
+			<section>
+				This is the second article. These articles could be blog posts, etc.
+			</section>
+		</article>
+	</section>
+	<aside>
+		<section>
+			<h1>Links</h1>
+			<ul>
+				<li data-test="foobar"><a href="#">Link 1</a></li>
+				<li><a href="#">Link 2</a></li>
+				<li><a href="#">Link 3</a></li>
+			</ul>
+		</section>
+		<figure>
+			<img
+				src="https://github.com/OktarinTentakel/annex/raw/master/annex.png"
+				alt="annex"
+			/>
+			<figcaption>annex</figcaption>
+		</figure>
+	</aside>
+	<footer>Footer</footer>
+`;
+
+
+
+test('find', assert => {
+	const scenario = document.createElement('main');
+	scenario.id = 'find-scenario';
+	scenario.innerHTML = FIND_SCENARIO_HTML;
+	document.body.appendChild(scenario);
+
+	assert.not(find(document.body, 'article').length, 0);
+	assert.not(find(document.body, 'section ul > li a[href*="#"]').length, 0);
+	assert.is(find(scenario, '> aside img[src]').length, 1);
+	assert.is(find(scenario, '> aside img[srcset]').length, 0);
+	assert.not(find(scenario, '> aside img[src]', true), null);
+	assert.is(find(scenario, '> aside img[srcset]', true), null);
+	assert.is(find(scenario, '> *').length, 5);
+	assert.is(find(scenario.querySelector('figure'), 'aside > :scope figcaption').length, 1);
+	assert.is(find(scenario.querySelector('figure'), ':scope figcaption').length, 1);
+	assert.is(find(scenario.querySelector('figure'), 'main :scope figcaption').length, 1);
+	assert.is(find(scenario.querySelector('figure'), 'main > :scope figcaption').length, 0);
+	assert.is(find(scenario.querySelector('aside'), '*').length, 12);
+	assert.is(find(scenario, '[data-test="foobar"] ~ li a[href]').length, 2);
+
+	assert.is(find(scenario, 'a[href]').at(0).textContent, 'Menu Option 1');
+	assert.is(find(scenario, 'a[href]').at(-1).textContent, 'Link 3');
+
+	document.body.removeChild(scenario);
+});
+
+
+
+test('findOne', assert => {
+	const scenario = document.createElement('main');
+	scenario.id = 'find-scenario';
+	scenario.innerHTML = FIND_SCENARIO_HTML;
+	document.body.appendChild(scenario);
+
+	assert.not(findOne(document.body, 'article'), null);
+	assert.not(findOne(document.body, 'section ul > li a[href*="#"]'), null);
+	assert.not(findOne(scenario, '> aside img[src]'), null);
+	assert.is(findOne(scenario, '> aside img[srcset]'), null);
+	assert.not(findOne(scenario, '> aside img[src]'), null);
+	assert.is(findOne(scenario, '> aside img[srcset]'), null);
+	assert.not(findOne(scenario, '> *'), null);
+	assert.not(findOne(scenario.querySelector('figure'), 'aside > :scope figcaption'), null);
+	assert.not(findOne(scenario.querySelector('figure'), ':scope figcaption'), null);
+	assert.not(findOne(scenario.querySelector('figure'), 'main :scope figcaption'), null);
+	assert.is(findOne(scenario.querySelector('figure'), 'main > :scope figcaption'), null);
+	assert.not(findOne(scenario.querySelector('figure'), '*'), null);
+	assert.not(findOne(scenario, '[data-test="foobar"] ~ li a[href]'), null);
+
+	document.body.removeChild(scenario);
+});
+
+
+
+test('findTextNodes', assert => {
+	const
+		foo = `foo-${(new Date()).getTime()}`,
+		eFoo = document.createElement('div')
+	;
+	let test;
+
+	eFoo.classList.add(foo);
+	eFoo.innerHTML = 'arigatou <p>gozaimasu <span>deshita</span></p> mr. roboto<p>!<span>!!</span></p>';
+
+	assert.is(findTextNodes(eFoo).length, 6);
+	assert.is(findTextNodes(eFoo, null, true).length, 2);
+	assert.is(findTextNodes(eFoo, textNode => textNode.textContent.length < 9).length, 3);
+
+	test = '';
+	findTextNodes(eFoo).forEach(node => {
+		test += node.textContent;
+	});
+	assert.is(test, 'arigatou gozaimasu deshita mr. roboto!!!');
+
+	test = '';
+	findTextNodes(eFoo, null, true).forEach(node => {
+		test += node.textContent;
+	});
+	assert.is(test, 'arigatou  mr. roboto');
+
+	test = '';
+	findTextNodes(eFoo, textNode => textNode.textContent.length < 9).forEach(node => {
+		test += node.textContent;
+	});
+	assert.is(test, 'deshita!!!');
+
+	assert.is(findTextNodes(document.createElement('span')).length, 0);
 });

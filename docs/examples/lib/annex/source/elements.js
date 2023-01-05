@@ -13,12 +13,20 @@ const MODULE_NAME = 'Elements';
 //###[ IMPORTS ]########################################################################################################
 
 import {orDefault, isA, isPlainObject, hasValue, assert, size} from './basic.js';
+import {randomUuid} from './random.js';
+import {clone} from './objects.js';
 
 
 
 //###[ DATA ]###########################################################################################################
 
 const NOT_AN_HTMLELEMENT_ERROR = 'given node/target is not an HTMLElement';
+let BROWSER_HAS_CSS_SCOPE_SUPPORT;
+try {
+	document.querySelector(':scope *');
+} catch(ex){
+	BROWSER_HAS_CSS_SCOPE_SUPPORT = false;
+}
 
 
 
@@ -529,4 +537,263 @@ export function removeData(node, properties=null){
 	}
 
 	return data;
+}
+
+
+
+/**
+ * @namespace Elements:find
+ */
+
+/**
+ * Searches for and returns descendant nodes of a given node matching a CSS selector, just as querySelector(All).
+ *
+ * The main difference to querySelector(All) is, that this method automatically scopes the query, making sure, that the
+ * given selector is actually fulfilled _inside_ the scope of the base element and not always regarding the whole
+ * document. So, basically this implementation always automatically adds `:scope` to the beginning of the selector
+ * if no scope has been defined (as soon as a scope is defined anywhere in the selector, no auto-handling will be done).
+ * The function always takes care of handling browsers, that do no support `:scope` yet, by using a randomized query
+ * attribute approach.
+ *
+ * The second (minor) difference is, that this function actually returns an array and does not return a NodeList. The
+ * reason being quite simple: Arrays have far better support for basic list operations than NodeList. An example:
+ * Getting the first found node is straightforward in both cases (item(0) vs. at(0)), but getting the last node becomes
+ * hairy pretty quickly since, item() does not accept negative indices, whereas at() does. So, with an array, we can get
+ * the last node simple by using at(-1). Arrays simply have the better API nowadays and since the NodeList would be
+ * static here anyway ...
+ *
+ * The last little difference is, that the base node for this function may not be the document itself, since
+ * attribute-based scoping fallback does not work on the document, since we cannot define attributes on the document
+ * itself. Just use document.body instead.
+ *
+ * @param {HTMLElement} node - the element to search in
+ * @param {?String} [selector='*'] - the element query selector to apply to node, to find fitting elements
+ * @param {?Boolean} [onlyOne=false] - if true, uses querySelector instead of querySelectorAll and therefore returns a single node or null instead of an array
+ * @throws error if node is not a usable HTML element
+ * @return {Array<Node>|Node|null} descendant nodes matching the selector, a single node or null if onlyOne is true
+ *
+ * @memberof Elements:find
+ * @alias find
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/querySelectorAll#user_notes
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
+ * @example
+ * find(document.body, 'section ul > li a[href*="#"]');
+ * find(element, '> aside img[src]');
+ * find(element, '> aside img[src]', true);
+ * find(element, 'aside > :scope figcaption');
+ * find(element, '*');
+ * find(element, '[data-test="foobar"] ~ li a[href]'));
+ * find(element, 'a[href]').at(-1);
+ */
+export function find(node, selector='*', onlyOne=false){
+	const
+		__methodName__ = 'find',
+		scopeRex = /:scope(?![\w-])/gi
+	;
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	selector = orDefault(selector, '*', 'str').trim();
+	if( !(scopeRex.test(selector)) ){
+		selector = `:scope ${selector}`;
+	}
+	onlyOne = orDefault(onlyOne, false, 'bool');
+
+	if( BROWSER_HAS_CSS_SCOPE_SUPPORT ){
+		return onlyOne ? node.querySelector(selector) : Array.from(node.querySelectorAll(selector));
+	} else {
+		const fallbackScopeAttribute = `find-scope-${randomUuid()}`;
+		selector = selector.replace(scopeRex, `[${fallbackScopeAttribute}]`);
+
+		node.setAttribute(fallbackScopeAttribute, '');
+		const found = onlyOne ? node.querySelector(selector) : Array.from(node.querySelectorAll(selector));
+		node.removeAttribute(fallbackScopeAttribute);
+
+		return found;
+	}
+}
+
+
+
+/**
+ * @namespace Elements:findOne
+ */
+
+/**
+ * Searches for and returns one descendant node of a given node matching a CSS selector, just as querySelector.
+ *
+ * The main difference to querySelector is, that this method automatically scopes the query, making sure, that the
+ * given selector is actually fulfilled _inside_ the scope of the base element and not always regarding the whole
+ * document. So, basically this implementation always automatically adds `:scope` to the beginning of the selector
+ * if no scope has been defined (as soon as a scope is defined anywhere in the selector, no auto-handling will be done).
+ * The function always takes care of handling browsers, that do no support `:scope` yet, by using a randomized query
+ * attribute approach.
+ *
+ * The function is a shorthand for `find()` with `onlyOne` being true. The main reason this method existing, is, that
+ * querySelector has a 2:1 performance advantage over querySelectorAll and nullish coalescing is easier using a
+ * possible null result.
+ *
+ * @param {HTMLElement} node - the element to search in
+ * @param {?String} [selector='*'] - the element query selector to apply to node, to find fitting element
+ * @throws error if node is not a usable HTML element
+ * @return {Node|null} descendant nodes matching the selector
+ *
+ * @memberof Elements:findOne
+ * @alias findOne
+ * @see find
+ * @example
+ * findOne(document.body, 'section ul > li a[href*="#"]');
+ * findOne(element, '> aside img[src]');
+ * findOne(element, 'aside > :scope figcaption');
+ * findOne(element, '*');
+ * findOne(element, '[data-test="foobar"] ~ li a[href]'));
+ */
+export function findOne(node, selector='*'){
+	return find(node, selector, true);
+}
+
+
+
+/**
+ * @namespace Elements:findTextNodes
+ */
+
+/**
+ * Extracts all pure text nodes from an Element, starting in the element itself.
+ *
+ * Think of this function as a sort of find() where the result are not nodes, that query selectors can find, but pure
+ * text nodes. So you'll get a set of recursively discovered text nodes without tags, representing the pure text content
+ * of an element.
+ *
+ * If you define to set onlyFirstLevel, you'll be able to retrieve all text on the first level of an element _not_
+ * included in any tag (paragraph contents without special formats as b/i/em/strong for example).
+ *
+ * @param {HTMLElement} node - the element to search for text nodes inside
+ * @param {?Function} [filter=null] - a filter function to restrict the returned set, gets called with the textNode (you can access the parent via .parentNode)
+ * @param {?Boolean} [onlyFirstLevel=false] - defines if the function should only return text nodes from the very first level of children
+ * @throws error if node is not a usable HTML element
+ * @return {Array<Node>} a list of text nodes
+ *
+ * @memberof Elements:findTextNodes
+ * @alias findTextNodes
+ * @example
+ * const styledSentence = createElement('<div>arigatou <p>gozaimasu <span>deshita</span></p> mr. roboto<p>!<span>!!</span></p></div>');
+ * findTextNodes(styledSentence).length;
+ * => 6
+ * findTextNodes(styledSentence, null, true).length;
+ * => 2
+ * findTextNodes(styledSentence, textNode => textNode.textContent.length < 9).length;
+ * => 3
+ * findTextNodes(styledSentence).map(node => node.textContent).join('');
+ * 	=> 'arigatou gozaimasu deshita mr. roboto!!!';
+ */
+export function findTextNodes(node, filter=null, onlyFirstLevel=false){
+	filter = isA(filter, 'function') ? filter : () => true;
+	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
+
+	const
+		textNodeType = 3,
+		isValidTextNode = node => {
+			return (node.nodeType === textNodeType)
+				&& (node.textContent.trim() !== '')
+				&& !!filter(node)
+			;
+		},
+		extractTextNodes = node => {
+			if( isValidTextNode(node) ){
+				return [].concat(node);
+			} else {
+				return Array.from(node.childNodes).reduce((textNodes, childNode) => {
+					return isValidTextNode(childNode)
+						? textNodes.concat(childNode)
+						: (
+							!!onlyFirstLevel
+							? textNodes
+							: textNodes.concat(extractTextNodes(childNode))
+						)
+					;
+				}, []);
+			}
+		}
+	;
+
+	return extractTextNodes(node);
+}
+
+
+
+/**
+ * @namespace Elements:measureHiddenDimensions
+ */
+
+/**
+ * Measures hidden elements by using a sandbox div. In some layout situations you may not be able to measure hidden
+ * or especially detached elements correctly, sometimes simply because they are not rendered, other times because
+ * they are rendered in a context where the browser does not keep correct styling information due to optimizations
+ * considering visibility of the element.
+ *
+ * This method works by cloning a node and inserting it in a well hidden sandbox element for the time of the measurement,
+ * after which the sandbox is immediately removed again. This method allows you to measure "hidden" elements inside the
+ * DOM without the need to actually move elements around or show them visibly.
+ *
+ * Keep in mind, that only measurements inherent to the element itself are measurable if sandbox is inserted into the
+ * body. Layout information from surrounding containers is, of course, not available. You can remedy this by setting the
+ * context correctly. Keep in mind, that direct child selectors may not work in the context since the sandbox itself
+ * constitutes a new level between context and element. In these cases you might have to adapt you selectors.
+ *
+ * @param {HTMLElement} node - the element to measure
+ * @param {?String} [method='outer'] - the kind of measurement to take, allowed values are "outer"/"offset", "inner"/"client" or "scroll"
+ * @param {?String} [selector=null] - selector to apply to element to find target
+ * @param {?HTMLElement} [context=document.body] - context to use as container for measurement
+ * @throws error if node is not a usable HTML element
+ * @returns {Object<String,Number>} a plain object holding width and height measured according to the defined method
+ *
+ * @memberof Elements:measureHiddenDimensions
+ * @alias measureHiddenDimensions
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model/Determining_the_dimensions_of_elements#how_big_is_the_content
+ * @example
+ * measureHiddenDimensions(document.body.querySelector('div.hidden:first'), 'inner');
+ * measureHiddenDimensions(document.body, 'outer, 'div.hidden:first', document.body.querySelector('main'));
+ */
+export function measureHiddenDimensions(node, method='outer', selector=null, context=document.body){
+	const __methodName__ = 'measureHidden';
+
+	const methods = {
+		offset : {width : 'offsetWidth', height : 'offsetHeight'},
+		outer : {width : 'offsetWidth', height : 'offsetHeight'},
+		client : {width : 'clientWidth', height : 'clientHeight'},
+		inner : {width : 'clientWidth', height : 'clientHeight'},
+		scroll : {width : 'scrollWidth', height : 'scrollHeight'}
+	};
+	method = methods[orDefault(method, 'outer', 'str')] ?? methods.outer;
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isA(context, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | context is no an htmlelement`);
+
+	const
+		sandbox = createNode('div', {
+			'id' : `sandbox-${randomUuid()}`,
+			'class' : 'sandbox',
+			'style' : 'display:block; opacity:0; visibility:hidden; pointer-events:none; position:absolute; top:-10000px; left:-10000px;'
+		}),
+		measureClone = clone(node)
+	;
+
+	context.appendChild(sandbox);
+	sandbox.appendChild(measureClone);
+
+	const
+		target = hasValue(selector) ? measureClone.querySelector(selector) : measureClone,
+		width = target?.[method.width] ?? 0,
+		height = target?.[method.height] ?? 0,
+		dimensions = {
+			width,
+			height,
+			toString(){ return `${width}x${height}`; }
+		}
+	;
+
+	context.removeChild(sandbox);
+
+	return dimensions;
 }

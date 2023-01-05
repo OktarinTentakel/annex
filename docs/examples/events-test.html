@@ -74,10 +74,10 @@
 					setColor = function(eventTarget){
 						var	targets = [].concat(eventTarget);
 
-						for(var i = 0; i < targets.length; i++){
+						for( var i = 0; i < targets.length; i++ ){
 							var
-								target = targets[i];
-								targetStyle = window.getComputedStyle(target)
+								target = targets[i],
+								targetStyle = window.getComputedStyle(target),
 								color = targetStyle.getPropertyValue('outline-color')
 							;
 

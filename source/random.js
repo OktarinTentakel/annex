@@ -95,18 +95,28 @@ export function randomNumber(floor=0, ceiling=10, float=false, precision=2){
 export function randomUuid(withDashes=true){
 	withDashes = orDefault(withDashes, true, 'bool');
 
-	const getRandomValues = window.crypto?.getRandomValues ?? window.msCrypto?.getRandomValues;
-
 	let
 		uuid = null,
 		collisions = 0
 	;
 
 	while( !hasValue(uuid) || RANDOM_UUIDS_USED_SINCE_RELOAD.has(uuid) ){
-		if( isA(getRandomValues, 'function') ){
-			uuid = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-				(c ^ getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-			);
+		// we have to do this highly convoluted check, because we have to call getRandomValues
+		// explicitly from either window.crypto or window.msCrypto, since invoking it from another
+		// context will trigger an "illegal invocation" of the method :(
+		if(
+			isA(window.crypto?.getRandomValues, 'function')
+			|| isA(window.msCrypto?.getRandomValues, 'function')
+		){
+			uuid = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (
+				c
+				^ (
+					isA(window.crypto?.getRandomValues, 'function')
+					? window.crypto.getRandomValues(new Uint8Array(1))
+					: window.msCrypto?.getRandomValues(new Uint8Array(1))
+				)[0]
+				& 15 >> c / 4
+			).toString(16));
 		} else {
 			uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
 				const

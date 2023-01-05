@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Elements Module Examples</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png"/>
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png"/>
+
+		<link rel="stylesheet" href="./main.css"/>
+		<link href="https://fonts.googleapis.com/css?family=Pacifico|Poor+Story" rel="stylesheet"/>
+		<style>
+			#find > div {
+				position: relative;
+			}
+
+			#find-scenario {
+				position: absolute;
+				top: 0;
+				right: 0;
+
+				padding: 2ex;
+				border: 1ex solid dodgerblue;
+
+				background-color: aliceblue;
+
+				transform: translate(32%, -32%) scale(0.33);
+			}
+
+			#find-scenario * {
+				transition: all 500ms;
+			}
+
+			#find-scenario img {
+				width: 33%;
+			}
+
+			#measure-hidden-element {
+				width: 50vw;
+
+				padding: 2ex;
+				border: 1ex solid dodgerblue;
+				margin-top: 2ex;
+
+				background-color: aliceblue;
+			}
+
+			#measure-hidden-dimensions th:first-child,
+			#measure-hidden-dimensions td:first-child {
+				width: 25%;
+				min-width: 250px;
+			}
+		</style>
+
+		<script defer src="./lib/handle-version-switching.js"></script>
+		<script>
+			function setup(
+				polyfillArrayAt,
+				find,
+				findOne,
+				measureHiddenDimensions
+			){
+				// find & findOne
+
+				polyfillArrayAt();
+
+				function highlightSelectedElement(target){
+					var color = '#'+Math.floor(Math.random() * 16777215).toString(16);
+					target.style.backgroundColor = color;
+					target.style.outline = '1ex solid '+color;
+
+					window.setTimeout(function(){
+						target.style.backgroundColor = '';
+						target.style.outline = '';
+					}, 1000);
+				}
+
+				var scenario = document.getElementById('find-scenario');
+
+				document.getElementById('find-articles').addEventListener('click', function(){
+					find(document.body, 'article')
+						.map(function(node){ highlightSelectedElement(node); })
+					;
+				});
+
+				document.getElementById('find-links-unordered-lists').addEventListener('click', function(){
+					find(document.body, 'section ul > li a[href*="#"]')
+						.map(function(node){ highlightSelectedElement(node); })
+					;
+				});
+
+				document.getElementById('find-image').addEventListener('click', function(){
+					find(scenario, '> aside img[src]')
+						.map(function(node){ highlightSelectedElement(node); })
+					;
+				});
+
+				document.getElementById('find-direct-children').addEventListener('click', function(){
+					find(scenario, '> *')
+						.map(function(node){ highlightSelectedElement(node); })
+					;
+				});
+
+				document.getElementById('find-first-direct-child').addEventListener('click', function(){
+					highlightSelectedElement(findOne(scenario, '> *'));
+				});
+
+				document.getElementById('find-figcaption').addEventListener('click', function(){
+					find(scenario.querySelector('figure'), 'aside > :scope figcaption')
+						.map(function(node){ highlightSelectedElement(node); })
+					;
+				});
+
+				document.getElementById('find-everything-in-asides').addEventListener('click', function(){
+					find(scenario.querySelector('aside'), '*')
+						.map(function(node){ highlightSelectedElement(node); })
+					;
+				});
+				document.getElementById('find-following-links').addEventListener('click', function(){
+					find(scenario, '[data-test="foobar"] ~ li a[href]')
+						.map(function(node){ highlightSelectedElement(node); })
+					;
+				});
+
+				document.getElementById('find-first-link').addEventListener('click', function(){
+					highlightSelectedElement(find(scenario, 'a[href]').at(0));
+				});
+
+				document.getElementById('find-last-link').addEventListener('click', function(){
+					highlightSelectedElement(find(scenario, 'a[href]').at(-1));
+				});
+
+
+
+				// measureHiddenDimensions
+
+				var
+					measureHiddenVisible = false,
+					eMeasureHiddenDimensions = document.getElementById('measure-hidden-dimensions'),
+					eMeasureHiddenElementContainer = document.createElement('div'),
+					eMeasureHiddenElement = document.createElement('div')
+				;
+
+				eMeasureHiddenElementContainer.id = 'measure-hidden-element-container';
+
+				eMeasureHiddenElement.innerHTML = '<span>Now you see me.</span>&nbsp;Now you don\'t!';
+				eMeasureHiddenElement.id = 'measure-hidden-element';
+
+				eMeasureHiddenElementContainer.appendChild(eMeasureHiddenElement);
+
+				var fUpdateMeasureHiddenDimensions = function(){
+					var visibleOuter = eMeasureHiddenDimensions.querySelector('.visible-outer-dimensions');
+					visibleOuter.innerText = eMeasureHiddenElement.offsetWidth+'x'+eMeasureHiddenElement.offsetHeight;
+					var measuredOuter = eMeasureHiddenDimensions.querySelector('.measured-outer-dimensions');
+					measuredOuter.innerText = measureHiddenDimensions(eMeasureHiddenElement);
+
+					var visibleInner = eMeasureHiddenDimensions.querySelector('.visible-inner-dimensions');
+					visibleInner.innerText = eMeasureHiddenElement.clientWidth+'x'+eMeasureHiddenElement.clientHeight;
+					var measuredInner = eMeasureHiddenDimensions.querySelector('.measured-inner-dimensions');
+					measuredInner.innerText = measureHiddenDimensions(eMeasureHiddenElement, 'client');
+
+					var visibleScroll = eMeasureHiddenDimensions.querySelector('.visible-scroll-dimensions');
+					visibleScroll.innerText = eMeasureHiddenElement.scrollWidth+'x'+eMeasureHiddenElement.scrollHeight;
+					var measuredScroll = eMeasureHiddenDimensions.querySelector('.measured-scroll-dimensions');
+					measuredScroll.innerText = measureHiddenDimensions(eMeasureHiddenElementContainer, 'scroll', '#measure-hidden-element', eMeasureHiddenDimensions);
+				};
+
+				eMeasureHiddenDimensions.querySelector('.toggle').addEventListener('click', function(e){
+					e.preventDefault();
+					if( !measureHiddenVisible ){
+						eMeasureHiddenDimensions.appendChild(eMeasureHiddenElementContainer);
+					} else {
+						eMeasureHiddenDimensions.removeChild(eMeasureHiddenElementContainer);
+					}
+					fUpdateMeasureHiddenDimensions();
+					measureHiddenVisible = !measureHiddenVisible;
+				});
+				fUpdateMeasureHiddenDimensions();
+			}
+		</script>
+		<script type="module">
+			if( window.__ANNEX_VERSION__ !== 'es5' ){
+				(async () => {
+					const {
+						polyfillArrayAt
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/polyfills.js`);
+
+					const {
+						find,
+						findOne,
+						measureHiddenDimensions
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/elements.js`);
+
+					setup(
+						polyfillArrayAt,
+						find,
+						findOne,
+						measureHiddenDimensions
+					);
+				})().catch(error => {
+					console.error(error);
+				});
+			}
+		</script>
+		<script defer src="./lib/annex/dist/es5-monolith.js"></script>
+		<script defer>
+			(function(){
+				var annexPoll = window.setInterval(function(){
+					if( window.__ANNEX_VERSION__ && window.annex ){
+						window.clearInterval(annexPoll);
+
+						if( window.__ANNEX_VERSION__ === 'es5' ){
+							setup(
+								window.annex.polyfills.polyfillArrayAt,
+								window.annex.elements.find,
+								window.annex.elements.findOne,
+								window.annex.elements.measureHiddenDimensions
+							);
+						}
+					}
+				}, 250);
+			})();
+		</script>
+	</head>
+
+	<body>
+		<header>
+			<h1>Elements Examples</h1>
+		</header>
+		<main>
+			<h3>find & findOne</h3>
+			<section id="find">
+				<p>
+					The following buttons should trigger element selections inside the right-hand test structure.
+					Every found element should light up shortly with a random color.
+				</p>
+				<div>
+					<button id="find-articles" class="btn light-blue darken-1">find all articles</button>
+					<button id="find-links-unordered-lists" class="btn light-blue darken-1">find links in unordered lists</button>
+					<button id="find-image" class="btn light-blue darken-1">find image</button>
+					<button id="find-direct-children" class="btn light-blue darken-1">find direct children</button>
+					<button id="find-first-direct-child" class="btn light-blue darken-1">find first direct child</button>
+					<button id="find-figcaption" class="btn light-blue darken-1">find figcaption</button>
+					<button id="find-everything-in-asides" class="btn light-blue darken-1">find everything in asides</button>
+					<button id="find-following-links" class="btn light-blue darken-1">find following links</button>
+					<button id="find-first-link" class="btn light-blue darken-1">find first link</button>
+					<button id="find-last-link" class="btn light-blue darken-1">find last link</button>
+					<div id="find-scenario">
+						<header>
+							<hgroup>
+								<h1>Header</h1>
+								<h2>Subheader</h2>
+							</hgroup>
+						</header>
+						<nav>
+							<ul>
+								<li><a href="#">Menu Option 1</a></li>
+								<li><a href="#">Menu Option 2</a></li>
+								<li><a href="#">Menu Option 3</a></li>
+							</ul>
+						</nav>
+						<section>
+							<article>
+								<header>
+									<h1>Article #1</h1>
+								</header>
+								<section>
+									This is the first article. This is <mark>highlighted</mark>.
+								</section>
+							</article>
+							<article>
+								<header>
+									<h1>Article #2</h1>
+								</header>
+								<section>
+									This is the second article. These articles could be blog posts, etc.
+								</section>
+							</article>
+						</section>
+						<aside>
+							<section>
+								<h1>Links</h1>
+								<ul>
+									<li data-test="foobar"><a href="#">Link 1</a></li>
+									<li><a href="#">Link 2</a></li>
+									<li><a href="#">Link 3</a></li>
+								</ul>
+							</section>
+							<figure>
+								<img
+									src="./files/img/annex.png"
+									alt="annex"
+								/>
+								<figcaption>annex</figcaption>
+							</figure>
+						</aside>
+						<footer>Footer</footer>
+					</div>
+				</div>
+			</section>
+
+			<h3>measureHiddenDimensions</h3>
+			<section id="measure-hidden-dimensions">
+				<p>
+					The following text should contain dimension information about an element, which, initially, is not
+					part of the DOM. Use the button below to trigger insertion/removal of the element, also updating
+					the measurements. The measured values should not change, no matter if hidden or visible.
+					If the element is visible the values should be identical in pairs of two.
+				</p>
+				<div>
+					<table>
+						<thead>
+							<tr><th>Dimension</th><th>Value</th></tr>
+						</thead>
+						<tbody>
+							<tr><td>Visible Outer Dimensions</td><td class="visible-outer-dimensions"></td></tr>
+							<tr><td>Measured Outer Dimensions</td><td class="measured-outer-dimensions"></td></tr>
+							<tr><td>Visible Inner Dimensions</td><td class="visible-inner-dimensions"></td></tr>
+							<tr><td>Measured Inner Dimensions</td><td class="measured-inner-dimensions"></td></tr>
+							<tr><td>Visible Scroll Dimensions</td><td class="visible-scroll-dimensions"></td></tr>
+							<tr><td>Measured Scroll Dimensions</td><td class="measured-scroll-dimensions"></td></tr>
+						</tbody>
+					</table>
+					<button class="toggle btn light-blue darken-1">Toggle Element</button>
+					<div class="hidden-element-container"></div>
+				</div>
+			</section>
+		</main>
+	</body>
+</html>

@@ -17,9 +17,7 @@ const {
 	ploop,
 	countermand,
 	requestAnimationFrame,
-	raf,
 	cancelAnimationFrame,
-	caf,
 	waitForRepaint
 } = pkg;
 
@@ -245,7 +243,7 @@ test.cb('requestAnimationFrame', assert => {
 		finished++;
 	});
 
-	raf(() => {
+	requestAnimationFrame(() => {
 		finished++;
 	});
 
@@ -273,15 +271,15 @@ test.cb('cancelAnimationFrame', assert => {
 		finished++;
 	});
 
-	bar = raf(() => {
+	bar = requestAnimationFrame(() => {
 		finished++;
 	});
-	caf(bar);
-	bar = raf(() => {
+	cancelAnimationFrame(bar);
+	bar = requestAnimationFrame(() => {
 		finished++;
 	});
 
-	raf(() => {
+	requestAnimationFrame(() => {
 		finished++;
 		assert.is(finished, 3);
 		assert.end();

@@ -37,6 +37,9 @@ export const polling = _polling;
 import * as _elements from './elements.js';
 export const elements = _elements;
 
+import * as _forms from './forms.js';
+export const forms = _forms;
+
 import * as _animation from './animation.js';
 export const animation = _animation;
 

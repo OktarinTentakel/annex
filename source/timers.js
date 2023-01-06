@@ -338,30 +338,6 @@ export function requestAnimationFrame(callback){
 
 
 /**
- * @namespace Timers:raf
- */
-
-/**
- * This is just an alternate name for requestAnimationFrame.
- *
- * @param {Function} callback - the code to execute once the browser has assigned an execution slot for it
- * @return {Number} either the id of the requestAnimationFrame or the internal timeout, both are cancellable via cancelAnimationFrame
- *
- * @memberof Timers:raf
- * @alias raf
- * @see requestAnimationFrame
- * @see cancelAnimationFrame
- * @see caf
- * @example
- * const requestId = raf(function(){ window.body.style.opacity = 0; });
- */
-export function raf(callback){
-	return requestAnimationFrame(callback);
-}
-
-
-
-/**
  * @namespace Timers:cancelAnimationFrame
  */
 
@@ -394,29 +370,6 @@ export function cancelAnimationFrame(id){
 	}
 
 	return caf(id);
-}
-
-
-
-/**
- * @namespace Timers:caf
- */
-
-/**
- * This is just an alternate name for cancelAnimationFrame.
- *
- * @param {Number} id - either the id of the requestAnimationFrame or its timeout fallback
- *
- * @memberof Timers:caf
- * @alias caf
- * @see requestAnimationFrame
- * @see raf
- * @see cancelAnimationFrame
- * @example
- * caf(raf(function(){ window.body.style.opacity = 0; }));
- */
-export function caf(id){
-	return cancelAnimationFrame(id);
 }
 
 

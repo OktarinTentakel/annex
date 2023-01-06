@@ -16,7 +16,10 @@
 		"excludePattern": "(^|\\/|\\\\)_"
 	},
 	"sourceType" : "module",
-	"plugins": [],
+	"plugins": ["plugins/markdown"],
+	"markdown": {
+		"excludeTags": ["author", "classdesc", "param", "property", "returns", "see", "throws"]
+	},
 	"templates": {
 		"cleverLinks": false,
 		"monospaceLinks": false,

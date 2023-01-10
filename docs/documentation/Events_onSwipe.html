@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Elements:createNode</title>
+    <title>JSDoc: Namespace: Events:onSwipe</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Elements:createNode</h1>
+    <h1 class="page-title">Namespace: Events:onSwipe</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Elements:createNode</h2>
+        <h2>Events:onSwipe</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line35">line 35</a>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line1280">line 1280</a>
     </li></ul></dd>
     
 
@@ -106,23 +106,18 @@
 
     
 
-    <h4 class="name" id="createNode"><span class="type-signature"></span>createNode<span class="signature">(tag<span class="signature-attributes">opt, nullable</span>, attributes<span class="signature-attributes">opt, nullable</span>, content<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {HTMLElement}</span></h4>
+    <h4 class="name" id="onSwipe"><span class="type-signature"></span>onSwipe<span class="signature">(targets, direction, handler, dimensionFactor<span class="signature-attributes">opt, nullable</span>, hasToBeTouchDevice<span class="signature-attributes">opt, nullable</span>, eventNameSpace<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {function}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Creates an element on the fly programmatically, based on provided name, attributes and content or markup,
-without inserting it into the DOM.</p>
-<p>If you provide markup as &quot;tag&quot;, make sure that there is one single root element, this method returns exactly one
-element, not a NodeList. Also be sure to <em>not</em> just pass HTML source from an unsecure source, since this
-method does not deal with potential security risks.</p>
-<p>One thing about dynamically creating script tags with this: if you want the script is javascript and you want to
-actually execute the script upon adding it to the dom, you cannot provide the complete tag as a source string,
-since scripts created with innerHTML will not execute.
-(see: https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML#security_considerations)
-Instead, just provide the tag name and define attributes and source via the parameters instead.</p>
+    <p>Defines a handler for a swipe gesture on (an) element(s).
+Offers four swipe directions (up/right/down/left), where triggering the handler depends on the distance
+between touchstart and touchend in relation to the element's width or height, depending on the direction,
+multiplied by a factor to express a percentage.</p>
+<p>You may also set this method to also fire upon mouse swipes, by setting &quot;hasToBeTouchDevice&quot; to false.</p>
 </div>
 
 
@@ -162,7 +157,197 @@ Instead, just provide the tag name and define attributes and source via the para
 
         <tr>
             
-                <td class="name"><code>tag</code></td>
+                <td class="name"><code>targets</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">EventTarget</span>
+|
+
+<span class="param-type">Array.&lt;EventTarget></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>the target(s) to register event handlers on</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>direction</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>the direction to bind =&gt; up/down/left/right</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>handler</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>the callback to execute if the event(s) defined in events are being received on target</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dimensionFactor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0.2
+                
+                </td>
+            
+
+            <td class="description last"><p>to determine what registers as a swipe we use a percentage of the element's width/height, the touch has to move, default is 20%</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>hasToBeTouchDevice</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last"><p>if true, makes sure the handlers are only active on touch devices, if false, also reacts to mouse swipes</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>eventNameSpace</code></td>
             
 
             <td class="type">
@@ -191,94 +376,12 @@ Instead, just provide the tag name and define attributes and source via the para
             
                 <td class="default">
                 
-                    'span'
+                    'annex-swipe'
                 
                 </td>
             
 
-            <td class="description last"><p>tag of the element to create or markup for root element</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>attributes</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    null
-                
-                </td>
-            
-
-            <td class="description last"><p>tag attributes as key/value-pairs, will also be added to provided markup</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>content</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    null
-                
-                </td>
-            
-
-            <td class="description last"><p>content to insert into the element as textContent, be aware, that this will replace other content in provided markup</p></td>
+            <td class="description last"><p>apply an event namespace, which identifies specific events, helpful for a specific unbind later using the same namespace</p></td>
         </tr>
 
     
@@ -319,12 +422,19 @@ Instead, just provide the tag name and define attributes and source via the para
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line71">line 71</a>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line1312">line 1312</a>
     </li></ul></dd>
     
 
     
 
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li>offSwipe</li>
+        </ul>
+    </dd>
     
 
     
@@ -340,13 +450,65 @@ Instead, just provide the tag name and define attributes and source via the para
 
 
 
+<h5>Throws:</h5>
+<ul>
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case no targets are defined</p>
+    
+    </div>
+
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case unknown direction is defined</p>
+    
+    </div>
+
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case handler is not a function</p>
+    
+    </div>
+
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case targets are not all usable event targets</p>
+    
+    </div>
+
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case delegations are missing viable ancestor targets</p>
+    
+    </div>
+
+</li>
+    </ul>
 
 
 <h5>Returns:</h5>
 
         
 <div class="param-desc">
-    the created DOM-node
+    remover function, which removes all handlers again, added by the current execution
 </div>
 
 
@@ -357,7 +519,7 @@ Instead, just provide the tag name and define attributes and source via the para
     </dt>
     <dd>
         
-<span class="param-type">HTMLElement</span>
+<span class="param-type">function</span>
 
 
     </dd>
@@ -368,15 +530,8 @@ Instead, just provide the tag name and define attributes and source via the para
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>document.body.appendChild(
-  createNode('div', {id : 'content', style : 'display:none;'}, 'loading...')
-);
-document.body.appendChild(
-  createNode('&lt;div id="content" style="display:none;">loading...&lt;/div>')
-);
-document.body.appendChild(
-  createNode('script', {type : 'text/javascript'}, 'alert("Hello World");');
-);</code></pre>
+    <pre class="prettyprint"><code>onSwipe(slider, 'up', e => { e.currentTarget.fadeOut(); });
+onSwipe(slider, 'right', () => { document.body.dispatchEvent(new CustomEvent('load-previous-thing')); }, 0.15, false, 'foobar-prev');</code></pre>
 
 
 

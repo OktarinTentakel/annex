@@ -40,10 +40,12 @@
 					context.innerHTML = infoMarkup;
 				};
 
-				detectInteractionType(function(changedInteractionType){
+				detectInteractionType(true).subscribe(function(changedInteractionType){
 					interactionType = changedInteractionType;
 					fUpdateContext();
-				}, true);
+				});
+				interactionType = detectInteractionType();
+				fUpdateContext();
 				window.setInterval(fUpdateContext, 2500);
 			}
 		</script>

@@ -12,7 +12,7 @@ const MODULE_NAME = 'Context';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {hasValue, isA, orDefault} from './basic.js';
+import {hasValue, isA, orDefault, Observable} from './basic.js';
 import {throttle} from './functions.js';
 import {createNode} from './elements.js';
 import {reschedule} from './timers.js';
@@ -21,8 +21,33 @@ import {reschedule} from './timers.js';
 
 //###[ DATA ]###########################################################################################################
 
+const INTERACTION_TYPE_DETECTION = {
+	touchHappening : false,
+	touchEndingTimer : null,
+	touchStartHandler(){
+		INTERACTION_TYPE_DETECTION.touchHappening = true;
+		if( CURRENT_INTERACTION_TYPE.getValue() !== 'touch' ){
+			CURRENT_INTERACTION_TYPE.setValue('touch');
+		}
+	},
+	touchEndHandler(){
+		INTERACTION_TYPE_DETECTION.touchEndingTimer = reschedule(INTERACTION_TYPE_DETECTION.touchEndingTimer, 1032, () => {
+			INTERACTION_TYPE_DETECTION.touchHappening = false;
+		});
+	},
+	blurHandler(){
+		INTERACTION_TYPE_DETECTION.touchEndingTimer = reschedule(INTERACTION_TYPE_DETECTION.touchEndingTimer, 1032, () => {
+			INTERACTION_TYPE_DETECTION.touchHappening = false;
+		});
+	},
+	mouseMoveHandler : throttle(1000, function(){
+		if( (CURRENT_INTERACTION_TYPE.getValue('pointer')) && !INTERACTION_TYPE_DETECTION.touchHappening ){
+			CURRENT_INTERACTION_TYPE.setValue('pointer');
+		}
+	})
+};
+
 export let CURRENT_INTERACTION_TYPE;
-CURRENT_INTERACTION_TYPE = detectInteractionType();
 
 
 
@@ -146,81 +171,47 @@ export function browserScrollbarWidth(){
  * Try to figure out the current type of interaction between the user and the document.
  * This is determined by the input device and is currently limited to either "pointer" or "touch".
  *
- * On call the function return an educated guess about the fact what interaction type might be more
- * probable based on browser features.
- *
- * Additionally, you can (and maybe should) provide a changeCallback, which gets an updated value
- * if the interaction type changes, based on event listeners listening to interaction-specific user events.
- * In case a touch occurs we determine touch interaction and on mousemove we determine pointer interaction.
- * If you use this callback to set up a class on your document or update an observable you can even relatively
- * safely handle dual devices like a surface book.
+ * On call the function returns an educated guess about the fact what interaction type might be more
+ * probable based on browser features and sets up event listeners to update Context module's CURRENT_INTERACTION_TYPE
+ * observable (to which you may subscribe to be informed about updates), when interaction type should change while
+ * the page is being interacted with. In case a touch occurs we determine touch interaction and
+ * on mousemove we determine pointer interaction. If you use this observable to set up a class on your document for
+ * example you can even relatively safely handle dual devices like a surface book.
  *
  * Hint: because touch devices also emit a single mousemove after touchend with a single touch we have to block
- * mousemove detection for 1s after the last touchend. Therefore it takes up to 1s after the last touch event until
+ * mousemove detection for 1s after the last touchend. Therefore, it takes up to 1s after the last touch event until
  * we are able to detect the change to a pointer device.
  *
- * @param {?Function} [changeCallback] - gets executed if the interaction type changes and takes one parameter with the current interaction type value
- * @param {?Boolean} [initialCallbackCall=false] - if set to true, executes the callback immediately once
- * @returns {String} "pointer" or "touch"
+ * @param {?Boolean} [returnObservable=false] - if set to true, the call returns Context module's CURRENT_INTERACTION_TYPE observable
+ * @returns {String|Observable} interaction type string "pointer" or "touch", or the CURRENT_INTERACTION_TYPE observable
  *
  * @memberof Context:detectInteractionType
  * @alias detectInteractionType
  * @example
  * let interactionTypeGuess = detectInteractionType();
- * detectInteractionType(function(type){
+ * detectInteractionType(true).subscribe(function(type){
  *     document.body.classList.toggle('touch', type === 'touch');
- * }, true);
+ * });
  */
 
-export function detectInteractionType(changeCallback, initialCallbackCall=false){
-	initialCallbackCall = orDefault(initialCallbackCall, false, 'bool');
+export function detectInteractionType(returnObservable=false){
+	returnObservable = orDefault(returnObservable, false, 'bool');
 
-	if( ('ontouchstart' in document) && ('ontouchend' in document) && (window.navigator.maxTouchPoints > 0) ){
-		CURRENT_INTERACTION_TYPE = 'touch';
-	} else {
-		CURRENT_INTERACTION_TYPE = 'pointer';
-	}
-
-	if( isA(changeCallback, 'function') ){
-		let
-			touchHappening = false,
-			touchEndingTimer = null
-		;
-
-		document.addEventListener('touchstart', () => {
-			touchHappening = true;
-
-			if( CURRENT_INTERACTION_TYPE !== 'touch' ){
-				CURRENT_INTERACTION_TYPE = 'touch';
-				changeCallback(CURRENT_INTERACTION_TYPE);
-			}
-		});
-
-		document.addEventListener('touchend', () => {
-			touchEndingTimer = reschedule(touchEndingTimer, 1032, () => {
-				touchHappening = false;
-			});
-		});
-
-		window.addEventListener('blur', () => {
-			touchEndingTimer = reschedule(touchEndingTimer, 1032, () => {
-				touchHappening = false;
-			});
-		});
-
-		document.addEventListener('mousemove', throttle(1000, () => {
-			if( (CURRENT_INTERACTION_TYPE !== 'pointer') && !touchHappening ){
-				CURRENT_INTERACTION_TYPE = 'pointer';
-				changeCallback(CURRENT_INTERACTION_TYPE);
-			}
-		}));
-
-		if( initialCallbackCall ){
-			changeCallback(CURRENT_INTERACTION_TYPE);
+	if( !hasValue(CURRENT_INTERACTION_TYPE) ){
+		CURRENT_INTERACTION_TYPE = new Observable('');
+		if( ('ontouchstart' in document) && ('ontouchend' in document) && (window.navigator.maxTouchPoints > 0) ){
+			CURRENT_INTERACTION_TYPE.setValue('touch');
+		} else {
+			CURRENT_INTERACTION_TYPE.setValue('pointer');
 		}
+
+		document.addEventListener('touchstart', INTERACTION_TYPE_DETECTION.touchStartHandler);
+		document.addEventListener('touchend', INTERACTION_TYPE_DETECTION.touchEndHandler);
+		window.addEventListener('blur', INTERACTION_TYPE_DETECTION.blurHandler);
+		document.addEventListener('mousemove', INTERACTION_TYPE_DETECTION.mouseMoveHandler);
 	}
 
-	return CURRENT_INTERACTION_TYPE;
+	return returnObservable ? CURRENT_INTERACTION_TYPE : CURRENT_INTERACTION_TYPE.getValue();
 }
 
 

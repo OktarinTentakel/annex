@@ -16,6 +16,7 @@ import {assert, isA, isEventTarget, isPlainObject, orDefault, hasValue, isEmpty,
 import {slugify} from './strings.js';
 import {removeFrom} from './arrays.js';
 import {isInDom} from './elements.js';
+import {detectInteractionType} from './context.js';
 
 
 
@@ -25,6 +26,14 @@ export const EVENT_MAP = new Map();
 
 const
 	DEFAULT_NAMESPACE = '__default',
+	SWIPE_DIRECTIONS = ['up', 'right', 'down', 'left'],
+	SWIPE_HANDLERS = new WeakMap(),
+	SWIPE_TOUCH = {
+		startX : 0,
+		startY : 0,
+		endX : 0,
+		endY : 0
+	},
 	EVENT_OPTION_SUPPORT = {
 		capture : false,
 		once : false,
@@ -614,6 +623,24 @@ function createSyntheticEvent(
 
 
 
+/*
+ * Updates touch data for a start swipe event.
+ *
+ * @private
+ */
+function updateSwipeTouch(e){
+	const startOrEnd = ['touchstart', 'mousedown'].includes(e.type) ? 'start' : 'end';
+	if( ['touchstart', 'touchend'].includes(e.type) ){
+		SWIPE_TOUCH[`${startOrEnd}X`] = e.changedTouches[0].screenX;
+		SWIPE_TOUCH[`${startOrEnd}Y`] = e.changedTouches[0].screenY;
+	} else {
+		SWIPE_TOUCH[`${startOrEnd}X`] = e.screenX;
+		SWIPE_TOUCH[`${startOrEnd}Y`] = e.screenY;
+	}
+}
+
+
+
 //###[ EXPORTS ]########################################################################################################
 
 /**
@@ -638,7 +665,7 @@ function createSyntheticEvent(
  * @param {?Boolean} [once=false] - defines if the handler should only execute once, after which it self-destroys automatically, this will automatically be enabled, if you set options.once to true
  * @throws error in case no targets are defined
  * @throws error in case no events are defined
- * @throws error in case no handler is not a function
+ * @throws error in case handler is not a function
  * @throws error in case targets are not all usable event targets
  * @throws error in case delegations are missing viable ancestor targets
  * @returns {Function} remover function, which removes all handlers again, added by the current execution
@@ -781,7 +808,7 @@ export function on(targets, events, handler, options=null, once=false){
  * @param {?Object|Boolean} [options=null] - event listener options according to "addEventListener"-syntax, will be ignored, if browser does not support this, if boolean, will be used as "useCapture", the same will happen if options are not supported, but you defined "{capture : true}", "{once : true}" makes no sense in this case, because the behaviour will automatically be applied anyway
  * @throws error in case no targets are defined
  * @throws error in case no events are defined
- * @throws error in case no handler is not a function
+ * @throws error in case handler is not a function
  * @throws error in case targets are not all usable event targets
  * @throws error in case delegations are missing viable ancestor targets
  * @returns {Function} remover function, which removes all handlers again, added by the current execution
@@ -824,7 +851,7 @@ export function once(targets, events, handler, options=null){
  * @param {?Function} [handler=null] - a specific callback function to remove
  * @throws error in case no targets are defined
  * @throws error in case no events are defined
- * @throws error in case no handler is not a function
+ * @throws error in case a defined handler is not a function
  * @throws error in case targets are not all usable event targets
  * @throws error in case delegations are missing viable ancestor targets
  * @returns {Number} the number of handlers actually removed by the function call, may also be 0 if nothing matched
@@ -902,7 +929,7 @@ export function off(targets, events, handler=null){
  * @param {?Boolean} [paused=true] - defines if the matched handlers are being paused or resumed
  * @throws error in case no targets are defined
  * @throws error in case no events are defined
- * @throws error in case no handler is not a function
+ * @throws error in case a defined handler is not a function
  * @throws error in case targets are not all usable event targets
  * @throws error in case delegations are missing viable ancestor targets
  * @returns {Number} the number of handlers actually paused by the function call, may also be 0 if nothing matched
@@ -971,7 +998,7 @@ export function pause(targets, events, handler=null, paused=true){
  * @param {?Function} [handler=null] - a specific callback function to resume
  * @throws error in case no targets are defined
  * @throws error in case no events are defined
- * @throws error in case no handler is not a function
+ * @throws error in case a defined handler is not a function
  * @throws error in case targets are not all usable event targets
  * @throws error in case delegations are missing viable ancestor targets
  * @returns {Number} the number of handlers actually resumed by the function call, may also be 0 if nothing matched
@@ -1246,4 +1273,148 @@ export function offDetachedElements(targets){
 	});
 
 	return offCount;
+}
+
+
+
+/**
+ * @namespace Events:onSwipe
+ */
+
+/**
+ * Defines a handler for a swipe gesture on (an) element(s).
+ * Offers four swipe directions (up/right/down/left), where triggering the handler depends on the distance
+ * between touchstart and touchend in relation to the element's width or height, depending on the direction,
+ * multiplied by a factor to express a percentage.
+ *
+ * You may also set this method to also fire upon mouse swipes, by setting "hasToBeTouchDevice" to false.
+ *
+ * @param {EventTarget|Array<EventTarget>} targets - the target(s) to register event handlers on
+ * @param {String} direction - the direction to bind => up/down/left/right
+ * @param {Function} handler - the callback to execute if the event(s) defined in events are being received on target
+ * @param {?Number} [dimensionFactor=0.2] - to determine what registers as a swipe we use a percentage of the element's width/height, the touch has to move, default is 20%
+ * @param {?Boolean} [hasToBeTouchDevice=true] - if true, makes sure the handlers are only active on touch devices, if false, also reacts to mouse swipes
+ * @param {?String} [eventNameSpace='annex-swipe'] - apply an event namespace, which identifies specific events, helpful for a specific unbind later using the same namespace
+ * @throws error in case no targets are defined
+ * @throws error in case unknown direction is defined
+ * @throws error in case handler is not a function
+ * @throws error in case targets are not all usable event targets
+ * @throws error in case delegations are missing viable ancestor targets
+ * @returns {Function} remover function, which removes all handlers again, added by the current execution
+ *
+ * @memberof Events:onSwipe
+ * @alias onSwipe
+ * @see offSwipe
+ * @example
+ * onSwipe(slider, 'up', e => { e.currentTarget.fadeOut(); });
+ * onSwipe(slider, 'right', () => { document.body.dispatchEvent(new CustomEvent('load-previous-thing')); }, 0.15, false, 'foobar-prev');
+ */
+export function onSwipe(targets, direction, handler, dimensionFactor=0.2, hasToBeTouchDevice=true, eventNameSpace='annex-swipe'){
+	const __methodName__ = 'onSwipe';
+
+	direction = orDefault(direction, '', 'str');
+	dimensionFactor = orDefault(dimensionFactor, 0.2, 'float');
+	hasToBeTouchDevice = orDefault(hasToBeTouchDevice, true, 'bool');
+	eventNameSpace = orDefault(eventNameSpace, 'annex-swipe', 'str');
+
+	assert(SWIPE_DIRECTIONS.includes(direction), `${MODULE_NAME}:${__methodName__} | unknown direction "${direction}"`);
+
+	let events = [`touchstart.${eventNameSpace}-${direction}`, `touchend.${eventNameSpace}-${direction}`];
+	if( !hasToBeTouchDevice ){
+		events.push(`mousedown.${eventNameSpace}-${direction}`);
+		events.push(`mouseup.${eventNameSpace}-${direction}`);
+	}
+
+	({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler));
+
+	const originalHandler = handler;
+	handler = (hasToBeTouchDevice && (detectInteractionType() !== 'touch')) ? () => {} : originalHandler;
+	const swipeHandler = SWIPE_HANDLERS.get(originalHandler) ?? (e => {
+		updateSwipeTouch(e);
+
+		if( ['touchend', 'mouseup'].includes(e.type) ){
+			const
+				width = e.currentTarget.offsetWidth,
+				height = e.currentTarget.offsetHeight
+			;
+
+			if(
+				(!hasToBeTouchDevice || (detectInteractionType() === 'touch'))
+				&& (
+					((direction === 'up') && (SWIPE_TOUCH.startY > (SWIPE_TOUCH.endY + height * dimensionFactor)))
+					|| ((direction === 'right') && (SWIPE_TOUCH.startX < (SWIPE_TOUCH.endX - width * dimensionFactor)))
+					|| ((direction === 'down') && (SWIPE_TOUCH.startY < (SWIPE_TOUCH.endY - height * dimensionFactor)))
+					|| ((direction === 'left') && (SWIPE_TOUCH.startX > (SWIPE_TOUCH.endX + width * dimensionFactor)))
+				)
+			){
+				handler(e);
+			}
+		}
+	});
+	SWIPE_HANDLERS.set(originalHandler, swipeHandler);
+
+	return on(targets, events, swipeHandler);
+}
+
+
+
+/**
+ * @namespace Events:offSwipe
+ */
+
+/**
+ * Removes (a) handler(s) for a swipe gesture from (an) element(s).
+ *
+ * Normally all directions are removed individually, but if you leave out `direction` all directions are removed at once.
+ *
+ * @param {EventTarget|Array<EventTarget>} targets - the target(s) to remove event handlers from
+ * @param {?String} [direction=null] - the direction to remove => up/down/left/right, if empty, all directions are removed
+ * @param {?Function} [handler=null] - a specific callback function to remove
+ * @param {?String} [eventNameSpace='annex-swipe'] - event namespace to remove
+ * @throws error in case no targets are defined
+ * @throws error in case unknown direction is defined
+ * @throws error in case a defined handler is not a function
+ * @throws error in case targets are not all usable event targets
+ * @throws error in case delegations are missing viable ancestor targets
+ * @returns {Number} the number of handlers actually removed by the function call, may also be 0 if nothing matched
+ *
+ * @memberof Events:offSwipe
+ * @see onSwipe
+ * @example
+ * offSwipe(slider, 'right');
+ * offSwipe(slider, 'left', fSpecialHandler, 'foobar-prev');
+ * offSwipe(slider);
+ */
+export function offSwipe(targets, direction=null, handler=null, eventNameSpace='annex-swipe'){
+	const __methodName__ = 'offSwipe';
+
+	direction = orDefault(direction, '', 'str');
+	eventNameSpace = orDefault(eventNameSpace, 'annex-swipe', 'str');
+
+	assert(SWIPE_DIRECTIONS.concat('').includes(direction), `${MODULE_NAME}:${__methodName__} | unknown direction "${direction}"`);
+
+	const directions = (direction === '') ? SWIPE_DIRECTIONS : [direction];
+	let removedCount = 0;
+
+	directions.forEach(direction => {
+		let events = [
+			`touchstart.${eventNameSpace}-${direction}`,
+			`touchend.${eventNameSpace}-${direction}`,
+			`mousedown.${eventNameSpace}-${direction}`,
+			`mouseup.${eventNameSpace}-${direction}`
+		];
+
+		({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler, true));
+
+		if( hasValue(handler) ){
+			const swipeHandler = SWIPE_HANDLERS.get(handler);
+			if( hasValue(swipeHandler) ){
+				removedCount += off(targets, events, swipeHandler);
+			}
+		} else {
+			removedCount += off(targets, events);
+		}
+	});
+
+	return removedCount;
 }

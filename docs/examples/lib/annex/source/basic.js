@@ -898,4 +898,8 @@ export class Observable {
 	unsubscribe(subscription){
 		this._subscriptions = this._subscriptions.filter(s => s !== subscription);
 	}
+
+	toString(){
+		return `${this._value}`;
+	}
 }

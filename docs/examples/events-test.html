@@ -11,7 +11,7 @@
 
 		<link rel="stylesheet" href="./main.css"/>
 		<style>
-			.test {
+			#on-off-test {
 				padding: 1rem;
 				margin-top: 2rem;
 				outline: 1px solid steelblue;
@@ -19,28 +19,67 @@
 				transition: background-color 250ms ease-in-out;
 			}
 
-			.test p:first-child {
+			#on-off-test p:first-child {
 				margin-top: 0;
 
 				color: dimgray;
 			}
 
-			.test .content {
+			#on-off-test .content {
 				padding: 1rem;
 				outline: 1px solid turquoise;
 
 				transition: background-color 250ms ease-in-out;
 			}
 
-			.test .content form {
+			#on-off-test .content form {
 				padding: 1rem;
 				outline: 1px solid crimson;
 
 				transition: background-color 250ms ease-in-out;
 			}
 
-			.test .content form a {
+			#on-off-test .content form a {
 				display: inline-block;
+			}
+
+			#swipe-test {
+				position: relative;
+
+				width: 33vw;
+				min-width: 200px;
+				height: 33vw;
+				min-height: 200px;
+
+				background: aliceblue;
+
+				transition: background-color 250ms ease-in-out;
+			}
+
+			#swipe-test.active {
+				cursor: pointer;
+
+				background: dodgerblue;
+			}
+
+			#swipe-test.active:before {
+				content: 'swipe to see effect';
+
+				opacity: 0.5;
+
+				position: relative;
+				top: 2ex;
+				left: 2ex;
+			}
+
+			#swipe-test > p {
+				user-select: none;
+
+				position: absolute;
+				top: 50%;
+				left: 50%;
+
+				transform: translate(-50%, -50%);
 			}
 		</style>
 
@@ -55,131 +94,202 @@
 				pause,
 				resume,
 				fire,
-				emit
+				emit,
+				onSwipe,
+				offSwipe
 			){
 				polyfillCustomEvent();
 				polyfillElementMatches();
 
-				var
-					formSubmitOffButton = document.body.querySelector('#form-submit-off'),
-					formSubmitOnButton = document.body.querySelector('#form-submit-on'),
-					pauseBackgroundColoringButton = document.body.querySelector('#background-pause'),
-					resumeBackgroundColoringButton = document.body.querySelector('#background-resume'),
-					container = document.body.querySelector('.test'),
-					content = container.querySelector('.content'),
-					form = content.querySelector('form'),
-					input = form.querySelector('input'),
-					button = form.querySelector('button'),
-					link = form.querySelector('a'),
-					setColor = function(eventTarget){
-						var	targets = [].concat(eventTarget);
 
-						for( var i = 0; i < targets.length; i++ ){
-							var
-								target = targets[i],
-								targetStyle = window.getComputedStyle(target),
-								color = targetStyle.getPropertyValue('outline-color')
-							;
+				// on / once / off / pause / resume / fire / emit
 
-							if( !color || (color === 'transparent') ){
-								color = targetStyle.getPropertyValue('border-color');
+				(function(){
+					var
+						formSubmitOffButton = document.body.querySelector('#form-submit-off'),
+						formSubmitOnButton = document.body.querySelector('#form-submit-on'),
+						pauseBackgroundColoringButton = document.body.querySelector('#background-pause'),
+						resumeBackgroundColoringButton = document.body.querySelector('#background-resume'),
+						container = document.getElementById('on-off-test'),
+						content = container.querySelector('.content'),
+						form = content.querySelector('form'),
+						input = form.querySelector('input'),
+						button = form.querySelector('button'),
+						link = form.querySelector('a'),
+						setColor = function(eventTarget){
+							var	targets = [].concat(eventTarget);
+
+							for( var i = 0; i < targets.length; i++ ){
+								var
+									target = targets[i],
+									targetStyle = window.getComputedStyle(target),
+									color = targetStyle.getPropertyValue('outline-color')
+								;
+
+								if( !color || (color === 'transparent') ){
+									color = targetStyle.getPropertyValue('border-color');
+								}
+
+								if( !color || (color === 'transparent') ){
+									color = targetStyle.getPropertyValue('color');
+								}
+
+								target.style.backgroundColor = color;
+
+								window.setTimeout(function(){
+									target.style.backgroundColor = '';
+								}, 1000);
 							}
-
-							if( !color || (color === 'transparent') ){
-								color = targetStyle.getPropertyValue('color');
-							}
-
-							target.style.backgroundColor = color;
-
-							window.setTimeout(function(){
-								target.style.backgroundColor = '';
-							}, 1000);
 						}
+					;
+
+					on(link, 'click', function(e){
+						e.preventDefault();
+					});
+
+					on(link, 'click.bubbling', function(e){
+						setColor(e.currentTarget);
+					});
+
+					once(link, 'click.message', function(){
+						alert('I will only show on the first click.');
+					});
+
+					on([form, 'a'], 'click.bubbling', function(e){
+						setColor(e.currentTarget || e.syntheticTargetElements);
+					});
+
+					on([content, 'a'], 'click.bubbling', function(){
+						setColor(content);
+					});
+
+					on([container, 'a'], 'click.bubbling', function(){
+						setColor(container);
+					});
+
+					on([container, content], 'color.background', function(e){
+						setColor(e.currentTarget);
+					});
+
+					on([container, content, form], 'mouseenter', function(e){
+						e.currentTarget.style.outlineWidth = '3px';
+						const text = e.currentTarget.querySelector('p');
+						text.style.color = 'black';
+						text.style.fontWeight = 'bold';
+					});
+
+					on([container, content, form], 'mouseleave', function(e){
+						e.currentTarget.style.outlineWidth = '1px';
+						const text = e.currentTarget.querySelector('p');
+						text.style.color = 'dimgray';
+						text.style.fontWeight = 'normal';
+					});
+
+					on(form, 'color.background', function(){
+						setColor(form);
+					});
+
+					on(input, ['focus', 'blur'], function(){
+						emit(content, 'color');
+					});
+
+					on([form, 'input[type="text"]'], 'keyup', function(){
+						setColor(form);
+					});
+
+					function formSubmit(e){
+						e.preventDefault(e);
+						fire([form, 'a'], 'click');
+						fire(form, '*.background');
 					}
-				;
 
-				on(link, 'click', function(e){
-					e.preventDefault();
-				});
-
-				on(link, 'click.bubbling', function(e){
-					setColor(e.currentTarget);
-				});
-
-				once(link, 'click.message', function(){
-					alert('I will only show on the first click.');
-				});
-
-				on([form, 'a'], 'click.bubbling', function(e){
-					setColor(e.currentTarget || e.syntheticTargetElements);
-				});
-
-				on([content, 'a'], 'click.bubbling', function(){
-					setColor(content);
-				});
-
-				on([container, 'a'], 'click.bubbling', function(){
-					setColor(container);
-				});
-
-				on([container, content], 'color.background', function(e){
-					setColor(e.currentTarget);
-				});
-
-				on([container, content, form], 'mouseenter', function(e){
-					e.currentTarget.style.outlineWidth = '3px';
-					const text = e.currentTarget.querySelector('p');
-					text.style.color = 'black';
-					text.style.fontWeight = 'bold';
-				});
-
-				on([container, content, form], 'mouseleave', function(e){
-					e.currentTarget.style.outlineWidth = '1px';
-					const text = e.currentTarget.querySelector('p');
-					text.style.color = 'dimgray';
-					text.style.fontWeight = 'normal';
-				});
-
-				on(form, 'color.background', function(){
-					setColor(form);
-				});
-
-				on(input, ['focus', 'blur'], function(){
-					emit(content, 'color');
-				});
-
-				on([form, 'input[type="text"]'], 'keyup', function(){
-					setColor(form);
-				});
-
-				function formSubmit(e){
-					e.preventDefault(e);
-					fire([form, 'a'], 'click');
-					fire(form, '*.background');
-				}
-
-				on(form, 'submit.submission', formSubmit);
-
-				on(button, 'click', function(e){
-					e.stopPropagation();
-				});
-
-				on(formSubmitOffButton, 'click', function(){
-					off(form, '*.submission');
-				});
-
-				on(formSubmitOnButton, 'click', function(){
-					off(form, 'submit.submission');
 					on(form, 'submit.submission', formSubmit);
-				});
 
-				on(pauseBackgroundColoringButton, 'click', function(){
-					pause([link, form, 'a', content, 'a', container, 'a'], ['click.bubbling', '*.message']);
-				});
+					on(button, 'click', function(e){
+						e.stopPropagation();
+					});
 
-				on(resumeBackgroundColoringButton, 'click', function(){
-					resume([link, form, 'a', content, 'a', container, 'a'], 'click');
-				});
+					on(formSubmitOffButton, 'click', function(){
+						off(form, '*.submission');
+					});
+
+					on(formSubmitOnButton, 'click', function(){
+						off(form, 'submit.submission');
+						on(form, 'submit.submission', formSubmit);
+					});
+
+					on(pauseBackgroundColoringButton, 'click', function(){
+						pause([link, form, 'a', content, 'a', container, 'a'], ['click.bubbling', '*.message']);
+					});
+
+					on(resumeBackgroundColoringButton, 'click', function(){
+						resume([link, form, 'a', content, 'a', container, 'a'], 'click');
+					});
+				})();
+
+
+				// onSwipe / offSwipe
+
+				(function(){
+					var
+						eTest = document.getElementById('swipe-test'),
+						eMessage = eTest.querySelector('p'),
+						fSuppressEvent = function(e){
+							e.preventDefault();
+						}
+					;
+
+					document.getElementById('on-swipe-btn').addEventListener('click', function(e){
+						e.preventDefault();
+
+						offSwipe(eTest, 'up', null, 'foo');
+						onSwipe(eTest, 'up', function(e){
+							e.stopPropagation();
+
+							e.currentTarget.style.backgroundColor = 'steelblue';
+							eMessage.innerText = 'swipe up';
+						}, 0.15, false, 'foo');
+
+						offSwipe(eTest, 'right', null, 'foo');
+						onSwipe(eTest, 'right', function(e){
+							e.stopPropagation();
+
+							e.currentTarget.style.backgroundColor = 'turquoise';
+							eMessage.innerText = 'swipe right';
+						}, 0.15, false, 'foo');
+
+						offSwipe(eTest, 'down', null, 'foo');
+						onSwipe(eTest, 'down', function(e){
+							e.stopPropagation();
+
+							e.currentTarget.style.backgroundColor = 'crimson';
+							eMessage.innerText = 'swipe down';
+						}, 0.15, false, 'foo');
+
+						offSwipe(eTest, 'left', null, 'foo');
+						onSwipe(eTest, 'left', function(e){
+							e.stopPropagation();
+
+							e.currentTarget.style.backgroundColor = 'magenta';
+							eMessage.innerText = 'swipe left';
+						}, 0.15, false, 'foo');
+
+						eTest.addEventListener('touchmove', fSuppressEvent);
+
+						eTest.classList.add('active');
+					});
+
+					document.getElementById('off-swipe-btn').addEventListener('click', function(e){
+						e.preventDefault();
+
+						eTest.removeEventListener('touchmove', fSuppressEvent);
+
+						offSwipe(eTest, null, null, 'foo');
+						eTest.classList.remove('active');
+						eTest.style.backgroundColor = '';
+						eMessage.innerText = '';
+					});
+				})();
 			}
 		</script>
 		<script type="module">
@@ -197,7 +307,9 @@
 						pause,
 						resume,
 						fire,
-						emit
+						emit,
+						onSwipe,
+						offSwipe
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/events.js`);
 
 					setup(
@@ -209,7 +321,9 @@
 						pause,
 						resume,
 						fire,
-						emit
+						emit,
+						onSwipe,
+						offSwipe
 					);
 				})().catch(error => {
 					console.error(error);
@@ -233,7 +347,9 @@
 								window.annex.events.pause,
 								window.annex.events.resume,
 								window.annex.events.fire,
-								window.annex.events.emit
+								window.annex.events.emit,
+								window.annex.events.onSwipe,
+								window.annex.events.offSwipe
 							);
 						}
 					}
@@ -248,19 +364,26 @@
 		</header>
 		<main>
 			<h3>on / once / fire / emit</h3>
-			<section class="test">
-				<p>container</p>
-				<div class="content">
-					<p>content</p>
-					<form action="">
-						<p>form</p>
-						<label>
-							focussing/blurring the input should color the content and container backgrounds, typing should color the form background
-							<input name="test" type="text" placeholder="write something and hit enter to submit"/>
-						</label>
-						<button type="submit">submitting the form should color the link and the form backgrounds</button><br/><br/>
-						<a href="">clicking this should color all element backgrounds up to the outer container</a>
-					</form>
+
+			<section>
+				<p>
+					Move mouse over elements and interact with links and form elements, to see event chains happening,
+					which will color affected elements in the DOM.
+				</p>
+				<div id="on-off-test">
+					<p>container</p>
+					<div class="content">
+						<p>content</p>
+						<form action="">
+							<p>form</p>
+							<label>
+								focussing/blurring the input should color the content and container backgrounds, typing should color the form background
+								<input name="test" type="text" placeholder="write something and hit enter to submit"/>
+							</label>
+							<button type="submit">submitting the form should color the link and the form backgrounds</button><br/><br/>
+							<a href="">clicking this should color all element backgrounds up to the outer container</a>
+						</form>
+					</div>
 				</div>
 			</section>
 
@@ -271,6 +394,19 @@
 					<button id="background-resume" class="btn light-blue darken-1">resume background coloring on link click</button>
 					<button id="form-submit-off" class="btn light-blue darken-1">remove submit handler of form (form submit reloads page afterwards)</button>
 					<button id="form-submit-on" class="btn light-blue darken-1">add submit handler of form</button>
+				</div>
+			</section>
+
+			<h3>onSwipe / offSwipe</h3>
+			<section>
+				<p>
+					Bind and unbind swipe gestures on the colored element below, by using the buttons. Swipes should
+					result in a message and background color changes, if working correctly.
+				</p>
+				<div>
+					<button id="on-swipe-btn" class="btn light-blue darken-1">bind swipes</button>
+					<button id="off-swipe-btn" class="btn light-blue darken-1">unbind swipes</button>
+					<div id="swipe-test"><p></p></div>
 				</div>
 			</section>
 		</main>

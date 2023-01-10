@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Elements:createNode</title>
+    <title>JSDoc: Namespace: Events:offSwipe</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Elements:createNode</h1>
+    <h1 class="page-title">Namespace: Events:offSwipe</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Elements:createNode</h2>
+        <h2>Events:offSwipe</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line35">line 35</a>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line1361">line 1361</a>
     </li></ul></dd>
     
 
@@ -106,23 +106,15 @@
 
     
 
-    <h4 class="name" id="createNode"><span class="type-signature"></span>createNode<span class="signature">(tag<span class="signature-attributes">opt, nullable</span>, attributes<span class="signature-attributes">opt, nullable</span>, content<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {HTMLElement}</span></h4>
+    <h4 class="name" id=".exports.offSwipe"><span class="type-signature">(static) </span>exports.offSwipe<span class="signature">(targets, direction<span class="signature-attributes">opt, nullable</span>, handler<span class="signature-attributes">opt, nullable</span>, eventNameSpace<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Number}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Creates an element on the fly programmatically, based on provided name, attributes and content or markup,
-without inserting it into the DOM.</p>
-<p>If you provide markup as &quot;tag&quot;, make sure that there is one single root element, this method returns exactly one
-element, not a NodeList. Also be sure to <em>not</em> just pass HTML source from an unsecure source, since this
-method does not deal with potential security risks.</p>
-<p>One thing about dynamically creating script tags with this: if you want the script is javascript and you want to
-actually execute the script upon adding it to the dom, you cannot provide the complete tag as a source string,
-since scripts created with innerHTML will not execute.
-(see: https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML#security_considerations)
-Instead, just provide the tag name and define attributes and source via the parameters instead.</p>
+    <p>Removes (a) handler(s) for a swipe gesture from (an) element(s).</p>
+<p>Normally all directions are removed individually, but if you leave out <code>direction</code> all directions are removed at once.</p>
 </div>
 
 
@@ -162,13 +154,16 @@ Instead, just provide the tag name and define attributes and source via the para
 
         <tr>
             
-                <td class="name"><code>tag</code></td>
+                <td class="name"><code>targets</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">String</span>
+<span class="param-type">EventTarget</span>
+|
+
+<span class="param-type">Array.&lt;EventTarget></span>
 
 
             
@@ -177,11 +172,7 @@ Instead, just provide the tag name and define attributes and source via the para
             
                 <td class="attributes">
                 
-                    &lt;optional><br>
-                
 
-                
-                    &lt;nullable><br>
                 
 
                 
@@ -191,60 +182,17 @@ Instead, just provide the tag name and define attributes and source via the para
             
                 <td class="default">
                 
-                    'span'
-                
                 </td>
             
 
-            <td class="description last"><p>tag of the element to create or markup for root element</p></td>
+            <td class="description last"><p>the target(s) to remove event handlers from</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>attributes</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    null
-                
-                </td>
-            
-
-            <td class="description last"><p>tag attributes as key/value-pairs, will also be added to provided markup</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>content</code></td>
+                <td class="name"><code>direction</code></td>
             
 
             <td class="type">
@@ -278,7 +226,89 @@ Instead, just provide the tag name and define attributes and source via the para
                 </td>
             
 
-            <td class="description last"><p>content to insert into the element as textContent, be aware, that this will replace other content in provided markup</p></td>
+            <td class="description last"><p>the direction to remove =&gt; up/down/left/right, if empty, all directions are removed</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>handler</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>a specific callback function to remove</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>eventNameSpace</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'annex-swipe'
+                
+                </td>
+            
+
+            <td class="description last"><p>event namespace to remove</p></td>
         </tr>
 
     
@@ -319,12 +349,19 @@ Instead, just provide the tag name and define attributes and source via the para
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line71">line 71</a>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line1388">line 1388</a>
     </li></ul></dd>
     
 
     
 
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Events_onSwipe.html">onSwipe</a></li>
+        </ul>
+    </dd>
     
 
     
@@ -340,13 +377,65 @@ Instead, just provide the tag name and define attributes and source via the para
 
 
 
+<h5>Throws:</h5>
+<ul>
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case no targets are defined</p>
+    
+    </div>
+
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case unknown direction is defined</p>
+    
+    </div>
+
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case a defined handler is not a function</p>
+    
+    </div>
+
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case targets are not all usable event targets</p>
+    
+    </div>
+
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error in case delegations are missing viable ancestor targets</p>
+    
+    </div>
+
+</li>
+    </ul>
 
 
 <h5>Returns:</h5>
 
         
 <div class="param-desc">
-    the created DOM-node
+    the number of handlers actually removed by the function call, may also be 0 if nothing matched
 </div>
 
 
@@ -357,7 +446,7 @@ Instead, just provide the tag name and define attributes and source via the para
     </dt>
     <dd>
         
-<span class="param-type">HTMLElement</span>
+<span class="param-type">Number</span>
 
 
     </dd>
@@ -368,15 +457,9 @@ Instead, just provide the tag name and define attributes and source via the para
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>document.body.appendChild(
-  createNode('div', {id : 'content', style : 'display:none;'}, 'loading...')
-);
-document.body.appendChild(
-  createNode('&lt;div id="content" style="display:none;">loading...&lt;/div>')
-);
-document.body.appendChild(
-  createNode('script', {type : 'text/javascript'}, 'alert("Hello World");');
-);</code></pre>
+    <pre class="prettyprint"><code>offSwipe(slider, 'right');
+offSwipe(slider, 'left', fSpecialHandler, 'foobar-prev');
+offSwipe(slider);</code></pre>
 
 
 

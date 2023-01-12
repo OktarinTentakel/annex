@@ -14,7 +14,6 @@ const MODULE_NAME = 'Context';
 
 import {hasValue, isA, orDefault, Observable} from './basic.js';
 import {throttle} from './functions.js';
-import {createNode} from './elements.js';
 import {reschedule} from './timers.js';
 
 
@@ -135,7 +134,7 @@ export function contextHasHighDpi(){
  * foobarElement.style.width = `calc(100vw - ${browserScrollbarWidth()}px)`;
  */
 export function browserScrollbarWidth(){
-	const sandbox = createNode('div');
+	const sandbox = document.createElement('div');
 	sandbox.style.visibility = 'hidden';
 	sandbox.style.opacity = '0';
 	sandbox.style.pointerEvents = 'none';
@@ -147,7 +146,7 @@ export function browserScrollbarWidth(){
 	// firefox needs container to be at least 30px high to display scrollbar
 	sandbox.style.height = '50px';
 
-	const scrollbarEnforcer = createNode('div');
+	const scrollbarEnforcer = document.createElement('div');
 	scrollbarEnforcer.style.width = '100%';
 	scrollbarEnforcer.style.height = '100px';
 

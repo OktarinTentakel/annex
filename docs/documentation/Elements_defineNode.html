@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Navigation:onHistoryChange</title>
+    <title>JSDoc: Namespace: Elements:defineNode</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Navigation:onHistoryChange</h1>
+    <h1 class="page-title">Namespace: Elements:defineNode</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Navigation:onHistoryChange</h2>
+        <h2>Elements:defineNode</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="navigation.js.html">navigation.js</a>, <a href="navigation.js.html#line390">line 390</a>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line222">line 222</a>
     </li></ul></dd>
     
 
@@ -106,21 +106,30 @@
 
     
 
-    <h4 class="name" id="onHistoryChange"><span class="type-signature"></span>onHistoryChange<span class="signature">(callback, clearOld<span class="signature-attributes">opt, nullable</span>, usePreviousState<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="defineNode"><span class="type-signature"></span>defineNode<span class="signature">(node, definition, boilerplateNode<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {HTMLElement}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Registers an onpopstate event if history API is available (does nothing and warns if not available).
-Takes a callback, which is provided with states as plain objects like: {state, title, host, path}.
-Hint: do not rely on title, since that property may only be supported by browsers like Safari,
-serialize everything important into state and use title as orientation only.</p>
-<p>In case of a regular binding all callbacks get the current state, so the state that is being changed to, but
-if you set &quot;usePreviousState&quot; to true and prior navigation was done with &quot;changeCurrentUrl&quot;, all callbacks
-get two states: &quot;from&quot; and &quot;to&quot;. With this you can define rules an behaviour depending on the state you are
-coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quot; for navigation in tandem with this method.</p>
+    <p>Creates element attributes for an (existing) element, providing the possibility to declare another
+element as a boilerplate element to inherit attributes from.</p>
+<p>The basic premise is this: Define all attributes in a plain object, where the key is the attribute name and the
+value is the attribute value. <code>class</code> may be provided as an array of class definitions and <code>style</code> may be provided
+as a plain object (defining styles as key/value pairs, just as is <code>applyStyles</code>). You may even define <code>style</code> as an
+array of plain objects. In both arrays, the last entries have precedence. Everything else has to be a string.</p>
+<p>You can declare a <code>boilerplateNode</code> to use another element as source to inherit attributes from. To inherit an
+attribute (if it exists), declare the attribute with a value of &quot;&lt;-&quot;.</p>
+<p>Normally all attributes of the target element will be overwritten with provided/inherited values, but you may declare
+attributes with a preceding &quot;+&quot; to just add to anything already there. <code>class</code> as <code>+class</code> and <code>style</code> as <code>+style</code>
+for example. In these cases, classes and styles would be added to anything already declared. Normal string values
+would simply be concatenated.</p>
+<p>If you want to inherit all data-attributes or on-handlers from an element you may declare the fields <code>data*</code> and
+<code>on*</code> as &quot;&lt;-&quot; to inherit all attributes starting with data- or on. This would even work as <code>+data*</code> and <code>+on*</code>.</p>
+<p>Keep in mind that explicit definitions always have precedence over inherited values, so <code>data*</code> being &quot;&lt;-&quot; and an
+additionally declared data value will result in the element getting the declared value on the field and not having
+the inherited value.</p>
 </div>
 
 
@@ -160,13 +169,13 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
 
         <tr>
             
-                <td class="name"><code>callback</code></td>
+                <td class="name"><code>node</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">HTMLElement</span>
 
 
             
@@ -188,20 +197,55 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
                 </td>
             
 
-            <td class="description last"><p>function to execute on popstate</p></td>
+            <td class="description last"><p>the pre-existing node to (re)define</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>clearOld</code></td>
+                <td class="name"><code>definition</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>a plain object declaring attributes to set or inherit from another object of the form {attributeName : attributeValue|true}</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>boilerplateNode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
 
 
             
@@ -224,53 +268,12 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
             
                 <td class="default">
                 
-                    false
+                    null
                 
                 </td>
             
 
-            <td class="description last"><p>defines if old handlers should be removed before setting new one</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>usePreviousState</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    false
-                
-                </td>
-            
-
-            <td class="description last"><p>defines if callbacks should be provided with previous state as well (in that case, changeCurrentUrl must have been used for prior navigation)</p></td>
+            <td class="description last"><p>a node to take the definition from, all values set to true in definition are inherited from here</p></td>
         </tr>
 
     
@@ -311,7 +314,7 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="navigation.js.html">navigation.js</a>, <a href="navigation.js.html#line417">line 417</a>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line264">line 264</a>
     </li></ul></dd>
     
 
@@ -321,9 +324,7 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
     <dt class="tag-see">See:</dt>
     <dd class="tag-see">
         <ul>
-            <li><a href="Navigation_changeCurrentUrl.html">changeCurrentUrl</a></li>
-        
-            <li><a href="Navigation_offHistoryChange.html">offHistoryChange</a></li>
+            <li><a href="CSS_applyStyles.html">applyStyles</a></li>
         </ul>
     </dd>
     
@@ -342,24 +343,57 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
 
 
 <h5>Throws:</h5>
-
-        
+<ul>
+        <li>
 
     <div class="param-desc">
     
-        <p>error if callback is no function</p>
+        <p>error if target is not an HTMLElement</p>
     
     </div>
 
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error if definition is not a plain object</p>
+    
+    </div>
+
+</li>
+    </ul>
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    the (re)defined node
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">HTMLElement</span>
+
+
+    </dd>
+</dl>
 
     
-
-
 
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>onHistoryChange(function(){ alert('Hey, don\'t do this!'); }, true);</code></pre>
+    <pre class="prettyprint"><code>defineNode(existingElement, {'id' : 'kitten', '+class' : ['cute', 'fluffy'], '+style' : ['display:none;', {position : 'absolute'}]});
+defineNode(existingElement, {'+class' : '&lt;-', 'data*' : '&lt;-', 'data-foo' : 'this will have precedence over data*'}, anotherElement);</code></pre>
 
 
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Navigation:onHistoryChange</title>
+    <title>JSDoc: Namespace: Events:onDomReady</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Navigation:onHistoryChange</h1>
+    <h1 class="page-title">Namespace: Events:onDomReady</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Navigation:onHistoryChange</h2>
+        <h2>Events:onDomReady</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="navigation.js.html">navigation.js</a>, <a href="navigation.js.html#line390">line 390</a>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line1425">line 1425</a>
     </li></ul></dd>
     
 
@@ -106,21 +106,14 @@
 
     
 
-    <h4 class="name" id="onHistoryChange"><span class="type-signature"></span>onHistoryChange<span class="signature">(callback, clearOld<span class="signature-attributes">opt, nullable</span>, usePreviousState<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".exports.onDomReady"><span class="type-signature">(static) </span>exports.onDomReady<span class="signature">(callback)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Registers an onpopstate event if history API is available (does nothing and warns if not available).
-Takes a callback, which is provided with states as plain objects like: {state, title, host, path}.
-Hint: do not rely on title, since that property may only be supported by browsers like Safari,
-serialize everything important into state and use title as orientation only.</p>
-<p>In case of a regular binding all callbacks get the current state, so the state that is being changed to, but
-if you set &quot;usePreviousState&quot; to true and prior navigation was done with &quot;changeCurrentUrl&quot;, all callbacks
-get two states: &quot;from&quot; and &quot;to&quot;. With this you can define rules an behaviour depending on the state you are
-coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quot; for navigation in tandem with this method.</p>
+    <p>Executes a callback on document ready (DOM parsed, complete and usable, not loaded/onload).</p>
 </div>
 
 
@@ -144,11 +137,7 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
         <th>Type</th>
 
         
-        <th>Attributes</th>
-        
 
-        
-        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -173,104 +162,10 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
             </td>
 
             
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
 
             
-                <td class="default">
-                
-                </td>
-            
 
-            <td class="description last"><p>function to execute on popstate</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>clearOld</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    false
-                
-                </td>
-            
-
-            <td class="description last"><p>defines if old handlers should be removed before setting new one</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>usePreviousState</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    false
-                
-                </td>
-            
-
-            <td class="description last"><p>defines if callbacks should be provided with previous state as well (in that case, changeCurrentUrl must have been used for prior navigation)</p></td>
+            <td class="description last"><p>function to execute, once document is parsed and ready</p></td>
         </tr>
 
     
@@ -311,21 +206,12 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="navigation.js.html">navigation.js</a>, <a href="navigation.js.html#line417">line 417</a>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line1440">line 1440</a>
     </li></ul></dd>
     
 
     
 
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="Navigation_changeCurrentUrl.html">changeCurrentUrl</a></li>
-        
-            <li><a href="Navigation_offHistoryChange.html">offHistoryChange</a></li>
-        </ul>
-    </dd>
     
 
     
@@ -341,25 +227,15 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
 
 
 
-<h5>Throws:</h5>
-
-        
-
-    <div class="param-desc">
-    
-        <p>error if callback is no function</p>
-    
-    </div>
-
-
-    
 
 
 
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>onHistoryChange(function(){ alert('Hey, don\'t do this!'); }, true);</code></pre>
+    <pre class="prettyprint"><code>onDomReady(() => {
+    document.body.classList.add('dom-ready');
+});</code></pre>
 
 
 

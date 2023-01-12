@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Navigation:onHistoryChange</title>
+    <title>JSDoc: Namespace: Elements:prime</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Navigation:onHistoryChange</h1>
+    <h1 class="page-title">Namespace: Elements:prime</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Navigation:onHistoryChange</h2>
+        <h2>Elements:prime</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="navigation.js.html">navigation.js</a>, <a href="navigation.js.html#line390">line 390</a>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line896">line 896</a>
     </li></ul></dd>
     
 
@@ -106,21 +106,33 @@
 
     
 
-    <h4 class="name" id="onHistoryChange"><span class="type-signature"></span>onHistoryChange<span class="signature">(callback, clearOld<span class="signature-attributes">opt, nullable</span>, usePreviousState<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="prime"><span class="type-signature"></span>prime<span class="signature">(node, init, classChanges<span class="signature-attributes">opt, nullable</span>, markerAttributesName<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {<a href="global.html#Deferred">Deferred</a>}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Registers an onpopstate event if history API is available (does nothing and warns if not available).
-Takes a callback, which is provided with states as plain objects like: {state, title, host, path}.
-Hint: do not rely on title, since that property may only be supported by browsers like Safari,
-serialize everything important into state and use title as orientation only.</p>
-<p>In case of a regular binding all callbacks get the current state, so the state that is being changed to, but
-if you set &quot;usePreviousState&quot; to true and prior navigation was done with &quot;changeCurrentUrl&quot;, all callbacks
-get two states: &quot;from&quot; and &quot;to&quot;. With this you can define rules an behaviour depending on the state you are
-coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quot; for navigation in tandem with this method.</p>
+    <p>Offers an execution frame for element preparation like setting handlers and transforming dom.
+Takes a function including the initialization code of an element and wraps it with
+a check if this initialization was already executed (via data-attribute) as well
+as a document ready handler to make sure no initializations are executed with a half-ready dom.</p>
+<p>If the initialization function returns a Promise or Deferred, the returned Deferred will resolve or reject
+accordingly with the same result value or rejection. If <code>init</code> does not return a Promise or Deferred, the returned
+Deferred will resolve as soon as document ready was reached. So, to be able to work with applied changes
+on the element after calling <code>prime</code> you have three options:</p>
+<ol>
+<li>Either make sure document ready occurred before prime(), so <code>init</code> gets called synchronously right away.</li>
+<li>Wrap the code after prime a DOM-ready-check as well, to establish a synchronous event order.</li>
+<li>Use the returned Deferred's <code>.then()</code>.</li>
+</ol>
+<p>During priming, the node receives three data-attributes, stating the current step. The attribute name is built
+according to the value of <code>markerAttributeNames</code> like this:</p>
+<ol>
+<li>data-${markerAttributeNames}=&quot;true&quot; =&gt; as soon as prime is executed on the node</li>
+<li>data-${markerAttributeNames}-ready=&quot;true&quot; =&gt; as soon as the init function has been executed and the dom is ready</li>
+<li>data-${markerAttributeNames}-resolved=&quot;true&quot; =&gt; as soon as the returned Deferred has resolved</li>
+</ol>
 </div>
 
 
@@ -160,7 +172,42 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
 
         <tr>
             
-                <td class="name"><code>callback</code></td>
+                <td class="name"><code>node</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLElement</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>the element to prime</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>init</code></td>
             
 
             <td class="type">
@@ -188,20 +235,20 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
                 </td>
             
 
-            <td class="description last"><p>function to execute on popstate</p></td>
+            <td class="description last"><p>the function containing all initialization code for the node, the return value may either also be a Promise or Deferred (probably resolving to a value), the return value will be used to resolve the returned Deferred of the function; if you need to detect repeated prime calls on the same element, it is a good idea to let init return something other than &quot;undefined&quot;, since that value also signifies a repeated call</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>clearOld</code></td>
+                <td class="name"><code>classChanges</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">Object.&lt;String, (String|Array.&lt;String>)></span>
 
 
             
@@ -224,25 +271,25 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
             
                 <td class="default">
                 
-                    false
+                    null
                 
                 </td>
             
 
-            <td class="description last"><p>defines if old handlers should be removed before setting new one</p></td>
+            <td class="description last"><p>if set, may contain the keys &quot;add&quot; and/or &quot;remove&quot; holding standard class strings or arrays of standard class strings, defining which classes to add and/or remove once priming is done, helpful to automatically remove visual cloaking or set ready markers; adding has precedence over removing</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>usePreviousState</code></td>
+                <td class="name"><code>markerAttributesName</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">String</span>
 
 
             
@@ -265,12 +312,12 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
             
                 <td class="default">
                 
-                    false
+                    'primed'
                 
                 </td>
             
 
-            <td class="description last"><p>defines if callbacks should be provided with previous state as well (in that case, changeCurrentUrl must have been used for prior navigation)</p></td>
+            <td class="description last"><p>this function uses data-attributes to mark priming status, this is the name used to construct these attributes (default: data-primed*=&quot;...&quot;)</p></td>
         </tr>
 
     
@@ -311,21 +358,12 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="navigation.js.html">navigation.js</a>, <a href="navigation.js.html#line417">line 417</a>
+        <a href="elements.js.html">elements.js</a>, <a href="elements.js.html#line935">line 935</a>
     </li></ul></dd>
     
 
     
 
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="Navigation_changeCurrentUrl.html">changeCurrentUrl</a></li>
-        
-            <li><a href="Navigation_offHistoryChange.html">offHistoryChange</a></li>
-        </ul>
-    </dd>
     
 
     
@@ -342,24 +380,58 @@ coming from. Keep in mind: this only works if you use &quot;changeCurrentUrl&quo
 
 
 <h5>Throws:</h5>
-
-        
+<ul>
+        <li>
 
     <div class="param-desc">
     
-        <p>error if callback is no function</p>
+        <p>error if node is not a usable HTML element</p>
     
     </div>
 
+</li>
+    
+        <li>
+
+    <div class="param-desc">
+    
+        <p>error if init is not a function</p>
+    
+    </div>
+
+</li>
+    </ul>
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    resolves to the return value of init function or to `undefined` if element was already primed
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="global.html#Deferred">Deferred</a></span>
+
+
+    </dd>
+</dl>
 
     
-
-
 
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>onHistoryChange(function(){ alert('Hey, don\'t do this!'); }, true);</code></pre>
+    <pre class="prettyprint"><code>prime(widget, () => { return Promise.resolve(); });
+prime(anotherWidget, () => { return somethingLongRunningAsync(); })).then(function(){ ... })
+prime(yetAnotherWidget, node => { magicallyTransform(node); }, {remove : 'cloaked'});</code></pre>
 
 
 

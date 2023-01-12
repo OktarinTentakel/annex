@@ -81,6 +81,18 @@
 
 				transform: translate(-50%, -50%);
 			}
+
+			#on-dom-ready,
+			#on-dom-ready-again {
+				display: none;
+
+				margin-left: 0;
+			}
+
+			#on-dom-ready:after,
+			#on-dom-ready-again:after {
+				content: '';
+			}
 		</style>
 
 		<script defer src="./lib/handle-version-switching.js"></script>
@@ -96,7 +108,8 @@
 				fire,
 				emit,
 				onSwipe,
-				offSwipe
+				offSwipe,
+				onDomReady
 			){
 				polyfillCustomEvent();
 				polyfillElementMatches();
@@ -290,6 +303,20 @@
 						eMessage.innerText = '';
 					});
 				})();
+
+
+				// onDomReady
+
+				(function(){
+					onDomReady(function(){
+						document.getElementById('on-dom-ready').style.display = 'inline';
+						window.setTimeout(function(){
+							onDomReady(function(){
+								document.getElementById('on-dom-ready-again').style.display = 'inline';
+							});
+						}, 3000);
+					});
+				})();
 			}
 		</script>
 		<script type="module">
@@ -309,7 +336,8 @@
 						fire,
 						emit,
 						onSwipe,
-						offSwipe
+						offSwipe,
+						onDomReady
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/events.js`);
 
 					setup(
@@ -323,7 +351,8 @@
 						fire,
 						emit,
 						onSwipe,
-						offSwipe
+						offSwipe,
+						onDomReady
 					);
 				})().catch(error => {
 					console.error(error);
@@ -349,7 +378,8 @@
 								window.annex.events.fire,
 								window.annex.events.emit,
 								window.annex.events.onSwipe,
-								window.annex.events.offSwipe
+								window.annex.events.offSwipe,
+								window.annex.events.onDomReady
 							);
 						}
 					}
@@ -407,6 +437,18 @@
 					<button id="on-swipe-btn" class="btn light-blue darken-1">bind swipes</button>
 					<button id="off-swipe-btn" class="btn light-blue darken-1">unbind swipes</button>
 					<div id="swipe-test"><p></p></div>
+				</div>
+			</section>
+
+			<h3>onDomReady</h3>
+			<section>
+				<p>
+					There should be two badges visible here (after some seconds), one being shown on dom ready event
+					firing, the other one being shown on checking dom ready again, after the event has already been fired.
+				</p>
+				<div>
+					<span id="on-dom-ready" class="new badge green accent-4">dom ready via event</span>
+					<span id="on-dom-ready-again" class="new badge green accent-4">dom ready after already fired</span>
 				</div>
 			</section>
 		</main>

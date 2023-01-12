@@ -13,6 +13,7 @@ const {
 	createNode,
 	insertNode,
 	replaceNode,
+	defineNode,
 	getTextContent,
 	isInDom,
 	getData,
@@ -20,7 +21,8 @@ const {
 	removeData,
 	find,
 	findOne,
-	findTextNodes
+	findTextNodes,
+	prime
 } = pkg;
 
 
@@ -115,8 +117,95 @@ test('replaceNode', assert => {
 
 
 
+test('defineNode', assert => {
+	let
+		foo = document.createElement('div'),
+		bar = document.createElement('select')
+	;
+
+	bar.setAttribute('class', 'dropdown special');
+	bar.setAttribute('data-placeholder', 'placeholder');
+	bar.setAttribute('data-selected', 'bar');
+	bar.setAttribute('onclick', 'javascript:alert(\'click\');');
+	bar.setAttribute('onmouseover', 'javascript:alert(\'hover\');');
+	bar.setAttribute('style', 'color:red; background:blue');
+	bar.innerHTML = '<option value="bar">bar</option>';
+
+	defineNode(foo, {
+		id : 'foo',
+		'class' : 'these are',
+		'+class' : ['my', 'classes'],
+		'data-foo' : 'foo',
+		'data-bar' : '<-',
+		style : {
+			color : 'yellow',
+			cursor : 'pointer'
+		},
+		'+style' : 'color:green;background:yellow;'
+	});
+
+	assert.is(foo.getAttribute('id'), 'foo');
+	assert.true(foo.classList.contains('these'));
+	assert.true(foo.classList.contains('are'));
+	assert.true(foo.classList.contains('my'));
+	assert.true(foo.classList.contains('classes'));
+	assert.is(foo.dataset.foo, 'foo');
+	assert.is(foo.getAttribute('data-foo'), 'foo');
+	assert.is(foo.style.color, 'green');
+	assert.is(foo.style.cursor, 'pointer');
+	assert.true(foo.getAttribute('style').includes('background: yellow'));
+
+	foo = document.createElement('div');
+	foo.setAttribute('class', 'foo');
+	foo.setAttribute('style', 'color:blue;');
+	foo.setAttribute('data-placeholder', 'foo');
+
+	assert.throws(() => {
+		defineNode(foo, 'I am not a plain object.');
+	});
+
+	defineNode(foo, {
+		'id' : 'foo',
+		'+class' : '<-',
+		'data-selected' : 'foo',
+		'+data*' : '<-',
+		'on*' : '<-',
+		'style' : '<-'
+	}, bar);
+
+	assert.is(foo.getAttribute('id'), 'foo');
+	assert.true(foo.classList.contains('foo'));
+	assert.true(foo.classList.contains('dropdown'));
+	assert.true(foo.classList.contains('special'));
+	assert.is(foo.dataset.placeholder, 'fooplaceholder');
+	assert.is(foo.getAttribute('data-placeholder'), 'fooplaceholder');
+	assert.is(foo.getAttribute('data-selected'), 'foobar');
+	assert.is(foo.getAttribute('onclick'), 'javascript:alert(\'click\');');
+	assert.is(foo.getAttribute('onmouseover'), 'javascript:alert(\'hover\');');
+	assert.is(foo.getAttribute('style'), 'color: red; background: blue;');
+	assert.is(foo.style.color, 'red');
+	assert.is(foo.style.background, 'blue');
+
+
+	foo = document.createElement('div');
+
+	defineNode(foo, {
+		'id' : 'foo',
+		'+class' : '<-',
+		'data-selected' : 'foo',
+		'data*' : '<-',
+		'on*' : '<-'
+	}, document.createElement('p'));
+
+	assert.is(foo.getAttribute('id'), 'foo');
+	assert.is(foo.dataset.selected, 'foo');
+	assert.is(foo.getAttribute('data-selected'), 'foo');
+});
+
+
+
 test('getTextContent', assert => {
-	const source = '<p onlick="destroyWorld();">red button <a>meow<span>woof</span></a></p>';
+	const source = '<p onclick="destroyWorld();">red button <a>meow<span>woof</span></a></p>';
 
 	assert.is(getTextContent(source), 'red button meowwoof');
 	assert.is(getTextContent(createNode(source)), 'red button meowwoof');
@@ -385,4 +474,120 @@ test('findTextNodes', assert => {
 	assert.is(test, 'deshita!!!');
 
 	assert.is(findTextNodes(document.createElement('span')).length, 0);
+});
+
+
+
+test.cb('prime', assert => {
+	let
+		foo = document.createElement('p'),
+		bar = document.createElement('span'),
+		boo = document.createElement('input'),
+		promisesResolvedCount = 0
+	;
+
+	bar.setAttribute('class', 'foo bar boo');
+	boo.setAttribute('type', 'hidden');
+	boo.setAttribute('name', 'boo');
+	boo.setAttribute('value', 'boo');
+
+	const fWaitForPromises = resolution => {
+		assert.is(resolution, 42);
+
+		promisesResolvedCount++;
+		if( promisesResolvedCount >= 4 ){
+			assert.is(foo.getAttribute('data-primed'), 'true');
+			assert.is(bar.getAttribute('data-primed-ready'), 'true');
+			assert.is(bar.dataset.primedResolved, 'true');
+			assert.is(foo.getAttribute('id'), 'foo');
+			assert.is(foo.innerText, 'foo');
+			assert.true(bar.classList.contains('foo'));
+			assert.true(bar.classList.contains('far'));
+			assert.false(bar.classList.contains('boo'));
+			assert.false(bar.classList.contains('bar'));
+			assert.true(boo.classList.contains('far'));
+
+			prime(foo, () => {}).then(resolution => {
+				assert.is(resolution, undefined);
+				assert.end();
+			});
+		}
+	};
+
+	prime(foo, node => {
+		node.setAttribute('id', 'foo');
+		node.innerText = 'foo';
+		return 42;
+	}).then(fWaitForPromises);
+
+	prime(
+		bar,
+		() => {
+			return new Promise(resolve => {
+				window.setTimeout(() => { resolve(42); }, 1000);
+			});
+		},
+		{add : 'far', remove : 'foo boo bar'}
+	).then(fWaitForPromises);
+
+
+	foo = document.createElement('p');
+	bar = document.createElement('span');
+	bar.setAttribute('class', 'foo bar boo');
+
+	Promise.all([
+		prime(foo, node => {
+			return new Promise(resolve => {
+				node.setAttribute('id', 'foo');
+				node.innerText = 'foo';
+				window.setTimeout(() => { resolve(42); }, 250);
+			});
+		}),
+		...([bar, boo].reduce((primes, node) => {
+			primes.push(prime(
+				node,
+				() => {
+					return new Promise(resolve => {
+						window.setTimeout(() => { resolve(42); }, 750);
+					});
+				},
+				{add : 'far', remove : 'far boo bar'}
+			));
+			return primes;
+		}, []))
+	]).then(resolutions => {
+		fWaitForPromises(resolutions[0]);
+	});
+
+	foo = document.createElement('p');
+	bar = document.createElement('span');
+	bar.setAttribute('class', 'foo bar boo');
+
+	Promise.all([
+		prime(foo, node => {
+			return new Promise(resolve => {
+				node.setAttribute('id', 'foo');
+				node.innerText = 'foo';
+				window.setTimeout(() => { resolve(42); }, 500);
+			});
+		}),
+		...([bar, boo].reduce((primes, node) => {
+			primes.push(prime(
+				node,
+				() => {
+					return new Promise(resolve => {
+						window.setTimeout(() => { resolve(42); }, 300);
+					});
+				},
+				{add : 'far', remove : ['far', 'boo', 'bar']}
+			));
+			return primes;
+		}, []))
+	]).then(resolutions => {
+		fWaitForPromises(resolutions[0]);
+	});
+
+	assert.throws(() => {
+		prime(boo, 5);
+	});
 });

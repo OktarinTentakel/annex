@@ -12,9 +12,11 @@ const MODULE_NAME = 'Elements';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, hasValue, assert, size} from './basic.js';
+import {orDefault, isA, isPlainObject, hasValue, assert, size, Deferred} from './basic.js';
 import {randomUuid} from './random.js';
 import {clone} from './objects.js';
+import {onDomReady} from './events.js';
+import {applyStyles} from './css.js';
 
 
 
@@ -211,6 +213,171 @@ export function replaceNode(target, node){
 
 	insertNode(target, node, 'after');
 	target.parentNode.removeChild(target);
+
+	return node;
+}
+
+
+
+/**
+ * @namespace Elements:defineNode
+ */
+
+/**
+ * Creates element attributes for an (existing) element, providing the possibility to declare another
+ * element as a boilerplate element to inherit attributes from.
+ *
+ * The basic premise is this: Define all attributes in a plain object, where the key is the attribute name and the
+ * value is the attribute value. `class` may be provided as an array of class definitions and `style` may be provided
+ * as a plain object (defining styles as key/value pairs, just as is `applyStyles`). You may even define `style` as an
+ * array of plain objects. In both arrays, the last entries have precedence. Everything else has to be a string.
+ *
+ * You can declare a `boilerplateNode` to use another element as source to inherit attributes from. To inherit an
+ * attribute (if it exists), declare the attribute with a value of "<-".
+ *
+ * Normally all attributes of the target element will be overwritten with provided/inherited values, but you may declare
+ * attributes with a preceding "+" to just add to anything already there. `class` as `+class` and `style` as `+style`
+ * for example. In these cases, classes and styles would be added to anything already declared. Normal string values
+ * would simply be concatenated.
+ *
+ * If you want to inherit all data-attributes or on-handlers from an element you may declare the fields `data*` and
+ * `on*` as "<-" to inherit all attributes starting with data- or on. This would even work as `+data*` and `+on*`.
+ *
+ * Keep in mind that explicit definitions always have precedence over inherited values, so `data*` being "<-" and an
+ * additionally declared data value will result in the element getting the declared value on the field and not having
+ * the inherited value.
+ *
+ * @param {HTMLElement} node - the pre-existing node to (re)define
+ * @param {Object} definition - a plain object declaring attributes to set or inherit from another object of the form {attributeName : attributeValue|true}
+ * @param {?HTMLElement} [boilerplateNode=null] - a node to take the definition from, all values set to true in definition are inherited from here
+ * @throws error if target is not an HTMLElement
+ * @throws error if definition is not a plain object
+ * @returns {HTMLElement} the (re)defined node
+ *
+ * @memberof Elements:defineNode
+ * @alias defineNode
+ * @see applyStyles
+ * @example
+ * defineNode(existingElement, {'id' : 'kitten', '+class' : ['cute', 'fluffy'], '+style' : ['display:none;', {position : 'absolute'}]});
+ * defineNode(existingElement, {'+class' : '<-', 'data*' : '<-', 'data-foo' : 'this will have precedence over data*'}, anotherElement);
+ */
+export function defineNode(node, definition, boilerplateNode=null){
+	const __methodName__ = 'defineNode';
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isPlainObject(definition), `${MODULE_NAME}:${__methodName__} | definitions is not a plain object`);
+
+	const inheritValue = '<-';
+
+	if( isA(boilerplateNode, 'htmlelement') ){
+		Array.from(boilerplateNode.attributes).forEach(attribute => {
+			if(
+				(definition[attribute.name] === inheritValue)
+				|| (
+					!hasValue(definition[attribute.name])
+					&& (
+						((definition['data*'] === inheritValue) && attribute.name.startsWith('data-'))
+						|| ((definition['on*'] === inheritValue) && attribute.name.startsWith('on'))
+					)
+				)
+			){
+				definition[attribute.name] = attribute.value;
+			}
+
+			if(
+				(definition[`+${attribute.name}`] === inheritValue)
+				|| (
+					!hasValue(definition[`+${attribute.name}`])
+					&& (
+						((definition['+data*'] === inheritValue) && attribute.name.startsWith('data-'))
+						|| ((definition['+on*'] === inheritValue) && attribute.name.startsWith('on'))
+					)
+				)
+			){
+				if(
+					!hasValue(definition[`+${attribute.name}`])
+					|| (definition[`+${attribute.name}`] === inheritValue)
+				){
+					definition[`+${attribute.name}`] = '';
+				}
+
+				definition[`+${attribute.name}`] += attribute.value;
+			}
+		});
+	}
+
+	delete definition['data*'];
+	delete definition['+data*'];
+	delete definition['on*'];
+	delete definition['+on*'];
+	Object.keys(definition).forEach(name => {
+		if( definition[name] === inheritValue ){
+			delete definition[name];
+		}
+	});
+
+	Object.keys(definition).sort().reverse().forEach(name => {
+		const
+			value = definition[name],
+			addValue = name.startsWith('+')
+		;
+
+		if( addValue ){
+			name = name.slice(1);
+		}
+
+		if( name.endsWith('*') ){
+			name = name.slice(0, -1);
+		}
+
+		if( (name === 'class') ){
+			if( !addValue ){
+				node.setAttribute('class', '');
+			}
+
+			[].concat(value).forEach(value => {
+				`${value}`.split(' ').forEach(value => {
+					node.classList.add(`${value.trim()}`);
+				});
+			});
+		} else if( (name === 'style') ){
+			if( !addValue ){
+				node.setAttribute('style', '');
+			}
+
+			[].concat(value).forEach(value => {
+				if( !isPlainObject(value) ){
+					const
+						rules = `${value}`.split(';'),
+						valueObj = {}
+					;
+
+					rules.forEach(rule => {
+						let [key, prop] = rule.split(':');
+						key = key.trim();
+
+						if( hasValue(prop) ){
+							prop = prop.trim();
+							prop = prop.endsWith(';') ? prop.slice(0, -1) : prop;
+							valueObj[key] = prop;
+						}
+					});
+
+					value = valueObj;
+				}
+
+				if( hasValue(value) ){
+					applyStyles(node, value);
+				}
+			});
+		} else {
+			if( !addValue ){
+				node.setAttribute(name, `${value}`);
+			} else {
+				node.setAttribute(name, `${node.getAttribute(name) ?? ''}${value}`);
+			}
+		}
+	});
 
 	return node;
 }
@@ -688,8 +855,12 @@ export function findOne(node, selector='*'){
  * 	=> 'arigatou gozaimasu deshita mr. roboto!!!';
  */
 export function findTextNodes(node, filter=null, onlyFirstLevel=false){
+	const __methodName__ = 'findTextNodes';
+
 	filter = isA(filter, 'function') ? filter : () => true;
 	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	const
 		textNodeType = 3,
@@ -718,6 +889,106 @@ export function findTextNodes(node, filter=null, onlyFirstLevel=false){
 	;
 
 	return extractTextNodes(node);
+}
+
+
+
+/**
+ * @namespace Elements:prime
+ */
+
+/**
+ * Offers an execution frame for element preparation like setting handlers and transforming dom.
+ * Takes a function including the initialization code of an element and wraps it with
+ * a check if this initialization was already executed (via data-attribute) as well
+ * as a document ready handler to make sure no initializations are executed with a half-ready dom.
+ *
+ * If the initialization function returns a Promise or Deferred, the returned Deferred will resolve or reject
+ * accordingly with the same result value or rejection. If `init` does not return a Promise or Deferred, the returned
+ * Deferred will resolve as soon as document ready was reached. So, to be able to work with applied changes
+ * on the element after calling `prime` you have three options:
+ * 1. Either make sure document ready occurred before prime(), so `init` gets called synchronously right away.
+ * 2. Wrap the code after prime a DOM-ready-check as well, to establish a synchronous event order.
+ * 3. Use the returned Deferred's `.then()`.
+ *
+ * During priming, the node receives three data-attributes, stating the current step. The attribute name is built
+ * according to the value of `markerAttributeNames` like this:
+ * 1. data-${markerAttributeNames}="true" => as soon as prime is executed on the node
+ * 2. data-${markerAttributeNames}-ready="true" => as soon as the init function has been executed and the dom is ready
+ * 2. data-${markerAttributeNames}-resolved="true" => as soon as the returned Deferred has resolved
+ *
+ * @param {HTMLElement} node - the element to prime
+ * @param {Function} init - the function containing all initialization code for the node, the return value may either also be a Promise or Deferred (probably resolving to a value), the return value will be used to resolve the returned Deferred of the function; if you need to detect repeated prime calls on the same element, it is a good idea to let init return something other than "undefined", since that value also signifies a repeated call
+ * @param {?Object<String,String|Array<String>>} [classChanges=null] - if set, may contain the keys "add" and/or "remove" holding standard class strings or arrays of standard class strings, defining which classes to add and/or remove once priming is done, helpful to automatically remove visual cloaking or set ready markers; adding has precedence over removing
+ * @param {?String} [markerAttributesName='primed'] - this function uses data-attributes to mark priming status, this is the name used to construct these attributes (default: data-primed*="...")
+ * @throws error if node is not a usable HTML element
+ * @throws error if init is not a function
+ * @returns {Deferred} resolves to the return value of init function or to `undefined` if element was already primed
+ *
+ * @memberof Elements:prime
+ * @alias prime
+ * @example
+ * prime(widget, () => { return Promise.resolve(); });
+ * prime(anotherWidget, () => { return somethingLongRunningAsync(); })).then(function(){ ... })
+ * prime(yetAnotherWidget, node => { magicallyTransform(node); }, {remove : 'cloaked'});
+ */
+export function prime(node, init, classChanges=null, markerAttributesName='primed'){
+	const __methodName__ = 'prime';
+
+	classChanges = orDefault(classChanges, {});
+	markerAttributesName = orDefault(markerAttributesName, 'primed', 'str');
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isA(init, 'function'), `${MODULE_NAME}:${__methodName__} | init is not a function`);
+
+	const deferred = new Deferred();
+
+	if( getData(node, markerAttributesName) !== true ){
+		setData(node, markerAttributesName, true);
+
+		onDomReady(() => {
+			const initResult = init(node);
+
+			if(
+				hasValue(initResult)
+				&& isA(initResult.then, 'function')
+				&& isA(initResult.catch, 'function')
+			){
+				initResult
+					.then(resolution => { deferred.resolve(resolution); })
+					.catch(error => { deferred.reject(error); })
+				;
+			} else {
+				deferred.resolve(initResult);
+			}
+
+			setData(node, `${markerAttributesName}-ready`, true);
+		});
+	} else {
+		deferred.resolve(undefined);
+	}
+
+	deferred.then(() => {
+		if( hasValue(classChanges.remove) ){
+			[].concat(classChanges.remove).forEach(removeClass => {
+				`${removeClass}`.split(' ').forEach(removeClass => {
+					node.classList.remove(removeClass.trim());
+				});
+			});
+		}
+
+		if( hasValue(classChanges.add) ){
+			[].concat(classChanges.add).forEach(addClass => {
+				`${addClass}`.split(' ').forEach(addClass => {
+					node.classList.add(addClass.trim());
+				});
+			});
+		}
+
+		setData(node, `${markerAttributesName}-resolved`, true);
+	});
+
+	return deferred;
 }
 
 

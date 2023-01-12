@@ -15,7 +15,6 @@ const MODULE_NAME = 'Events';
 import {assert, isA, isEventTarget, isPlainObject, orDefault, hasValue, isEmpty, isSelector} from './basic.js';
 import {slugify} from './strings.js';
 import {removeFrom} from './arrays.js';
-import {isInDom} from './elements.js';
 import {detectInteractionType} from './context.js';
 
 
@@ -1266,7 +1265,7 @@ export function offDetachedElements(targets){
 	let offCount = 0;
 
 	targets.forEach(target => {
-		if( isA(target, 'htmlelement') && !isInDom(target) && EVENT_MAP.has(target) ){
+		if( isA(target, 'htmlelement') && !document.body.contains(target) && EVENT_MAP.has(target) ){
 			offCount++;
 			off(target, '*');
 		}
@@ -1379,6 +1378,7 @@ export function onSwipe(targets, direction, handler, dimensionFactor=0.2, hasToB
  * @returns {Number} the number of handlers actually removed by the function call, may also be 0 if nothing matched
  *
  * @memberof Events:offSwipe
+ * @alias offSwipe
  * @see onSwipe
  * @example
  * offSwipe(slider, 'right');
@@ -1417,4 +1417,29 @@ export function offSwipe(targets, direction=null, handler=null, eventNameSpace='
 	});
 
 	return removedCount;
+}
+
+
+
+/**
+ * @namespace Events:onDomReady
+ */
+
+/**
+ * Executes a callback on document ready (DOM parsed, complete and usable, not loaded/onload).
+ *
+ * @param {Function} callback - function to execute, once document is parsed and ready
+ *
+ * @memberof Events:onDomReady
+ * @example
+ * onDomReady(() => {
+ *     document.body.classList.add('dom-ready');
+ * });
+ */
+export function onDomReady(callback){
+	if( document.readyState !== 'loading' ){
+		callback();
+	} else {
+		document.addEventListener('DOMContentLoaded', callback);
+	}
 }

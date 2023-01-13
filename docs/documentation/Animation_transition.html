@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Navigation:reload</title>
+    <title>JSDoc: Namespace: Animation:transition</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Navigation:reload</h1>
+    <h1 class="page-title">Namespace: Animation:transition</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Navigation:reload</h2>
+        <h2>Animation:transition</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="navigation.js.html">navigation.js</a>, <a href="navigation.js.html#line294">line 294</a>
+        <a href="animation.js.html">animation.js</a>, <a href="animation.js.html#line91">line 91</a>
     </li></ul></dd>
     
 
@@ -106,20 +106,31 @@
 
     
 
-    <h4 class="name" id="reload"><span class="type-signature"></span>reload<span class="signature">(cached<span class="signature-attributes">opt, nullable</span>, postUsable<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="transition"><span class="type-signature"></span>transition<span class="signature">(element, classChanges<span class="signature-attributes">opt, nullable</span>, styleChanges<span class="signature-attributes">opt, nullable</span>, rejectOnInterruption<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {<a href="global.html#Deferred">Deferred</a>}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Reloads the current window-location. Differentiates between cached and cache-refreshing reload.
-Hint: the forcedReload param in window.location.reload is deprecated and not supported anymore in all browsers,
-so, in order to do a cache busting reload we have to use a trick, by using a POST-reload, since POST never
-gets cached. If, for some reason, you cannot POST to a URL, I also provided a second, less effective fallback,
-using &quot;replace&quot;.</p>
-<p>Hint: depending on your browser a cached reload may keep the current scrolling position in the document, while
-the uncached variants won't</p>
+    <p>This method offers the possibility to apply CSS transitions via classes and/or styles and wait for the transition
+to finish, which results in the resolution of a Deferred.</p>
+<p>In general, this method remedies the pain of having to manage transitions manually in JS, entering precise ms for
+timers waiting on conclusion of transitions.</p>
+<p>The general principle of this is the parsing of transition CSS attributes, which may contain transition
+timings (transition and transition-duration) and looks for the longest currently running transition.
+Values are excepted as milliseconds or seconds (int or float notation).</p>
+<p>Why would you do this, if there is something like the <code>animationend</code> event, you ask? Well, the problem is, that,
+if the animation is interrupted or never finishes for any other reason, the event never fires. For that, there is
+the <code>animationcancel</code> event, but that is not really robustly supported at the moment. So, in cases of complex
+style changes, where we definitively want to have a callback when the animation has been (or would have been)
+finished, this is still the safer option. But, for simple and small cases I'd strongly recommend using the native
+<code>AnimationEvent</code> API.</p>
+<p>Calling this method successively on the same element replaces the currently running transition, normally
+resulting in premature resolution of the Deferred and application of the newly provided cssChanges.</p>
+<p>Be advised, that legacy browsers like IE11 and Edge &lt;= 18 have problems connecting interrupted transitions,
+especially when transition-durations change during animation, resulting in skipped or choppy animations. If you
+experience this, try to keep timings stable during animation and chain animations without overlap.</p>
 </div>
 
 
@@ -159,13 +170,13 @@ the uncached variants won't</p>
 
         <tr>
             
-                <td class="name"><code>cached</code></td>
+                <td class="name"><code>element</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">Element</span>
 
 
             
@@ -174,11 +185,7 @@ the uncached variants won't</p>
             
                 <td class="attributes">
                 
-                    &lt;optional><br>
-                
 
-                
-                    &lt;nullable><br>
                 
 
                 
@@ -188,19 +195,99 @@ the uncached variants won't</p>
             
                 <td class="default">
                 
-                    true
-                
                 </td>
             
 
-            <td class="description last"><p>should we use the cache on reload?</p></td>
+            <td class="description last"><p>the element to transition, by applying class and/or style changes</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>postUsable</code></td>
+                <td class="name"><code>classChanges</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>plain object containing class changes to apply, add classes via the &quot;add&quot; key, remove them via the &quot;remove&quot; key (add has precedence over remove); values may be standard CSS class string notation or an array of standard CSS class notations</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>styleChanges</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>plain object containing style changes to apply (via applyStyles)</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>rejectOnInterruption</code></td>
             
 
             <td class="type">
@@ -229,12 +316,12 @@ the uncached variants won't</p>
             
                 <td class="default">
                 
-                    true
+                    false
                 
                 </td>
             
 
-            <td class="description last"><p>if set to false, we try to replace URL instead of POSTing to it</p></td>
+            <td class="description last"><p>if a new transition is applied using this function while a previous transition is still running the Deferred would normally be resolved before continuing, set this to true to let the Deferred reject in that case (the rejection message is &quot;interrupted&quot;, access the element using &quot;element)</p></td>
         </tr>
 
     
@@ -275,12 +362,23 @@ the uncached variants won't</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="navigation.js.html">navigation.js</a>, <a href="navigation.js.html#line321">line 321</a>
+        <a href="animation.js.html">animation.js</a>, <a href="animation.js.html#line136">line 136</a>
     </li></ul></dd>
     
 
     
 
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="CSS_applyStyles.html">applyStyles</a></li>
+        
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/animationend_event">https://developer.mozilla.org/en-US/docs/Web/API/Element/animationend_event</a></li>
+        
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/animationcancel_event">https://developer.mozilla.org/en-US/docs/Web/API/Element/animationcancel_event</a></li>
+        </ul>
+    </dd>
     
 
     
@@ -298,16 +396,35 @@ the uncached variants won't</p>
 
 
 
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    resolves on transition completion or repeated call on the same element, with the resolution value being the element, rejects on repeated call on same element if rejectOnInterruption is true (the rejection message is "interrupted", access the element using "element")
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="global.html#Deferred">Deferred</a></span>
+
+
+    </dd>
+</dl>
+
+    
 
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// with cache
-reload();
-// without cache via POST
-reload(false);
-// without cache via "replace"
-reload(false, false);</code></pre>
+    <pre class="prettyprint"><code>transition(element, {add : 'foobar'}).then(element => { return transition(element, {remove : 'foobar'}); }).then(() => { console.log('finished'); });
+transition(element, null, {top : 0, left : 0, background : 'pink', transition : 'all 1500ms'}).then(() => { console.log('finished'); });
+transition(element, {add : 'foobar'}).then(() => { console.log('finished'); }).catch(error => { console.log('cancelled'); });</code></pre>
 
 
 
@@ -333,7 +450,7 @@ reload(false, false);</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Jan 13 2023 17:08:42 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri Jan 13 2023 17:08:41 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

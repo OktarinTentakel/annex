@@ -71,6 +71,7 @@ const LOG_CHAINABLE_OBJECT = {
 	table : genericConsoleMethodWrapperFactory('table'),
 	time : genericConsoleMethodWrapperFactory('time'),
 	timeEnd : genericConsoleMethodWrapperFactory('timeEnd'),
+	timeLog : genericConsoleMethodWrapperFactory('timeLog'),
 	timeStamp : genericConsoleMethodWrapperFactory('timeStamp'),
 	trace : genericConsoleMethodWrapperFactory('trace'),
 	warn(){

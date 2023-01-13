@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Animation Module Examples</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png"/>
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png"/>
+
+		<link rel="stylesheet" href="./main.css"/>
+		<link href="https://fonts.googleapis.com/css?family=Pacifico|Poor+Story" rel="stylesheet"/>
+		<style>
+			#transition {
+				height: 50vh;
+			}
+
+			#transition-test {
+				cursor: pointer;
+
+				position: absolute;
+				top: 50vh;
+				left: 30vw;
+				width: 150px;
+				height: 150px;
+
+				background: dodgerblue;
+
+				transition: top 2s, left 1500ms, background-color 2.2s;
+			}
+
+			#transition-test.test {
+				top: 65vh;
+				left: 50vw;
+
+				background: mediumvioletred;
+			}
+
+			#transition-test.test2 {
+				top: 80vh;
+				left: 80vw;
+
+				background: limegreen;
+
+				transition: top 3100ms, left 1s, background-color 2.2s;
+			}
+		</style>
+
+		<script defer src="./lib/handle-version-switching.js"></script>
+		<script>
+			function setup(
+				transition
+			){
+				var transitionRunning = false;
+				document.getElementById('transition-test').addEventListener('click', function(e){
+					if( !transitionRunning ){
+						transitionRunning = true;
+
+						var element = e.currentTarget;
+
+						console.time();
+
+						transition(element, {add : 'test'}).then(function(element){
+							console.log(1);
+							console.timeEnd();
+							console.time();
+							console.log(element.getAttribute('id'));
+
+							transition(element, {remove : 'test'}).then(function(element){
+								console.log(2);
+								console.timeEnd();
+								console.time();
+								console.log(element.getAttribute('id'));
+							});
+						});
+
+						window.setTimeout(function(){
+							transition(element, null, {
+								top : 0,
+								left : 0,
+								background : 'pink',
+								'-moz-transition' : 'all 1500ms'
+							}).then(function(element){
+								console.log(3);
+								console.timeEnd();
+								console.time();
+								console.log(element.getAttribute('id'));
+
+								element.removeAttribute('style');
+								return transition(element, null, {
+									top : 'calc(100vh - 150px)',
+									left : 'calc(100vw - 150px)',
+									background : 'yellow'
+								});
+							})
+							.then(function(element){
+								console.log(4);
+								console.timeEnd();
+								console.time();
+								console.log(element.getAttribute('id'));
+
+								element.removeAttribute('style');
+							});
+						}, 3000);
+
+						window.setTimeout(function(){
+							transition(element, {add : 'test2'})
+								.then(function(element){
+									console.log(5);
+									console.timeEnd()
+									console.time();
+									console.log(element.getAttribute('id'));
+								})
+								.catch(function(error){
+									console.log('5 cancelled');
+									console.timeEnd()
+									console.time();
+									console.log(error);
+									console.log(error.element.getAttribute('id'));
+								})
+							;
+						}, 3000 + 3000);
+
+						window.setTimeout(function(){
+							transition(element, {remove : 'test2'}, null, true).then(function(element){
+								console.log(6);
+								console.timeEnd();
+								console.log(element.getAttribute('id'));
+								transitionRunning = false;
+							});
+						}, 3000 + 3000 + 1000);
+					}
+				});
+			}
+		</script>
+		<script type="module">
+			if( window.__ANNEX_VERSION__ !== 'es5' ){
+				(async () => {
+					const {
+						transition
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/animation.js`);
+
+					setup(
+						transition
+					);
+				})().catch(error => {
+					console.error(error);
+				});
+			}
+		</script>
+		<script defer src="./lib/annex/dist/es5-monolith.js"></script>
+		<script defer>
+			(function(){
+				var annexPoll = window.setInterval(function(){
+					if( window.__ANNEX_VERSION__ && window.annex ){
+						window.clearInterval(annexPoll);
+
+						if( window.__ANNEX_VERSION__ === 'es5' ){
+							setup(
+								window.annex.animation.transition
+							);
+						}
+					}
+				}, 250);
+			})();
+		</script>
+	</head>
+
+	<body>
+		<header>
+			<h1>Animation Examples</h1>
+		</header>
+		<main>
+			<h3>transition</h3>
+			<section id="transition">
+				<p>Click on the element to trigger a chain of transitions. Keep an eye on the console for callback logging.</p>
+				<div id="transition-test"></div>
+			</section>
+		</main>
+	</body>
+</html>

@@ -111,7 +111,7 @@ export const EasingFunctions = {
  * `AnimationEvent` API.
  *
  * Calling this method successively on the same element replaces the currently running transition, normally
- * resulting in premature resolution of the Deferred and application of the newly provided cssChanges.
+ * resulting in premature resolution of the Deferred and application of the newly provided changes.
  *
  * Be advised, that legacy browsers like IE11 and Edge <= 18 have problems connecting interrupted transitions,
  * especially when transition-durations change during animation, resulting in skipped or choppy animations. If you

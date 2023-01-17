@@ -66,3 +66,6 @@ export const images = _images;
 
 import * as _fonts from './fonts.js';
 export const fonts = _fonts;
+
+import * as _interaction from './interaction.js';
+export const interaction = _interaction;

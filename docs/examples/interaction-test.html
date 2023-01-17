@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Interaction Module Examples</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png"/>
+		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png"/>
+
+		<link rel="stylesheet" href="./main.css"/>
+		<link href="https://fonts.googleapis.com/css?family=Pacifico|Poor+Story" rel="stylesheet"/>
+		<style>
+			#selectable-content,
+			section > p ~ p {
+				width: 50vw;
+				min-width: 200px;
+
+				padding: 2ex;
+				border: 2px solid dodgerblue;
+				margin-top: 2ex;
+
+				background-color: aliceblue;
+			}
+
+			#selectable-content.disabled {
+				opacity: 0.5;
+			}
+
+			#selectable-content textarea {
+				height: auto;
+			}
+		</style>
+
+		<script defer src="./lib/handle-version-switching.js"></script>
+		<script>
+			function setup(
+				removeSelections,
+				createSelection,
+				disableSelection,
+				enableSelection,
+				obfuscatePrivateMailToLink,
+				obfuscatePrivateTelLink
+			){
+				window.setInterval(function(){
+					removeSelections();
+				}, 5000);
+
+				document.getElementById('toggle-selectability').addEventListener('click', function(e){
+					e.preventDefault();
+
+					var
+						eButton = e.currentTarget,
+						eSelectableContent = document.getElementById('selectable-content')
+					;
+
+					if( !eSelectableContent.classList.contains('disabled') ){
+						disableSelection(eSelectableContent);
+						eSelectableContent.classList.add('disabled');
+
+						eButton.innerText = 'enable selection';
+					} else {
+						enableSelection(eSelectableContent);
+						eSelectableContent.classList.remove('disabled');
+
+						eButton.innerText = 'disable selection';
+					}
+				});
+
+
+				var
+					eCreateSelection = document.getElementById('trigger-create-selection'),
+					selectionRanges = [
+						{
+							target : '#selectable-content',
+							startOffset : 340,
+							endOffset : 5
+						},
+						{
+							target : '#selectable-content',
+							startOffset : 16,
+							endOffset : 16
+						},
+						{
+							target : '#selectable-content textarea',
+							startOffset : 1,
+							endOffset : 1
+						},
+						{
+							target : '#selectable-content input[type="text"]',
+							startOffset : 0,
+							endOffset : 10
+						},
+						{
+							target : '#selectable-content',
+							startOffset : null,
+							endOffset : null
+						}
+					],
+					currentSelectionRange = 0
+				;
+
+				eCreateSelection.addEventListener('click', function(e){
+					e.preventDefault();
+
+					if( currentSelectionRange >= selectionRanges.length ){
+						currentSelectionRange = 0;
+					}
+
+					console.log(createSelection(
+						document.body.querySelector(selectionRanges[currentSelectionRange].target),
+						selectionRanges[currentSelectionRange].startOffset,
+						selectionRanges[currentSelectionRange].endOffset
+					));
+
+					currentSelectionRange++;
+				});
+
+				var
+					mailto1 = document.getElementById('mailto-1'),
+					mailto2 = document.getElementById('mailto-2'),
+					mailto3 = document.getElementById('mailto-3')
+				;
+				obfuscatePrivateMailToLink(mailto1, false, null, 'spam', 'no', 'Hello there!', 'Dear Mr. Foobar,');
+				obfuscatePrivateMailToLink(mailto2, true, 'com', 'spam', 'no', 'Hello there!', 'Dear Mr. Foobar,');
+				obfuscatePrivateMailToLink(
+					mailto3,
+					false,
+					mailto3.dataset.tld,
+					mailto3.dataset.afterAt,
+					mailto3.dataset.beforeAt,
+					mailto3.dataset.subject,
+					mailto3.dataset.body
+				);
+
+				var
+					tel1 = document.getElementById('tel-1'),
+					tel2 = document.getElementById('tel-2'),
+					tel3 = document.getElementById('tel-3')
+				;
+				obfuscatePrivateTelLink(tel1, false, 321, 123, 176, '+49');
+				obfuscatePrivateTelLink(tel2, true, '321', '123', '176', 49);
+				obfuscatePrivateTelLink(
+					tel3,
+					false,
+					tel3.dataset.secondpart,
+					tel3.dataset.firstpart,
+					tel3.dataset.region,
+					tel3.dataset.country
+				);
+			}
+		</script>
+		<script type="module">
+			if( window.__ANNEX_VERSION__ !== 'es5' ){
+				(async () => {
+					const {
+						removeSelections,
+						createSelection,
+						disableSelection,
+						enableSelection,
+						obfuscatePrivateMailToLink,
+						obfuscatePrivateTelLink
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/interaction.js`);
+
+					setup(
+						removeSelections,
+						createSelection,
+						disableSelection,
+						enableSelection,
+						obfuscatePrivateMailToLink,
+						obfuscatePrivateTelLink
+					);
+				})().catch(error => {
+					console.error(error);
+				});
+			}
+		</script>
+		<script defer src="./lib/annex/dist/es5-monolith.js"></script>
+		<script defer>
+			(function(){
+				var annexPoll = window.setInterval(function(){
+					if( window.__ANNEX_VERSION__ && window.annex ){
+						window.clearInterval(annexPoll);
+
+						if( window.__ANNEX_VERSION__ === 'es5' ){
+							setup(
+								window.annex.interaction.removeSelections,
+								window.annex.interaction.createSelection,
+								window.annex.interaction.disableSelection,
+								window.annex.interaction.enableSelection,
+								window.annex.interaction.obfuscatePrivateMailToLink,
+								window.annex.interaction.obfuscatePrivateTelLink
+							);
+						}
+					}
+				}, 250);
+			})();
+		</script>
+	</head>
+
+	<body>
+		<header>
+			<h1>Interaction Examples</h1>
+		</header>
+		<main>
+			<h3>removeSelections</h3>
+			<section id="selectable-content">
+				Create a text selection on this page and wait some seconds to see it disappear automatically again
+				by a repeated call to "removeSelections".<br/>
+				In some browsers selections inside text inputs are not removable.
+				<br/><br/>
+				<textarea rows="3">Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.</textarea>
+				<br/><br/>
+				<input type="text" value="Lorem ipsum dolor sit amet."/>
+				<br/><br/>
+				Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+			</section>
+
+			<h3>createSelection</h3>
+			<section>
+				<p>
+					Use this button to test different kinds of created selections.<br/>
+					The button should rotate through a list of <em>"text-only selection"</em>,<br/>
+					<em>"selection containing text input"</em>,<br/>
+					a <em>"selection inside inputs" and</em><br/>
+					<em>"selection including all content"</em>.<br/>
+					The selected text should be logged to the dev console.<br/>
+					On mobile/iOS devices creation of selection ranges might only be allowed in inputs
+					(or, in some cases, you'll get get the range's text, but it is not visible).
+				</p>
+				<button id="trigger-create-selection" class="btn light-blue darken-1">create selection</button>
+			</section>
+
+			<h3>disableSelection & enableSelection</h3>
+			<section>
+				<p>
+					Use this button to disable and re-enable text selectability for the content above.<br/>
+					Depending on your browser this setting may or may not hold true for selections created with
+					createSelection above. Some browsers like IE11 block everything, while others like Firefox block
+					nothing, so don't rely on this effect in your implementations!<br/>
+					Depending on your browser, selections in text inputs might not be suppressible (in Chrome for example).
+				</p>
+				<button id="toggle-selectability" class="btn light-blue darken-1">disable selection</button>
+			</section>
+
+			<h3>obfuscatePrivateMailToLink</h3>
+			<section>
+				<p>
+					This section should contain three mailto links with unparsable email notations to protect the
+					recipients from spam.<br/>
+					The first one should contain a preset text, while the second contains no text initially,
+					but receives the text automatically on init, by inserting the mail address.<br/>
+					(The second one is, of course, weaker against bots.)<br/>
+					The third variant demonstrates how to render the address parts directly on an element,
+					without compromising the idea of this function.
+				</p>
+				<p>
+					Write a mail to <a id="mailto-1">this person</a> or this person <a id="mailto-2"></a> and maybe even to
+					<a
+						id="mailto-3"
+						data-tld="com"
+						data-before-at="no"
+						data-after-at="spam"
+						data-subject="Hello there!"
+						data-body="Dear Mr. Foobar,"
+					>this person</a>.
+				</p>
+			</section>
+
+			<h3>obfuscatePrivateTelLink</h3>
+			<section>
+				<p>
+					This section should contain three tel links with unparsable phone number notations to protect
+					the recipients from spam.<br/>
+					The first one should contain a preset text, while the second contains no text initially,
+					but receives the text automatically on init, by inserting the phone	number.<br/>
+					(The second one is, of course, weaker against bots.)<br/>
+					The third variant demonstrates how to render the number parts directly on an element,
+					without compromising the idea of this function.
+				</p>
+				<p>
+					Let's call <a id="tel-1">this person</a> or this person <a id="tel-2">555-123-456</a> and maybe even
+					<a
+						id="tel-3"
+						data-region="176"
+						data-firstpart="123"
+						data-country="+49"
+						data-secondpart="321"
+					>this person</a>.
+				</p>
+			</section>
+		</main>
+	</body>
+</html>

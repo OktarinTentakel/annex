@@ -44,7 +44,7 @@ import {maskForRegEx} from './strings.js';
  * will not be polluted with vendor stuff the browser does not support, but this also means, that all non-standard
  * properties might be refused. If you really need to set something out of spec, use direct style assignment instead.
  *
- * @param {HTMLElement} element - the element to apply the styles to
+ * @param {HTMLElement} element - the element to apply the styles to, use null or undefined as value to remove a prop
  * @param {Object} styles - the styles to apply, provided as a plain object, defining property-value-pairs
  * @param {?Boolean} [crossBrowser=false] - set this to true, to automatically generate vendor-prefixed versions of all provided properties
  * @param {?Boolean} [returnCssStyleDeclaration=false] - set this to true, return the CSSStyleDeclaration of the element after the style application, rather than the plain object

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: interaction.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: interaction.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*!
+ * Module Interaction
+ */
+
+/**
+ * @namespace Interaction
+ */
+
+const MODULE_NAME = 'Interaction';
+
+
+
+//###[ IMPORTS ]########################################################################################################
+
+import {assert, isA, orDefault, hasValue} from './basic.js';
+import {findTextNodes} from './elements.js';
+import {applyStyles} from './css.js';
+
+
+
+//###[ DATA ]###########################################################################################################
+
+const NOT_AN_HTMLELEMENT_ERROR = 'given node/target is not an HTMLElement';
+
+
+
+//###[ EXPORTS ]########################################################################################################
+
+/**
+ * @namespace Interaction:createSelection
+ */
+
+/**
+ * Programmatically create a text selection inside a node, possibly reaching across several child nodes,
+ * but virtually only working with the raw text content. Can also be used to create a selection in text
+ * inputs for example.
+ *
+ * Be aware that the endOffset is neither the length to select nor the last index, but the offset starting
+ * from the last character in the node counting backwards (like a reverse startOffset). The reason for this wonkyness
+ * is the fact that we have to implement three different ways of creating selections in this function, this
+ * notation being the most compatible one. We assume the default use case for this method is to select all content
+ * of a node with the possibility to skip one or two unwanted characters on each side of the content.
+ *
+ * Hint: You cannot create a selection spanning normal inline text into an input, ending there. To create a selection in
+ * a text input, please target that element specifically or make sure the selection spans the whole input.
+ * Furthermore, on mobile/iOS devices creation of selection ranges might only be possible in text inputs.
+ *
+ * @param  {HTMLElement} node - the element to create a selection inside
+ * @param  {?Number} [startOffset=0] - characters to leave out at the beginning of the text content
+ * @param  {?Number} [endOffset=0] - characters to leave out at the end of the text content
+ * @return {String} the selected text
+ *
+ * @memberof Interaction:createSelection
+ * @alias createSelection
+ * @see removeSelections
+ * @example
+ * const selectedText = createSelection(copytextElement, 12, 6);
+ */
+export function createSelection(node, startOffset=0, endOffset=0){
+	const __methodName__ = 'createSelection';
+
+	startOffset = orDefault(startOffset, 0, 'int');
+	endOffset = orDefault(endOffset, 0, 'int');
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	let	selectionText, range, selection, rangeText;
+
+	if( hasValue(node.selectionStart, node.selectionEnd) ){
+		node.focus();
+		node.select();
+		rangeText = node.value;
+		node.selectionStart = startOffset;
+		node.selectionEnd = rangeText.length - endOffset;
+		selectionText = rangeText.substring(node.selectionStart, node.selectionEnd);
+	} else if( isA(window.getSelection, 'function') ){
+		range = document.createRange();
+		range.selectNodeContents(node);
+
+		if( hasValue(startOffset) || hasValue(endOffset) ){
+			const textNodes = findTextNodes(node);
+			if( textNodes.length > 0 ){
+				let
+					startNodeIndex = 0,
+					startNode = textNodes[startNodeIndex],
+					endNodeIndex = textNodes.length - 1,
+					endNode = textNodes[endNodeIndex]
+				;
+
+				if( hasValue(startOffset) ){
+					let
+						remainingStartOffset = startOffset,
+						startOffsetNodeFound = (remainingStartOffset &lt;= startNode.length)
+					;
+
+					while( !startOffsetNodeFound &amp;&amp; hasValue(startNode) ){
+						startNodeIndex++;
+						if( hasValue(textNodes[startNodeIndex]) ){
+							remainingStartOffset -= startNode.length;
+							startNode = textNodes[startNodeIndex];
+							startOffsetNodeFound = (remainingStartOffset &lt;= startNode.length);
+						} else {
+							remainingStartOffset = startNode.length;
+							startOffsetNodeFound = true;
+						}
+					}
+
+					range.setStart(startNode, remainingStartOffset);
+				}
+
+				if( hasValue(endOffset) ){
+					let
+						remainingEndOffset = endOffset,
+						endOffsetNodeFound = (remainingEndOffset &lt;= endNode.length)
+					;
+
+					while( !endOffsetNodeFound &amp;&amp; hasValue(endNode) ){
+						endNodeIndex--;
+						if( hasValue(textNodes[endNodeIndex]) ){
+							remainingEndOffset -= endNode.length;
+							endNode = textNodes[endNodeIndex];
+							endOffsetNodeFound = (remainingEndOffset &lt;= endNode.length);
+						} else {
+							remainingEndOffset = endNode.length;
+							endOffsetNodeFound = true;
+						}
+					}
+
+					range.setEnd(endNode, endNode.length - remainingEndOffset);
+				}
+			}
+		}
+
+		selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange(range);
+		selectionText = range.toString();
+	} else if( isA(document.body.createTextRange, 'function') ){
+		range = document.body.createTextRange();
+		range.moveToElementText(node);
+
+		if( hasValue(startOffset) ){
+			range.moveStart('character', startOffset);
+		}
+
+		if( hasValue(endOffset) ){
+			range.moveEnd('character', -endOffset);
+		}
+
+		range.select();
+
+		selectionText = range.text;
+	}
+
+	return selectionText;
+}
+
+
+
+/**
+ * @namespace Interaction:removeSelections
+ */
+
+/**
+ * Removes all text selections from the current window if possible.
+ * Certain mobile devices like iOS devices might block this behaviour actively.
+ *
+ * @memberof Interaction:removeSelections
+ * @alias removeSelections
+ * @see createSelection
+ * @example
+ * removeSelections();
+ */
+export function removeSelections(){
+	if( isA(window.getSelection, 'function') ){
+		window.getSelection().removeAllRanges();
+	} else if( isA(document.getSelection, 'function') ){
+		document.getSelection().removeAllRanges();
+	}
+
+	if( hasValue(document.selection) ){
+		document.selection.empty();
+	}
+}
+
+
+
+/**
+ * @namespace Interaction:disableSelection
+ */
+
+/**
+ * Disables the possibility to create a selection in an element.
+ *
+ * @param  {HTMLElement} node - the element to disable user selection for
+ * @return {HTMLElement} the node with disabled selection
+ *
+ * @memberof Interaction:disableSelection
+ * @alias disableSelection
+ * @see enableSelection
+ * @example
+ * disableSelection(widget);
+ */
+export function disableSelection(node){
+	const __methodName__ = 'disableSelection';
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	node.onselectstart = () => false;
+	node.unselectable = 'on';
+	applyStyles(node, {'user-select' : 'none'}, true);
+	applyStyles(node, {'-webkit-touch-callout' : 'none'});
+
+	return node;
+}
+
+
+
+/**
+ * @namespace Interaction:enableSelection
+ */
+
+/**
+ * (Re)enables the possibility to create a selection in an element. Most likely after having been disabled
+ * using `disableSelection`.
+ *
+ * @param  {HTMLElement} node - the element to (re)enable user selection for
+ * @return {HTMLElement} the node with (re)enabled selection
+ *
+ * @memberof Interaction:enableSelection
+ * @alias enableSelection
+ * @see disableSelection
+ * @example
+ * enableSelection(widget);
+ */
+export function enableSelection(node){
+	const __methodName__ = 'disableSelection';
+
+	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	node.onselectstart = undefined;
+	node.unselectable = 'off';
+	applyStyles(node, {'user-select' : null}, true);
+	applyStyles(node, {'-webkit-touch-callout' : null});
+
+	return node;
+}
+
+
+
+/**
+ * @namespace Interaction:obfuscatePrivateMailToLink
+ */
+
+/**
+ * Augment a link element to hold an obfuscated private mailto link, to be able to contact people
+ * via their own mail address, without the need to openly write the address into the DOM permanently,
+ * in a way crawlers could identify easily.
+ *
+ * The method takes all parts of the address as (hopefully) unidentifiable parameters and then applies them internally,
+ * to build an email string with mailto protocol dynamically on mouse or focus interaction in the link's href,
+ * offering normal link functionality from here on. If the interaction ends, the href is removed again immediately,
+ * so the link is only and exclusively readable and complete during user interaction.
+ *
+ * You may set the link text yourself or set `setAsContent` to true, to let the function fill the link text with
+ * the completed address. Be aware, that this, although still being obfuscated, lowers the level of security for this
+ * solution.
+ *
+ * Although most parameters are technically optional, this function still expects `beforeAt` and `afterAtWithoutTld` to
+ * be filled. While these parts are strictly necessary here: I'd always suggest to use all parts, since, the more
+ * of an address is written together, the easier the address can be parsed.
+ *
+ * @param {HTMLElement} link - the link to augment, has to be a node where we can set a "href" attribute
+ * @param {?Boolean} [setAsContent=false] - define if the address should be used as link text (still uses string obfuscation, but weaker against bot with JS execution)
+ * @param {?String} [tld=''] - the top level domain to use
+ * @param {?String} [afterAtWithoutTld=''] - the address part after the @ but before the tld
+ * @param {?String} [beforeAt=''] - the address part before the @
+ * @param {?String} [subject=''] - the subject the mail should have, if you want to preset this
+ * @param {?String} [body=''] - the body text the mail should have initially, if you want to preset this
+ * @param {?String} [ccTld=''] - the top level domain to use for the cc address
+ * @param {?String} [ccAfterAtWithoutTld=''] - the address part after the @ but before the tld for the cc address
+ * @param {?String} [ccBeforeAt=''] - the address part before the @ for the cc address
+ * @throws error if beforeAt or afterAtWithoutTld are empty
+ * @return {HTMLElement} the augmented link
+ *
+ * @memberof Interaction:obfuscatePrivateMailToLink
+ * @alias obfuscatePrivateMailToLink
+ * @example
+ * obfuscatePrivateMailToLink(document.querySelector('a'), true, 'de', 'gmail', 'recipient', 'Hello there!', 'How are you these days?');
+ */
+export function obfuscatePrivateMailToLink(
+	link,
+	setAsContent=false,
+	tld='',
+	afterAtWithoutTld='',
+	beforeAt='',
+	subject='',
+	body='',
+	ccTld='',
+	ccAfterAtWithoutTld='',
+	ccBeforeAt=''
+){
+	const __methodName__ = 'obfuscatePrivateMailToLink';
+
+	setAsContent = orDefault(setAsContent, false, 'bool');
+	subject = orDefault(subject, '', 'str');
+	body = orDefault(body, '', 'str');
+	beforeAt = orDefault(beforeAt, '', 'str');
+	afterAtWithoutTld = orDefault(afterAtWithoutTld, '', 'str');
+	tld = orDefault(tld, '', 'str');
+	ccBeforeAt = orDefault(ccBeforeAt, '', 'str');
+	ccAfterAtWithoutTld = orDefault(ccAfterAtWithoutTld, '', 'str');
+	ccTld = orDefault(ccTld, '', 'str');
+
+	assert((beforeAt !== '') &amp;&amp; (afterAtWithoutTld !== ''), `${MODULE_NAME}:${__methodName__} | basic mail parts missing`);
+
+	if( tld !== '' ){
+		tld = `.${tld}`;
+	}
+
+	if( ccTld !== '' ){
+		ccTld = `.${ccTld}`;
+	}
+
+	let optionParams = new URLSearchParams();
+	if( subject !== '' ){
+		optionParams.set('subject', subject);
+	}
+	if( body !== '' ){
+		optionParams.set('body', body);
+	}
+	if( (ccBeforeAt !== '') &amp;&amp; (ccAfterAtWithoutTld !== '') ){
+		optionParams.set('cc', `${ccBeforeAt}@${ccAfterAtWithoutTld}${ccTld}`);
+	}
+	optionParams = optionParams.toString();
+	if( optionParams !== '' ){
+		optionParams = `?${optionParams.replaceAll('+', '%20')}`;
+	}
+
+	let interactionCount = 0;
+	const fAddLinkUrl = () => {
+		interactionCount++;
+		link.setAttribute('href', `mailto:${beforeAt}@${afterAtWithoutTld}${tld}${optionParams}`);
+	};
+	link.addEventListener('mouseenter', fAddLinkUrl);
+	link.addEventListener('focusin', fAddLinkUrl);
+	const fRemoveLinkUrl = () => {
+		interactionCount--;
+		if( interactionCount &lt;= 0 ){
+			link.setAttribute('href', '');
+		}
+	};
+	link.addEventListener('mouseleave', fRemoveLinkUrl);
+	link.addEventListener('focusout', fRemoveLinkUrl);
+
+	if( setAsContent ){
+		link.innerHTML = (`${beforeAt}@${afterAtWithoutTld}${tld}`).replace(/(\w{1})/g, '$1&amp;zwnj;');
+	}
+
+	return link;
+}
+
+
+
+/**
+ * @namespace Interaction:obfuscatePrivateTelLink
+ */
+
+/**
+ * Augment a link element to hold an obfuscated private tel link, to be able to contact people
+ * via their own phone number, without the need to openly write the number into the DOM permanently,
+ * in a way crawlers could identify easily.
+ *
+ * The method takes all parts of the number as (hopefully) unidentifiable parameters and then applies them internally,
+ * to build a number string with tel protocol dynamically on mouse or focus interaction in the link's href,
+ * offering normal link functionality from here on. If the interaction ends, the href is removed again immediately,
+ * so the link is only and exclusively readable and complete during user interaction.
+ *
+ * You may set the link text yourself or set `setAsContent` to true, to let the function fill the link text with
+ * the completed address. Be aware, that this, although still being obfuscated, lowers the level of security for this
+ * solution.
+ *
+ * Although most parameters are technically optional, this function still expects `secondTelPart` or `firstTelPart` to
+ * be filled. While only one part is strictly necessary here: I'd always suggest to use all parts, since, the more
+ * of a number is written together, the easier the number can be parsed.
+ *
+ * @param {HTMLElement} link - the link to augment, has to be a node where we can set a "href" attribute
+ * @param {?Boolean} [setAsContent=false] - define if the number should be used as link text, being formatted according to DIN 5008 (still uses string obfuscation, but weaker against bot with JS execution)
+ * @param {?Number|String} [secondTelPart=''] - second half of the main number +49 04 123(4-56)&lt;-this; add a dash to signify where a base number ends and the personal part starts
+ * @param {?Number|String} [firstTelPart=''] - first half of the main number +49 04 (123)&lt;-this 4-56
+ * @param {?Number|String} [regionPart=''] - the local part of the number after the country part e.g. +49(04)&lt;-this 1234-56
+ * @param {?Number|String} [countryPart=''] - the country identifier with or without + this->(+49) 04 1234-56 (do not prefix with a local 0!)
+ * @throws error if `secondTelPart` and `firstTelPart` are empty
+ * @return {HTMLElement} the augmented link
+ *
+ * @memberof Interaction:obfuscatePrivateTelLink
+ * @alias obfuscatePrivateTelLink
+ * @example
+ * obfuscatePrivateTelLink(document.querySelector('a'), true, 123, 439, 40, '+49');
+ */
+export function obfuscatePrivateTelLink(
+	link,
+	setAsContent=false,
+	secondTelPart='',
+	firstTelPart='',
+	regionPart='',
+	countryPart=''
+){
+	const __methodName__ = 'obfuscatePrivateTelLink';
+
+	setAsContent = orDefault(setAsContent, false, 'bool');
+	secondTelPart = orDefault(secondTelPart, '', 'str').replace(/[^0-9\-]/g, '');
+	firstTelPart = orDefault(firstTelPart, '', 'str').replace(/[^0-9\-]/g, '');
+	regionPart = orDefault(regionPart, '', 'str').replace(/[^0-9]/g, '');
+	countryPart = orDefault(countryPart, '', 'str').replace(/[^0-9]/g, '');
+
+	assert((firstTelPart !== '') || (secondTelPart !== ''), `${MODULE_NAME}:${__methodName__} | basic tel parts missing`);
+
+	let interactionCount = 0;
+	const fAddLinkUrl = () => {
+		interactionCount++;
+		link.setAttribute('href', `tel:+${countryPart}${regionPart}${firstTelPart.replace(/-/g, '')}${secondTelPart.replace(/-/g, '')}`);
+	};
+	link.addEventListener('mouseenter', fAddLinkUrl);
+	link.addEventListener('focusin', fAddLinkUrl);
+	const fRemoveLinkUrl = () => {
+		interactionCount--;
+		if( interactionCount &lt;= 0 ){
+			link.setAttribute('href', '');
+		}
+	};
+	link.addEventListener('mouseleave', fRemoveLinkUrl);
+	link.addEventListener('focusout', fRemoveLinkUrl);
+
+	if( setAsContent ){
+		link.innerHTML = (`+${countryPart} ${regionPart} ${firstTelPart}${secondTelPart}`).replace(/(\w{1})/g, '$1&amp;zwnj;');
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace"><a href="Animation_transition.html">Animation:transition</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserScrollbarWidth.html">Context:browserScrollbarWidth</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_defineNode.html">Elements:defineNode</a></li><li class="namespace"><a href="Elements_find.html">Elements:find</a></li><li class="namespace"><a href="Elements_findOne.html">Elements:findOne</a></li><li class="namespace"><a href="Elements_findTextNodes.html">Elements:findTextNodes</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_measureHiddenDimensions.html">Elements:measureHiddenDimensions</a></li><li class="namespace"><a href="Elements_prime.html">Elements:prime</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_offSwipe.html">Events:offSwipe</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_onDomReady.html">Events:onDomReady</a></li><li class="namespace"><a href="Events_onSwipe.html">Events:onSwipe</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Forms.html">Forms</a></li><li class="namespace"><a href="Forms_formDataToObject.html">Forms:formDataToObject</a></li><li class="namespace"><a href="Forms_objectToFormData.html">Forms:objectToFormData</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Interaction.html">Interaction</a></li><li class="namespace"><a href="Interaction_createSelection.html">Interaction:createSelection</a></li><li class="namespace"><a href="Interaction_disableSelection.html">Interaction:disableSelection</a></li><li class="namespace"><a href="Interaction_enableSelection.html">Interaction:enableSelection</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateMailToLink.html">Interaction:obfuscatePrivateMailToLink</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateTelLink.html">Interaction:obfuscatePrivateTelLink</a></li><li class="namespace"><a href="Interaction_removeSelections.html">Interaction:removeSelections</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillArrayAt.html">Polyfills:polyfillArrayAt</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Tue Jan 17 2023 14:09:29 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

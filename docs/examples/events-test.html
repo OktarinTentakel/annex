@@ -119,10 +119,8 @@
 
 				(function(){
 					var
-						formSubmitOffButton = document.body.querySelector('#form-submit-off'),
-						formSubmitOnButton = document.body.querySelector('#form-submit-on'),
-						pauseBackgroundColoringButton = document.body.querySelector('#background-pause'),
-						resumeBackgroundColoringButton = document.body.querySelector('#background-resume'),
+						formSubmitOffOnButton = document.body.querySelector('#form-submit-off-on'),
+						pauseResumeBackgroundColoringButton = document.body.querySelector('#background-pause-resume'),
 						container = document.getElementById('on-off-test'),
 						content = container.querySelector('.content'),
 						form = content.querySelector('form'),
@@ -222,21 +220,31 @@
 						e.stopPropagation();
 					});
 
-					on(formSubmitOffButton, 'click', function(){
-						off(form, '*.submission');
+					on(formSubmitOffOnButton, 'click', function(e){
+						var button = e.currentTarget;
+						if( !button.classList.contains('off') ){
+							button.classList.add('off');
+							button.innerText = 'add submit handler of form';
+							off(form, '*.submission');
+						} else {
+							button.classList.remove('off');
+							button.innerText = 'remove submit handler of form (form submit reloads page afterwards)';
+							off(form, 'submit.submission');
+							on(form, 'submit.submission', formSubmit);
+						}
 					});
 
-					on(formSubmitOnButton, 'click', function(){
-						off(form, 'submit.submission');
-						on(form, 'submit.submission', formSubmit);
-					});
-
-					on(pauseBackgroundColoringButton, 'click', function(){
-						pause([link, form, 'a', content, 'a', container, 'a'], ['click.bubbling', '*.message']);
-					});
-
-					on(resumeBackgroundColoringButton, 'click', function(){
-						resume([link, form, 'a', content, 'a', container, 'a'], 'click');
+					on(pauseResumeBackgroundColoringButton, 'click', function(e){
+						var button = e.currentTarget;
+						if( !button.classList.contains('pause') ){
+							button.classList.add('pause');
+							button.innerText = 'resume background coloring on link click';
+							pause([link, form, 'a', content, 'a', container, 'a'], ['click.bubbling', '*.message']);
+						} else {
+							button.classList.remove('pause');
+							button.innerText = 'pause background coloring on link click';
+							resume([link, form, 'a', content, 'a', container, 'a'], 'click');
+						}
 					});
 				})();
 
@@ -252,55 +260,60 @@
 						}
 					;
 
-					document.getElementById('on-swipe-btn').addEventListener('click', function(e){
+					document.getElementById('on-off-swipe-btn').addEventListener('click', function(e){
 						e.preventDefault();
 
-						offSwipe(eTest, 'up', null, 'foo');
-						onSwipe(eTest, 'up', function(e){
-							e.stopPropagation();
+						var button = e.currentTarget;
+						if( !button.classList.contains('on') ){
+							button.classList.add('on');
+							button.innerText = 'unbind swipes';
 
-							e.currentTarget.style.backgroundColor = 'steelblue';
-							eMessage.innerText = 'swipe up';
-						}, 0.15, false, 'foo');
+							offSwipe(eTest, 'up', null, 'foo');
+							onSwipe(eTest, 'up', function(e){
+								e.stopPropagation();
 
-						offSwipe(eTest, 'right', null, 'foo');
-						onSwipe(eTest, 'right', function(e){
-							e.stopPropagation();
+								e.currentTarget.style.backgroundColor = 'steelblue';
+								eMessage.innerText = 'swipe up';
+							}, 0.15, false, 'foo');
 
-							e.currentTarget.style.backgroundColor = 'turquoise';
-							eMessage.innerText = 'swipe right';
-						}, 0.15, false, 'foo');
+							offSwipe(eTest, 'right', null, 'foo');
+							onSwipe(eTest, 'right', function(e){
+								e.stopPropagation();
 
-						offSwipe(eTest, 'down', null, 'foo');
-						onSwipe(eTest, 'down', function(e){
-							e.stopPropagation();
+								e.currentTarget.style.backgroundColor = 'turquoise';
+								eMessage.innerText = 'swipe right';
+							}, 0.15, false, 'foo');
 
-							e.currentTarget.style.backgroundColor = 'crimson';
-							eMessage.innerText = 'swipe down';
-						}, 0.15, false, 'foo');
+							offSwipe(eTest, 'down', null, 'foo');
+							onSwipe(eTest, 'down', function(e){
+								e.stopPropagation();
 
-						offSwipe(eTest, 'left', null, 'foo');
-						onSwipe(eTest, 'left', function(e){
-							e.stopPropagation();
+								e.currentTarget.style.backgroundColor = 'crimson';
+								eMessage.innerText = 'swipe down';
+							}, 0.15, false, 'foo');
 
-							e.currentTarget.style.backgroundColor = 'magenta';
-							eMessage.innerText = 'swipe left';
-						}, 0.15, false, 'foo');
+							offSwipe(eTest, 'left', null, 'foo');
+							onSwipe(eTest, 'left', function(e){
+								e.stopPropagation();
 
-						eTest.addEventListener('touchmove', fSuppressEvent);
+								e.currentTarget.style.backgroundColor = 'magenta';
+								eMessage.innerText = 'swipe left';
+							}, 0.15, false, 'foo');
 
-						eTest.classList.add('active');
-					});
+							eTest.addEventListener('touchmove', fSuppressEvent);
 
-					document.getElementById('off-swipe-btn').addEventListener('click', function(e){
-						e.preventDefault();
+							eTest.classList.add('active');
+						} else {
+							button.classList.remove('on');
+							button.innerText = 'bind swipes';
 
-						eTest.removeEventListener('touchmove', fSuppressEvent);
+							eTest.removeEventListener('touchmove', fSuppressEvent);
 
-						offSwipe(eTest, null, null, 'foo');
-						eTest.classList.remove('active');
-						eTest.style.backgroundColor = '';
-						eMessage.innerText = '';
+							offSwipe(eTest, null, null, 'foo');
+							eTest.classList.remove('active');
+							eTest.style.backgroundColor = '';
+							eMessage.innerText = '';
+						}
 					});
 				})();
 
@@ -420,10 +433,8 @@
 			<h3>off / on / pause / resume</h3>
 			<section>
 				<div>
-					<button id="background-pause" class="btn light-blue darken-1">pause background coloring on link click</button>
-					<button id="background-resume" class="btn light-blue darken-1">resume background coloring on link click</button>
-					<button id="form-submit-off" class="btn light-blue darken-1">remove submit handler of form (form submit reloads page afterwards)</button>
-					<button id="form-submit-on" class="btn light-blue darken-1">add submit handler of form</button>
+					<button id="background-pause-resume" class="btn light-blue darken-1">pause background coloring on link click</button>
+					<button id="form-submit-off-on" class="btn light-blue darken-1">remove submit handler of form (form submit reloads page afterwards)</button>
 				</div>
 			</section>
 
@@ -434,8 +445,7 @@
 					result in a message and background color changes, if working correctly.
 				</p>
 				<div>
-					<button id="on-swipe-btn" class="btn light-blue darken-1">bind swipes</button>
-					<button id="off-swipe-btn" class="btn light-blue darken-1">unbind swipes</button>
+					<button id="on-off-swipe-btn" class="btn light-blue darken-1">bind swipes</button>
 					<div id="swipe-test"><p></p></div>
 				</div>
 			</section>

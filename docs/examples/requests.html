@@ -686,19 +686,94 @@
 
 
 
+			function setupVisitUrl(visitUrl){
+				var sourceDisplay = document.querySelector('#visit-url-result .source');
+				hljs.highlightBlock(sourceDisplay);
+
+				document.querySelector('#visit-url-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					visitUrl('https://jsonplaceholder.typicode.com/posts/1')
+						.then(function(url){
+							var escape = document.createElement('textarea');
+							escape.textContent = url;
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#visit-url-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					visitUrl('https://jsonplaceholder.typicode.com/posts/1', 1)
+						.then(function(){
+							var escape = document.createElement('textarea');
+							escape.textContent = 'Error: this should not be triggered';
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+						.catch(function(error){
+							var escape = document.createElement('textarea');
+							escape.textContent = 'Success: "'+error.message+'" occurred';
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#visit-url-3').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					visitUrl('https://jsonplaceholder.typicode.com/posts/{token}', 2000, 2)
+						.then(function(url){
+							var escape = document.createElement('textarea');
+							escape.textContent = url;
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#visit-url-4').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					visitUrl('https://jsonplaceholder.typicode.com/posts/{post_id}', 3000, '3', 'post_id')
+						.then(function(url){
+							var escape = document.createElement('textarea');
+							escape.textContent = url;
+							sourceDisplay.innerHTML = escape.innerHTML;
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+			}
+
+
+
 			function setup(
 				polyfillFetch,
 				createFetchRequest,
 				createJsonRequest,
 				createJsRequest,
 				createCssRequest,
-				createHtmlRequest
+				createHtmlRequest,
+				visitUrl
 			){
 				setupFetch(createFetchRequest, polyfillFetch);
 				setupJson(createJsonRequest);
 				setupJs(createJsRequest);
 				setupCss(createCssRequest);
 				setupHtml(createHtmlRequest);
+				setupVisitUrl(visitUrl);
 			}
 		</script>
 		<script type="module">
@@ -713,7 +788,8 @@
 						createJsonRequest,
 						createJsRequest,
 						createCssRequest,
-						createHtmlRequest
+						createHtmlRequest,
+						visitUrl
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/requests.js`);
 
 					setup(
@@ -722,7 +798,8 @@
 						createJsonRequest,
 						createJsRequest,
 						createCssRequest,
-						createHtmlRequest
+						createHtmlRequest,
+						visitUrl
 					);
 				})().catch(error => {
 					console.error(error);
@@ -743,7 +820,8 @@
 								window.annex.requests.createJsonRequest,
 								window.annex.requests.createJsRequest,
 								window.annex.requests.createCssRequest,
-								window.annex.requests.createHtmlRequest
+								window.annex.requests.createHtmlRequest,
+								window.annex.requests.visitUrl
 							);
 						}
 					}
@@ -858,6 +936,20 @@
 					<a id="create-html-request-3">Should request an HTML document, append the H1 to the injection target, show H1's source</a>
 					<a id="create-html-request-4">Should request an HTML document, insert Ps before the injection target, show the Ps' sources</a>
 					<a id="create-html-request-5">Should request an HTML document, prepend the included H1 and Ps, the combined source of the H1 and Ps</a>
+				</div>
+			</section>
+
+			<h3>visitUrl</h3>
+			<section>
+				<p>
+					Trigger a request below, result should show the final URL, which was visited.
+				</p>
+				<div>
+					<pre id="visit-url-result"><code class="source language-html">trigger request to see result</code></pre>
+					<a id="visit-url-1">Should request a URL and finish in time</a>
+					<a id="visit-url-2">Should request a URL, but should immediately run into a timeout</a>
+					<a id="visit-url-3">Should request a URL with a token and finish in time</a>
+					<a id="visit-url-4">Should request a URL with a custom token and finish in time</a>
 				</div>
 			</section>
 		</main>

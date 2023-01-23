@@ -19,9 +19,12 @@
 			function setup(
 				browserSupportsHistoryManipulation,
 				contextHasHighDpi,
-				browserScrollbarWidth,
+				getBrowserScrollbarWidth,
 				detectInteractionType,
-				detectAppleDevice
+				detectAppleDevice,
+				getBrowserLanguage,
+				getBrowserLocale,
+				getLocale
 			){
 				var
 					context = document.querySelector('#context'),
@@ -29,13 +32,22 @@
 				;
 
 				var fUpdateContext = function(){
-					var infoMarkup = '';
+					var
+						infoMarkup = '',
+						browserLanguage = getBrowserLanguage(),
+						browserLocale = getBrowserLocale(),
+						pageLocale = getLocale(document.documentElement, 'de-DE'),
+						appleDevice = detectAppleDevice()
+					;
 
-					infoMarkup = infoMarkup+'<tr><td>Browser Supports History Manipulation</td><td>'+(browserSupportsHistoryManipulation() ? 'yes' : 'no')+'</td></tr>';
-					infoMarkup = infoMarkup+'<tr><td>Context Has High DPI</td><td>'+(contextHasHighDpi() ? 'yes' : 'no')+'</td></tr>';
-					infoMarkup = infoMarkup+'<tr><td>Browser Scrollbar Width</td><td>'+browserScrollbarWidth()+'px'+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Browser Language</td><td>'+(browserLanguage ? browserLanguage : 'none')+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Browser Locale</td><td>'+JSON.stringify(browserLocale)+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Page Locale</td><td>'+JSON.stringify(pageLocale)+'</td></tr>';
 					infoMarkup = infoMarkup+'<tr><td>Interaction Type</td><td>'+interactionType+'</td></tr>';
-					infoMarkup = infoMarkup+'<tr><td>Apple Device Type</td><td>'+(detectAppleDevice() ? detectAppleDevice() : 'not an apple device')+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Context Has High DPI</td><td>'+(contextHasHighDpi() ? 'yes' : 'no')+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Browser Supports History Manipulation</td><td>'+(browserSupportsHistoryManipulation() ? 'yes' : 'no')+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Browser Scrollbar Width</td><td>'+getBrowserScrollbarWidth()+'px'+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Apple Device Type</td><td>'+(appleDevice ? appleDevice : 'not an apple device')+'</td></tr>';
 
 					context.innerHTML = infoMarkup;
 				};
@@ -55,17 +67,23 @@
 					const {
 						browserSupportsHistoryManipulation,
 						contextHasHighDpi,
-						browserScrollbarWidth,
+						getBrowserScrollbarWidth,
 						detectInteractionType,
-						detectAppleDevice
+						detectAppleDevice,
+						getBrowserLanguage,
+						getBrowserLocale,
+						getLocale
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/context.js`);
 
 					setup(
 						browserSupportsHistoryManipulation,
 						contextHasHighDpi,
-						browserScrollbarWidth,
+						getBrowserScrollbarWidth,
 						detectInteractionType,
-						detectAppleDevice
+						detectAppleDevice,
+						getBrowserLanguage,
+						getBrowserLocale,
+						getLocale
 					);
 				})().catch(error => {
 					console.error(error);
@@ -83,9 +101,12 @@
 							setup(
 								window.annex.context.browserSupportsHistoryManipulation,
 								window.annex.context.contextHasHighDpi,
-								window.annex.context.browserScrollbarWidth,
+								window.annex.context.getBrowserScrollbarWidth,
 								window.annex.context.detectInteractionType,
-								window.annex.context.detectAppleDevice
+								window.annex.context.detectAppleDevice,
+								window.annex.context.getBrowserLanguage,
+								window.annex.context.getBrowserLocale,
+								window.annex.context.getLocale
 							);
 						}
 					}

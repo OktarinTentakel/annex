@@ -18,9 +18,14 @@ by Sebastian Schlapkohl
 
 
 
-!WARNING!
----------
-This is still in early phases of development, 1.0.0 will be the first stable version. Do not use before beta status!
+A Word of Caution
+-----------------
+This package has reached beta status. Everything included is tested with unit tests and/or browser examples. And the
+contents include everything I aimed for in the first version. Although everything is finished from a technical
+perspective, this package is not yet battle-proven.
+
+The beta should be fine to use (cautiously), but I will delay the bump to version 1.0.0 stable until after I've used
+this in a real-world project.
 
 
 
@@ -49,23 +54,23 @@ JavaScript more bearable by streamlining syntactical nonsense and providing func
 
 Some of the Batteries Included
 ------------------------------
-- better logging 
-- variable normalization
-- info getters for variable states like type and value checks
-- string format functionality
-- string generation and conversion tools like slugification and safe id generation
-- array tools
-- math helpers
-- better timers
-- streamlined standard requests
-- polling
+- event helpers including a complete event system
+- variable normalization and type evaluation
+- DOM handling with element creation and manipulation
+- streamlined standard requests (basic requests & special versions for html/css/js/json)
 - url and navigation helpers
-- solutions for obfuscated mailto and tel links
-- browser capability checks
+- better logging
+- better randomization for numbers and ids
+- string generation and conversion tools like formatting and slugification
+- array tools like actually usable removal functionality based on values and flexible indices
+- browser capability checks and context evaluation
+- viewport information and functionality
+- interaction solutions like obfuscated mailto and tel links
+- better (& more precise) timers
+- polling
 - cookie handling
-- image and webfont callback helpers
+- image and webfont availability callbacks
 - form helpers for data
-- event tools
 
 
 

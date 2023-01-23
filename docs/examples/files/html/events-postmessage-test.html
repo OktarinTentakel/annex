@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Events PostMessage Test</title>
+
+		<link rel="stylesheet" href="../../main.css"/>
+		<style>
+			body {
+				padding: 10px 20px;
+			}
+
+			.badge.new {
+				float: left;
+			}
+
+			.badge.new:after {
+				content: '' !important;
+			}
+		</style>
+
+		<script>
+			function setup(
+				POST_MESSAGE_MAP,
+				onPostMessage,
+				offPostMessage,
+				emitPostMessage
+			){
+				// onPostMessage / offPostMessage / emitPostMessage
+
+				(function(){
+					onPostMessage(window, '*', 'reset-event', function(e){
+						document.body.innerHTML = '<span class="new badge blue accent-4">PostMessage Target</span>';
+					});
+
+					onPostMessage(window, '*', 'chain-event', function(e){
+						document.body.innerHTML = '<span class="new badge green accent-4">'
+								+'Chain Event RECEIVED: '+e.data.payload.timestamp.toISOString()
+							+'</span>'
+						;
+						emitPostMessage(parent, '*', 'chain-event', {timestamp : new Date()});
+					});
+
+					onPostMessage(window, window.location.origin, 'prepare-event', function(e){
+						document.body.innerText = '';
+
+						var remover = onPostMessage(
+							window,
+							(Math.random() > 0.5) ? window.location.origin : 'https://foobar.com',
+							'expect-event',
+							function(){
+								remover();
+								document.body.innerHTML = '<span class="new badge green accent-4">'
+										+'Event ACCEPTED. (event map is'
+										+(POST_MESSAGE_MAP.get(window)['expect-event'] === undefined ? ' ' : ' NOT ')
+										+'clean)'
+									+'</span>'
+								;
+								window.clearTimeout(timeout);
+								emitPostMessage(e.source, window.location.origin, 'accept-event');
+							}
+						);
+
+						emitPostMessage(e.source, window.location.origin, 'prepare-event');
+
+						var timeout = window.setTimeout(function(){
+							remover();
+							document.body.innerHTML = '<span class="new badge red accent-4">'
+									+'Event DECLINED. (event map is'
+									+(POST_MESSAGE_MAP.get(window)['expect-event'] === undefined ? ' ' : ' NOT ')
+									+'clean)'
+								+'</span>'
+							;
+							emitPostMessage(e.source, window.location.origin, 'decline-event');
+						}, 250);
+					});
+				})();
+			}
+		</script>
+		<script defer src="../../lib/annex/dist/es5-monolith.js"></script>
+		<script defer>
+			(function(){
+				var annexPoll = window.setInterval(function(){
+					if( window.annex ){
+						window.clearInterval(annexPoll);
+
+						setup(
+							window.annex.events.POST_MESSAGE_MAP,
+							window.annex.events.onPostMessage,
+							window.annex.events.offPostMessage,
+							window.annex.events.emitPostMessage
+						);
+					}
+				}, 250);
+			})();
+		</script>
+	</head>
+
+	<body><span class="new badge blue accent-4">PostMessage Target</span></body>
+</html>

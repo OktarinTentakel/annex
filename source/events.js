@@ -16,12 +16,16 @@ import {assert, isA, isEventTarget, isPlainObject, orDefault, hasValue, isEmpty,
 import {slugify} from './strings.js';
 import {removeFrom} from './arrays.js';
 import {detectInteractionType} from './context.js';
+import {warn} from './logging.js';
 
 
 
 //###[ DATA ]###########################################################################################################
 
-export const EVENT_MAP = new Map();
+export const
+	EVENT_MAP = new Map(),
+	POST_MESSAGE_MAP = new Map()
+;
 
 const
 	DEFAULT_NAMESPACE = '__default',
@@ -401,6 +405,7 @@ function removeLocatedHandler(target, namespace, event, handler, delegation=null
 
 	removedHandlers.forEach(removedHandler => {
 		target.removeEventListener(event, removedHandler.action);
+		target.removeEventListener(event, removedHandler.action, {capture : true});
 	});
 
 	return removedHandlers.length;
@@ -640,6 +645,90 @@ function updateSwipeTouch(e){
 
 
 
+/*
+ * Tries to find a usable target for post messages, based on a given target element.
+ *
+ * @private
+ */
+function resolvePostMessageTarget(target, method){
+	target = isA(target, 'window')
+		? target
+		: (
+			isA(target?.contentWindow, 'window')
+			? target.contentWindow
+			: null
+		)
+	;
+
+	assert(hasValue(target), `${MODULE_NAME}:${method} | no usable target`);
+
+	return target
+}
+
+
+
+/*
+ * Default handling for post messages for a window.
+ *
+ * @private
+ */
+function windowPostMessageHandler(e){
+	const
+		target = e.currentTarget,
+		targetPostMessages = POST_MESSAGE_MAP.get(target),
+		origin = !isEmpty(e.origin) ? e.origin : (!!window.__AVA_ENV__ ? window.location.href : null),
+		messageType = e.data?.type
+	;
+
+	if( hasValue(targetPostMessages) ){
+		const messageTypes = hasValue(messageType) ? [messageType] : Object.keys(targetPostMessages);
+		messageTypes.forEach(messageType => {
+			(targetPostMessages[messageType] ?? []).forEach(handler => {
+				if( (handler.origin === '*') || (handler.origin === origin) ){
+					handler.handler(e);
+				}
+			});
+		});
+	}
+}
+
+
+
+/*
+ * Iterates message handlers for a target, and removes handlers, based on given handler and origin.
+ *
+ * @private
+ */
+function removePostMessageHandlers(targetPostMessages, messageType, origin=null, handler=null){
+	if( hasValue(targetPostMessages[messageType]) ){
+		const handlerCountBefore = targetPostMessages[messageType].length;
+
+		if( !hasValue(origin) && !hasValue(handler) ){
+			targetPostMessages[messageType] = [];
+		} else if( hasValue(origin) && !hasValue(handler) ){
+			targetPostMessages[messageType] = targetPostMessages[messageType].filter(h => h.origin !== origin);
+		} else if( !hasValue(origin) && hasValue(handler) ){
+			targetPostMessages[messageType] = targetPostMessages[messageType].filter(h => h.handler !== handler);
+		} else if( hasValue(origin, handler) ) {
+			targetPostMessages[messageType] = targetPostMessages[messageType].filter(
+				h => (h.origin !== origin) && (h.handler !== handler)
+			);
+		}
+
+		const handlerCountAfter = targetPostMessages[messageType].length;
+
+		if( targetPostMessages[messageType].length === 0 ){
+			delete targetPostMessages[messageType];
+		}
+
+		return handlerCountBefore - handlerCountAfter;
+	} else {
+		return 0;
+	}
+}
+
+
+
 //###[ EXPORTS ]########################################################################################################
 
 /**
@@ -845,9 +934,17 @@ export function once(targets, events, handler, options=null){
  *
  * To specifically target handlers without a namespace, please use the namespace-string "__default".
  *
+ * This function does _not_ differentiate between removal of capture/non-capture events, but always removes both.
+ *
+ * If you try to remove event handlers not previously created with `on` (and therefore there are no fitting target
+ * entries in the EVENT_MAP), the function will fall back to native `removeEventListener`
+ * (if `tryNativeRemoval` is true), but in that case, a handler has to be defined and the return value will not
+ * increment, since we do not know if the removal really worked.
+ *
  * @param {EventTarget|Array<EventTarget>} targets - the target(s) to remove event handlers from
  * @param {String|Array<String>} events - the event name(s) to remove, can be either a single name or a list of names, each name may also have a namespace, separated by a dot, to target all events/namespaces, you may use "*"/"*.*"
  * @param {?Function} [handler=null] - a specific callback function to remove
+ * @param {?Boolean} [tryNativeRemoval=true] - if a target is not part of the EVENT_MAP native removeEventListener is used as a fallback if this is true (handler needs to be set in that case)
  * @throws error in case no targets are defined
  * @throws error in case no events are defined
  * @throws error in case a defined handler is not a function
@@ -870,10 +967,11 @@ export function once(targets, events, handler, options=null){
  * off([ancestorElement, 'a', ancestorElement, '.btn[data-foobar="test"]'], '*.*', fSpecificHandler);
  * off(buttonElement, '*.*');
  */
-export function off(targets, events, handler=null){
+export function off(targets, events, handler=null, tryNativeRemoval=true){
 	const __methodName__ = 'off';
 
 	({targets, events, handler} = prepareEventMethodBaseParams(__methodName__, targets, events, handler, true));
+	tryNativeRemoval = orDefault(tryNativeRemoval, true, 'bool');
 
 	let removedCount = 0;
 
@@ -887,19 +985,26 @@ export function off(targets, events, handler=null){
 		if( !hasDelegation ){
 			const targetEvents = isDelegation ? EVENT_MAP.get(prevTarget) : EVENT_MAP.get(target);
 
-			if( hasValue(targetEvents) ){
-				events.forEach(eventName => {
-					const {event, namespace} = prepareEventMethodEventInfo(eventName);
+			events.forEach(eventName => {
+				const {event, namespace} = prepareEventMethodEventInfo(eventName);
 
+				if( hasValue(targetEvents) ){
 					if( isDelegation ){
 						removedCount += removeDelegatedHandlers(prevTarget, target, namespace, event, handler);
 					} else {
 						removedCount += removeHandlers(target, namespace, event, handler);
 					}
-				});
 
-				cleanUpEventMap(isDelegation ? prevTarget : target);
-			}
+					cleanUpEventMap(isDelegation ? prevTarget : target);
+				} else if( tryNativeRemoval ){
+					if( hasValue(handler) ){
+						(isDelegation ? prevTarget : target).removeEventListener(eventName, handler);
+						(isDelegation ? prevTarget : target).removeEventListener(eventName, handler, {capture : true});
+					} else {
+						warn(`${MODULE_NAME}:${__methodName__} | native fallback event removal for "${eventName}" not possible, handler is missing`);
+					}
+				}
+			});
 		}
 	});
 
@@ -1431,6 +1536,7 @@ export function offSwipe(targets, direction=null, handler=null, eventNameSpace='
  * @param {Function} callback - function to execute, once document is parsed and ready
  *
  * @memberof Events:onDomReady
+ * @alias onDomReady
  * @example
  * onDomReady(() => {
  *     document.body.classList.add('dom-ready');
@@ -1440,6 +1546,210 @@ export function onDomReady(callback){
 	if( document.readyState !== 'loading' ){
 		callback();
 	} else {
-		document.addEventListener('DOMContentLoaded', callback);
+		const wrappedCallback = () => {
+			document.removeEventListener('DOMContentLoaded', wrappedCallback);
+			callback();
+		};
+		document.addEventListener('DOMContentLoaded', wrappedCallback);
 	}
+}
+
+
+
+/**
+ * @namespace Events:onPostMessage
+ */
+
+/**
+ * Register an event handler for a post message on a valid target, like a window or an iframe.
+ *
+ * The handler will only be executed, if the messageType as well as the origin match. The messageType must be
+ * part of the payload, using the key "type", which `emitPostMessage` does automatically.
+ *
+ * Putting the origin as an obligatory parameter at the second place, is deliberate by design, to force everyone
+ * to really think about, what to use here. Usually, most people, just throw in the "*" wildcard, paying no attention
+ * to the security implications. Please really think about what to use here.
+ *
+ * A word of advice: keep in mind, that, contrary to most other events in javascript, post messages actually work
+ * asynchronously (so you cannot be sure, that the handler has been executed, directly after a post message has been
+ * sent) and that messages/payload are not transferred as-is, but are cloned, using the "structured clone algorithm",
+ * which means, that not every javascript object is transferable without losses.
+ *
+ * @param {Window|HTMLIFrameElement} target - window/iframe to register the handler to (iframes are automatically resolved to the contentWindow)
+ * @param {String} origin - the origin the received post message has to have, for the handler to get executed (defaults to "*", if receiving a nullish value)
+ * @param {String} messageType - the type/name the post message has to have, for the handler to get executed (will be checked using the key "type" in the message's payload)
+ * @param {Function} handler - the handler to execute, if a post message, matching all conditions, is received
+ * @throws error if target is not usable
+ * @return a function, which, if executed, removes everything registered by the current call
+ *
+ * @memberof Events:onPostMessage
+ * @alias onPostMessage
+ * @see offPostMessage
+ * @see emitPostMessage
+ * @see https://developer.mozilla.org/en-US/docs/Glossary/Origin
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+ * @example
+ * const removeAgainFunction = onPostMessage(window, '*', 'foobar-message', () => { doSomething(); });
+ * onPostMessage(iframeElement, 'https://foobar.com:80/', 'foobar-message', e => { resizeIframe(e.data.payload.height); });
+ */
+export function onPostMessage(target, origin, messageType, handler){
+	const __methodName__ = 'onPostMessage';
+
+	target = resolvePostMessageTarget(target, __methodName__);
+	origin = orDefault(origin, '*', 'str');
+	messageType = `${messageType}`;
+
+	assert(isA(handler, 'function'), `${MODULE_NAME}:${__methodName__} | handler is not a function`);
+
+	if( !hasValue(POST_MESSAGE_MAP.get(target)) ){
+		POST_MESSAGE_MAP.set(target, {});
+		target.addEventListener('message', windowPostMessageHandler);
+	}
+
+	const targetPostMessages = POST_MESSAGE_MAP.get(target);
+	if( !hasValue(targetPostMessages[messageType]) ){
+		targetPostMessages[messageType] = [];
+	}
+
+	targetPostMessages[messageType].push({handler, origin});
+
+	return () => { offPostMessage(target, origin, messageType, handler); };
+}
+
+
+
+/**
+ * @namespace Events:offPostMessage
+ */
+
+/**
+ * Unregister (an) event handler(s) for (a) post message(s) on a valid target, like a window or an iframe.
+ *
+ * Similar to `off`, this function can handle rather unspecific cases as well as very specific definitions.
+ * Just setting the target, removes all registrations for that target. Setting an `origin` and/or a `messageType`
+ * additionally, only removes handlers, that were registered explicitly for these values. Adding a handler only
+ * removes that specific handler (without origin and/or messageType, the handler is removed everywhere).
+ *
+ * Putting the origin parameter at the second place, is deliberate by design, to force everyone to really think about,
+ * what to use here. Usually, most people, just throw in the "*" wildcard, paying no attention to the security
+ * implications, when setting a post message handler. Since we force this on `onPostMessage`, we keep the signature
+ * here as well, just making everything except target optional.
+ *
+ * If you try to remove event handlers not previously created with `onPostMessage` (and therefore there are no fitting
+ * target entries in the POST_MESSAGE_MAP), the function will fall back to native `removeEventListener`
+ * (if `tryNativeRemoval` is true), but in that case, a handler has to be defined and the return value will not
+ * increment, since we do not know if the removal really worked.
+ *
+ * @param {Window|HTMLIFrameElement} target - window/iframe to remove handler(s) from (iframes are automatically resolved to the contentWindow)
+ * @param {?String} [origin=null] - the origin the received post message has to have, for the handler to get executed (defaults to "*", if receiving a nullish value)
+ * @param {?String} [messageType=null] - the type/name the post message has to have, for the handler to get executed (will be checked using the key "type" in the message's payload)
+ * @param {?Function} [handler=null] - the handler to execute, if a post message, matching all conditions, is received
+ * @param {?Boolean} [tryNativeRemoval=true] - if a target is not part of the POST_MESSAGE_MAP native removeEventListener is used as a fallback if this is true (handler needs to be set in that case)
+ * @throws error if target is not usable
+ * @return the number of actually removed handlers, that matched the conditions
+ *
+ * @memberof Events:offPostMessage
+ * @alias offPostMessage
+ * @see onPostMessage
+ * @see emitPostMessage
+ * @see https://developer.mozilla.org/en-US/docs/Glossary/Origin
+ * @example
+ * const offCount = offPostMessage(window, 'https://foobar.com:80/', 'foobar-message');
+ * offPostMessage(window, null, null, specialHandlerFunction);
+ */
+export function offPostMessage(target, origin=null, messageType=null, handler=null, tryNativeRemoval=true){
+	const __methodName__ = 'offPostMessage';
+
+	target = resolvePostMessageTarget(target, __methodName__);
+	origin = orDefault(origin, null, 'str');
+	messageType = orDefault(messageType, null, 'str');
+	tryNativeRemoval = orDefault(tryNativeRemoval, true, 'bool');
+
+	if( hasValue(handler) ){
+		assert(isA(handler, 'function'), `${MODULE_NAME}:${__methodName__} | handler is not a function`);
+	}
+
+	let removedCount = 0;
+
+	const targetPostMessages = POST_MESSAGE_MAP.get(target);
+	if( hasValue(targetPostMessages) ){
+		const messageTypes = hasValue(messageType) ? [messageType] : Object.keys(targetPostMessages);
+		messageTypes.forEach(messageType => {
+			removedCount += removePostMessageHandlers(targetPostMessages, messageType, origin, handler);
+		});
+
+		if( Object.keys(targetPostMessages).length === 0 ){
+			POST_MESSAGE_MAP.delete(target);
+		}
+	} else if( tryNativeRemoval ){
+		if( hasValue(handler) ){
+			target.removeEventListener('message', handler);
+		} else {
+			warn(`${MODULE_NAME}:${__methodName__} | native fallback event removal for "${messageType}" not possible, handler is missing`);
+		}
+	}
+
+	if( !hasValue(POST_MESSAGE_MAP.get(target)) ){
+		target.removeEventListener('message', windowPostMessageHandler);
+	}
+
+	return removedCount;
+}
+
+
+
+/**
+ * @namespace Events:emitPostMessage
+ */
+
+/**
+ * Emit/dispatch a post message on a valid target, like a window or an iframe.
+ *
+ * Putting the origin as an obligatory parameter at the second place, is deliberate by design, to force everyone
+ * to really think about, what to use here. Usually, most people, just throw in the "*" wildcard, paying no attention
+ * to the security implications. Please really think about what to use here.
+ *
+ * This function adds the `messageType` automatically to the message/payload using the key `type`. `onPostMessage` will
+ * use that information additionally to the `origin` to determine if a registration fits the occurred event. The
+ * `payload` will be placed in the message using the key `payload`. So `e.data` will look like this in the
+ * handler at the end: `{type : messageType, payload : {...payload}}`
+ *
+ * A word of advice: keep in mind, that, contrary to most other events in javascript, post messages actually work
+ * asynchronously (so you cannot be sure, that the handler has been executed, directly after a post message has been
+ * sent) and that messages/payload are not transferred as-is, but are cloned, using the "structured clone algorithm",
+ * which means, that not every javascript object is transferable without losses.
+ *
+ * @param {Window|HTMLIFrameElement} target - window/iframe to receive the post message (iframes are automatically resolved to the contentWindow)
+ * @param {String} origin - the origin the current context has to have, to actually send the post message the received post message has to have, this does NOT set the origin! (defaults to "*", if receiving a nullish value)
+ * @param {String} messageType - the type/name of the post message (will be checked using the key "type" in the message's payload, which will automatically be set using this function)
+ * @param {?*} [payload=null] - a payload to add to the message under the key "payload"
+ * @throws error if target is not usable
+ * @return the resolved target of the post message
+ *
+ * @memberof Events:emitPostMessage
+ * @alias emitPostMessage
+ * @see onPostMessage
+ * @see offPostMessage
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+ * @see https://developer.mozilla.org/en-US/docs/Glossary/Origin
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+ * @example
+ * emitPostMessage(window, '*', 'foobar-message', {timestamp : new Date()});
+ * emitPostMessage(iframeElement, 'https://foobar.com:80/', 'foobar-message');
+ */
+export function emitPostMessage(target, origin, messageType, payload=null){
+	const __methodName__ = 'emitPostMessage';
+
+	target = resolvePostMessageTarget(target, __methodName__);
+	origin = orDefault(origin, '*', 'str');
+	messageType = `${messageType}`;
+
+	const message = {type : messageType};
+	if( hasValue(payload) ){
+		message.payload = payload;
+	}
+
+	target.postMessage(message, origin);
+
+	return target;
 }

@@ -12,7 +12,7 @@ const MODULE_NAME = 'Interaction';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, orDefault, hasValue} from './basic.js';
+import {assert, isA, orDefault, hasValue, Deferred} from './basic.js';
 import {findTextNodes} from './elements.js';
 import {applyStyles} from './css.js';
 
@@ -20,6 +20,7 @@ import {applyStyles} from './css.js';
 
 //###[ DATA ]###########################################################################################################
 
+export const TAPPABLE_ELEMENTS_SELECTOR = 'a, button, .button, input[type=button], input[type=submit]';
 const NOT_AN_HTMLELEMENT_ERROR = 'given node/target is not an HTMLElement';
 
 
@@ -435,4 +436,114 @@ export function obfuscatePrivateTelLink(
 	if( setAsContent ){
 		link.innerHTML = (`+${countryPart} ${regionPart} ${firstTelPart}${secondTelPart}`).replace(/(\w{1})/g, '$1&zwnj;');
 	}
+}
+
+
+
+/**
+ * @namespace Interaction:setTappedState
+ */
+
+/**
+ * Sets a "tapped" state on an element (via a CSS class), which removes itself again after a short time.
+ *
+ * The sole reason for doing this, is to be able to apply styling to a tap/click action across devices without
+ * trailing styles, which would result by using something like `:focus`.
+ *
+ * @param {HTMLElement} element - the link to augment, has to be a node where we can set a "href" attribute
+ * @param {?String} [tappedClass='tapped'] - the CSS class to set on the element to signify the "tapped" state
+ * @param {?Number} [tappedDuration=200] - the duration in milliseconds, the "tapped" state should last
+ * @throws error if element is not an HTMLElement
+ * @return {Deferred} resolves with the element, when the tapped state ends
+ *
+ * @memberof Interaction:setTappedState
+ * @alias setTappedState
+ * @example
+ * setTappedState(link);
+ * setTappedState(link, 'clicked', 500);
+ */
+export function setTappedState(element, tappedClass='tapped', tappedDuration=200){
+	const __methodName__ = 'setTappedState';
+
+	tappedClass = orDefault(tappedClass, 'tapped', 'str');
+	tappedDuration = orDefault(tappedDuration, 200, 'int');
+
+	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	const deferred = new Deferred();
+
+	element.classList.add(tappedClass);
+	window.setTimeout(() =>{
+		element.classList.remove(tappedClass);
+		element.blur();
+		deferred.resolve(element);
+	}, tappedDuration);
+
+	return deferred;
+}
+
+
+
+/**
+ * @namespace Interaction:setupAutoTappedStates
+ */
+
+/**
+ * This function registers a global event handler on the document body, to automatically add "tapped" states (as a CSS
+ * class) to "tappable" elements on "tap".
+ *
+ * What is a "tap" you ask? Well, it's either a pointer click or a finger touch or anything resembling these actions
+ * on your current device.
+ *
+ * The idea behind that is this: usually, on pointer devices, we have a `:hover` state to signify user interaction
+ * with an element, while on touch devices, we only know that an interaction took place after a user touched an element
+ * with his/her finger, "tapped" it so to speak. Styling a touch with CSS would only be possible via `:focus`, which
+ * has the problems, that focus has a different meaning on pointer devices and the focus state does not end
+ * automatically, resulting in trailing visual states.
+ *
+ * So, what we do instead, is that we just generally observe taps (via "click" event, which works across devices as
+ * expected) and set a class on the element, for a short time, which removes itself automatically again, to be able
+ * to define a visual state or a short animation for that class. So, for example, let's say the function has been
+ * executed. After that, you can define something like `a.tapped { color: orange; }`, which would result in orange
+ * coloring for a short time, after clicking/touching the element. Combine this with `:hover`, `:focus` definitions
+ * in CSS to define a complete effect setup.
+ *
+ * @param {?HTMLElement} [element=document.body] - the element to use as delegation parent for events, should contain the tappable elements you'd like to target
+ * @param {?String} [tappableElementsSelector='a, button, .button, input[type=button], input[type=submit]'] - selector to identify a tappable element by in a delegated event handler
+ * @param {?String|Array<String>} [tapEvents='click'] - the DOM event(s) to register for taps
+ * @param {?String} [tappedClass='tapped'] - the CSS class to set on the element to signify the "tapped" state
+ * @param {?Number} [tappedDuration=200] - the duration in milliseconds, the "tapped" state should last
+ * @throws error if element is not an HTMLElement
+ *
+ * @memberof Interaction:setupAutoTappedStates
+ * @alias setupAutoTappedStates
+ * @example
+ * setupAutoTappedStates();
+ * setupAutoTappedStates(document.body, 'a, button', 'customevent');
+ */
+export function setupAutoTappedStates(
+	element=document.body,
+	tappableElementsSelector=TAPPABLE_ELEMENTS_SELECTOR,
+	tapEvents='click',
+	tappedClass='tapped',
+	tappedDuration=200
+){
+	const __methodName__ = 'setupAutoTappedStates';
+
+	tappableElementsSelector = orDefault(tappableElementsSelector, TAPPABLE_ELEMENTS_SELECTOR, 'str');
+	tapEvents = orDefault(tapEvents, 'click', 'str');
+	tapEvents = [].concat(tapEvents);
+
+	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+
+	tapEvents.forEach(tapEvent => {
+		element.addEventListener(tapEvent, e => {
+			if(
+				hasValue(e.target?.matches)
+				&& e.target.matches(tappableElementsSelector)
+			){
+				setTappedState(e.target, tappedClass, tappedDuration);
+			}
+		});
+	});
 }

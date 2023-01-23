@@ -18,7 +18,11 @@ const {
 	resume,
 	fire,
 	emit,
-	offDetachedElements
+	offDetachedElements,
+	POST_MESSAGE_MAP,
+	onPostMessage,
+	offPostMessage,
+	emitPostMessage
 } = pkg;
 
 
@@ -259,7 +263,7 @@ test.serial('pause', assert => {
 
 	assert.is(pause(baz, 'foobar'), 0);
 
-	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	off([foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
 	assert.is(EVENT_MAP.size, 0);
 });
 
@@ -304,7 +308,7 @@ test.serial('resume', assert => {
 
 	assert.is(resume(baz, 'foobar'), 0);
 
-	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	off([foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
 	assert.is(EVENT_MAP.size, 0);
 });
 
@@ -453,7 +457,7 @@ test.serial('offDetachedElements', assert => {
 	baz.dispatchEvent(new CustomEvent('click'));
 	assert.is(eventsFiredCount, 3);
 
-	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*', null, false);
 	assert.is(EVENT_MAP.size, 0);
 
 	foo.appendChild(bar);
@@ -463,6 +467,163 @@ test.serial('offDetachedElements', assert => {
 	document.body.removeChild(foo);
 	assert.is(offDetachedElements(), 3);
 
-	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*');
+	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*', null, false);
 	assert.is(EVENT_MAP.size, 0);
+});
+
+
+
+test.serial('onPostMessage & offPostMessage & emitPostMessage', assert => {
+	assert.throws(() => {
+		onPostMessage({}, '*', 'foobar', () => {});
+	});
+
+	assert.throws(() => {
+		offPostMessage({});
+	});
+
+	assert.throws(() => {
+		emitPostMessage({}, '*', 'foobar');
+	});
+
+	let foobar2remover, boofar3Handler, foobar5Handler1, foobar5Handler2;
+
+	return Promise.all([
+		new Promise(resolve => {
+			onPostMessage(window, '*', 'foobar-1', resolve);
+			window.postMessage({type : 'foobar-1'}, '*');
+		}),
+		new Promise(resolve => {
+			foobar2remover = onPostMessage(window, 'https://devtest.ifschleife.de/', 'foobar-2', resolve);
+			window.postMessage({type : 'foobar-2'}, window.location.origin);
+		}),
+		new Promise((resolve, reject) => {
+			window.setTimeout(resolve, 250);
+			boofar3Handler = reject;
+			onPostMessage(window, '*', 'boofar-3', boofar3Handler);
+			window.postMessage({type : 'foobar-3'}, '*');
+		}),
+		new Promise((resolve, reject) => {
+			window.setTimeout(resolve, 250);
+			onPostMessage(window, 'https://devtest.ifschleife.com/', 'boofar-4', reject);
+			window.postMessage({type : 'foobar-4'}, window.location.origin);
+		}),
+		new Promise(resolve => {
+			foobar5Handler1 = e => {
+				if(
+					(e.data.type === 'foobar-5')
+					&& e.data.payload.timestamp
+					&& (typeof e.data.payload.timestamp.getTime === 'function')
+					&& (e.data.payload.list[2] === true)
+				){
+					resolve();
+				}
+			};
+			onPostMessage(window, '*', 'foobar-5', foobar5Handler1);
+			emitPostMessage(window, '*', 'foobar-5', {
+				timestamp : new Date(),
+				list : [1, 2, true]
+			});
+		}),
+		new Promise(resolve => {
+			foobar5Handler2 = e => {
+				if(
+					(e.data.type === 'foobar-5')
+					&& e.data.payload.a
+					&& (e.data.payload.a.b.c === 'd')
+				){
+					resolve();
+				}
+			};
+			onPostMessage(window, 'https://devtest.ifschleife.de/', 'foobar-5', foobar5Handler2);
+			emitPostMessage(window, window.location.origin, 'foobar-5', {a : {b : {c : 'd'}}});
+		}),
+		new Promise((resolve, reject) => {
+			window.setTimeout(() => {
+				const
+					expectedSize = 1,
+					size = POST_MESSAGE_MAP.size
+				;
+				if( size === expectedSize ){
+					resolve();
+				} else {
+					reject(new Error(`wrong size ${size}, should be ${expectedSize}`));
+				}
+			}, 1);
+		}),
+		new Promise((resolve, reject) => {
+			window.setTimeout(() => {
+				const
+					expectedSize = 5,
+					size = Object.keys(POST_MESSAGE_MAP.get(window)).length
+				;
+				if( size === expectedSize ){
+					resolve();
+				} else {
+					reject(new Error(`wrong size ${size}, should be ${expectedSize}`));
+				}
+			}, 1);
+		}),
+		new Promise((resolve, reject) => {
+			window.setTimeout(() => {
+				const
+					expectedSize = 2,
+					size = POST_MESSAGE_MAP.get(window)['foobar-5'].length
+				;
+				if( size === expectedSize ){
+					resolve();
+				} else {
+					reject(new Error(`wrong size ${size}, should be ${expectedSize}`));
+				}
+			}, 1);
+		}),
+		new Promise((resolve, reject) => {
+			window.setTimeout(() => {
+				let offCount = 0;
+				offCount += offPostMessage(window, '*', 'foobar-1');
+				offCount += 1; foobar2remover();
+				offCount += offPostMessage(window, 'nope', 'boofar-3');
+				offCount += offPostMessage(window, null, 'boofar-4');
+				offCount += offPostMessage(window, null, null, foobar5Handler1);
+
+				const
+					expectedSize = 2,
+					expectedOffCount = 4,
+					size = Object.keys(POST_MESSAGE_MAP.get(window)).length
+				;
+				if( (size === expectedSize) && (offCount === expectedOffCount) ){
+					resolve();
+				} else if( size !== expectedSize ){
+					reject(new Error(`wrong size ${size}, should be ${expectedSize}`));
+				} else if( offCount !== expectedOffCount ){
+					reject(new Error(`wrong offCount ${offCount}, should be ${expectedOffCount}`));
+				}
+			}, 100);
+		}),
+		new Promise((resolve, reject) => {
+			window.setTimeout(() => {
+				const
+					expectedSize = 1,
+					size = POST_MESSAGE_MAP.get(window)['foobar-5'].length
+				;
+				if( size === expectedSize ){
+					resolve();
+				} else {
+					reject(new Error(`wrong size ${size}, should be ${expectedSize}`));
+				}
+			}, 200);
+		}),
+		new Promise((resolve, reject) => {
+			window.setTimeout(() => {
+				offPostMessage(window, 'https://devtest.ifschleife.de/', null, foobar5Handler2);
+				offPostMessage(window, '*', 'boofar-3', boofar3Handler);
+
+				if( POST_MESSAGE_MAP.get(window) === undefined ){
+					resolve();
+				} else {
+					reject(new Error('POST_MESSAGE_MAP not cleared after handler removal'));
+				}
+			}, 300);
+		}),
+	]);
 });

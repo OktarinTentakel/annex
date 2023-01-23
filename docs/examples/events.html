@@ -47,7 +47,7 @@
 				position: relative;
 
 				width: 33vw;
-				min-width: 200px;
+				min-width: 190px;
 				height: 33vw;
 				min-height: 200px;
 
@@ -93,6 +93,37 @@
 			#on-dom-ready-again:after {
 				content: '';
 			}
+
+			#postmessage-target-1,
+			#postmessage-target-2,
+			#postmessage-target-3 {
+				float: none;
+
+				width: 30%;
+				min-width: 190px;
+				height: 150px;
+
+				border: 2px solid dodgerblue;
+
+				transition: outline 200ms, border-color 200ms;
+			}
+
+			#postmessage-target-1.active,
+			#postmessage-target-1.accepted,
+			#postmessage-target-2.active,
+			#postmessage-target-2.accepted,
+			#postmessage-target-3.active,
+			#postmessage-target-3.accepted {
+				border-color: limegreen;
+				outline: 2px solid limegreen;
+			}
+
+			#postmessage-target-1.declined,
+			#postmessage-target-2.declined,
+			#postmessage-target-3.declined {
+				border-color: firebrick;
+				outline: 2px solid firebrick;
+			}
 		</style>
 
 		<script defer src="./lib/handle-version-switching.js"></script>
@@ -109,7 +140,11 @@
 				emit,
 				onSwipe,
 				offSwipe,
-				onDomReady
+				onDomReady,
+				POST_MESSAGE_MAP,
+				onPostMessage,
+				offPostMessage,
+				emitPostMessage
 			){
 				polyfillCustomEvent();
 				polyfillElementMatches();
@@ -330,6 +365,103 @@
 						}, 3000);
 					});
 				})();
+
+
+				// onPostMessage / offPostMessage / emitPostMessage
+
+				(function(){
+					var
+						postMessageTargets = [
+							document.getElementById('postmessage-target-1'),
+							document.getElementById('postmessage-target-2'),
+							document.getElementById('postmessage-target-3')
+						],
+						targetIndex = 0,
+						chainRunning = false,
+						originCheckRunning = false
+					;
+
+					onPostMessage(window, '*', 'chain-event', function(e){
+						window.setTimeout(function(){
+							postMessageTargets[targetIndex].classList.remove('active');
+							targetIndex++;
+							if( targetIndex <= 2){
+								postMessageTargets[targetIndex].classList.add('active');
+								emitPostMessage(postMessageTargets[targetIndex], '*', 'chain-event', e.data.payload);
+							} else {
+								for( var i = 0; i < postMessageTargets.length; i++ ){
+									emitPostMessage(postMessageTargets[i], '*', 'reset-event');
+								}
+								chainRunning = false;
+							}
+						}, 500);
+					});
+
+					document.getElementById('postmessage-event-chain').addEventListener('click', function(e){
+						e.preventDefault();
+
+						if( !chainRunning && !originCheckRunning ){
+							chainRunning = true;
+
+							targetIndex = 0;
+							postMessageTargets[targetIndex].classList.add('active');
+							emitPostMessage(postMessageTargets[targetIndex], '*', 'chain-event', {timestamp : new Date()});
+						}
+					});
+
+					document.getElementById('postmessage-origin-check').addEventListener('click', function(e){
+						e.preventDefault();
+
+						if( !originCheckRunning && !chainRunning ){
+							originCheckRunning = true;
+
+							var prepared = 0;
+
+							onPostMessage(window, window.location.origin, 'prepare-event', function(e){
+								emitPostMessage(e.source, window.location.origin, 'expect-event');
+								prepared++;
+								if( prepared >= 3 ){
+									offPostMessage(window, null, 'prepare-event');
+									if( POST_MESSAGE_MAP.get(window)['prepare-event'] !== undefined ){
+										alert('post message handler was not removed cleanly :(');
+									}
+								}
+							});
+
+							onPostMessage(window, window.location.origin, 'accept-event', function(e){
+								e.source.frameElement.classList.add('accepted');
+								window.setTimeout(function(){
+									e.source.frameElement.classList.remove('accepted');
+								}, 500);
+
+								window.setTimeout(function(){
+									for( var i = 0; i < postMessageTargets.length; i++ ){
+										emitPostMessage(postMessageTargets[i], window.location.origin, 'reset-event');
+									}
+									originCheckRunning = false;
+								}, 1000);
+							});
+
+							onPostMessage(window, window.location.origin, 'decline-event', function(e){
+								e.source.frameElement.classList.add('declined');
+								window.setTimeout(function(){
+									e.source.frameElement.classList.remove('declined');
+								}, 500);
+
+								window.setTimeout(function(){
+									for( var i = 0; i < postMessageTargets.length; i++ ){
+										emitPostMessage(postMessageTargets[i], window.location.origin, 'reset-event');
+									}
+									originCheckRunning = false;
+								}, 1000);
+							});
+
+							for( var i = 0; i < postMessageTargets.length; i++ ){
+								emitPostMessage(postMessageTargets[i], window.location.origin, 'prepare-event');
+							}
+						}
+					});
+				})();
 			}
 		</script>
 		<script type="module">
@@ -350,7 +482,11 @@
 						emit,
 						onSwipe,
 						offSwipe,
-						onDomReady
+						onDomReady,
+						POST_MESSAGE_MAP,
+						onPostMessage,
+						offPostMessage,
+						emitPostMessage
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/events.js`);
 
 					setup(
@@ -365,7 +501,11 @@
 						emit,
 						onSwipe,
 						offSwipe,
-						onDomReady
+						onDomReady,
+						POST_MESSAGE_MAP,
+						onPostMessage,
+						offPostMessage,
+						emitPostMessage
 					);
 				})().catch(error => {
 					console.error(error);
@@ -392,7 +532,11 @@
 								window.annex.events.emit,
 								window.annex.events.onSwipe,
 								window.annex.events.offSwipe,
-								window.annex.events.onDomReady
+								window.annex.events.onDomReady,
+								window.annex.events.POST_MESSAGE_MAP,
+								window.annex.events.onPostMessage,
+								window.annex.events.offPostMessage,
+								window.annex.events.emitPostMessage
 							);
 						}
 					}
@@ -459,6 +603,27 @@
 				<div>
 					<span id="on-dom-ready" class="new badge green accent-4">dom ready via event</span>
 					<span id="on-dom-ready-again" class="new badge green accent-4">dom ready after already fired</span>
+				</div>
+			</section>
+
+			<h3>onPostMessage / offPostMessage / emitPostMessage</h3>
+			<section>
+				<p>
+					This example tests communication between the host window and three embedded iframe-windows via
+					postmessage functions.<br/>
+					The chain event tests if we can cleanly establish a chain of back-and-forth events, targeting
+					one frame after the other.<br/>
+					The second event tests security measures via accepted origins. In this case, the targets should
+					randomly have an incompatible origin, resulting in declined events.
+				</p>
+				<div>
+					<button id="postmessage-event-chain" class="btn light-blue darken-1">trigger event chain, hitting the targets one after another </button>
+					<button id="postmessage-origin-check" class="btn light-blue darken-1">trigger event on all targets at once, but some will randomly decline</button>
+				</div>
+				<div>
+					<iframe id="postmessage-target-1" src="./files/html/events-postmessage-test.html"></iframe>
+					<iframe id="postmessage-target-2" src="./files/html/events-postmessage-test.html"></iframe>
+					<iframe id="postmessage-target-3" src="./files/html/events-postmessage-test.html"></iframe>
 				</div>
 			</section>
 		</main>

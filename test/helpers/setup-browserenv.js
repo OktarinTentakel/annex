@@ -1,7 +1,7 @@
 import browserEnv from 'browser-env';
 
 const window = browserEnv({
-	// define a current location for CORS
+	// define a current location for CORS and postMessage
 	url : 'https://devtest.ifschleife.de/',
 	strictSSL : false,
 });

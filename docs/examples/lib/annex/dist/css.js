@@ -1,5 +1,5 @@
 /*!
- * annex v0.1.0-dev
+ * annex v0.1.0-beta
  */
 /*!
  * Module CSS

@@ -15,7 +15,7 @@
 			#selectable-content,
 			section > p ~ p {
 				width: 50vw;
-				min-width: 200px;
+				min-width: 190px;
 
 				padding: 2ex;
 				border: 2px solid dodgerblue;
@@ -31,18 +31,38 @@
 			#selectable-content textarea {
 				height: auto;
 			}
+
+			#tap-2 {
+				cursor: pointer;
+
+				padding: 0.25em 0.5em;
+
+				color: white;
+
+				background-color: blueviolet;
+			}
+
+			.tapped,
+			.interacted-with {
+				outline: 3px solid lawngreen !important;
+			}
 		</style>
 
 		<script defer src="./lib/handle-version-switching.js"></script>
 		<script>
 			function setup(
+				polyfillElementMatches,
 				removeSelections,
 				createSelection,
 				disableSelection,
 				enableSelection,
 				obfuscatePrivateMailToLink,
-				obfuscatePrivateTelLink
+				obfuscatePrivateTelLink,
+				setTappedState,
+				setupAutoTappedStates
 			){
+				polyfillElementMatches();
+
 				window.setInterval(function(){
 					removeSelections();
 				}, 5000);
@@ -117,6 +137,8 @@
 					currentSelectionRange++;
 				});
 
+
+
 				var
 					mailto1 = document.getElementById('mailto-1'),
 					mailto2 = document.getElementById('mailto-2'),
@@ -149,27 +171,43 @@
 					tel3.dataset.region,
 					tel3.dataset.country
 				);
+
+
+
+				setupAutoTappedStates(document.body.querySelector('main'), 'a, button');
+				document.getElementById('tap-2').addEventListener('click', function(e){
+					setTappedState(e.target, 'interacted-with', 1000);
+				});
 			}
 		</script>
 		<script type="module">
 			if( window.__ANNEX_VERSION__ !== 'es5' ){
 				(async () => {
 					const {
+						polyfillElementMatches
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/polyfills.js`);
+
+					const {
 						removeSelections,
 						createSelection,
 						disableSelection,
 						enableSelection,
 						obfuscatePrivateMailToLink,
-						obfuscatePrivateTelLink
+						obfuscatePrivateTelLink,
+						setTappedState,
+						setupAutoTappedStates
 					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/interaction.js`);
 
 					setup(
+						polyfillElementMatches,
 						removeSelections,
 						createSelection,
 						disableSelection,
 						enableSelection,
 						obfuscatePrivateMailToLink,
-						obfuscatePrivateTelLink
+						obfuscatePrivateTelLink,
+						setTappedState,
+						setupAutoTappedStates
 					);
 				})().catch(error => {
 					console.error(error);
@@ -185,12 +223,15 @@
 
 						if( window.__ANNEX_VERSION__ === 'es5' ){
 							setup(
+								window.annex.polyfills.polyfillElementMatches,
 								window.annex.interaction.removeSelections,
 								window.annex.interaction.createSelection,
 								window.annex.interaction.disableSelection,
 								window.annex.interaction.enableSelection,
 								window.annex.interaction.obfuscatePrivateMailToLink,
-								window.annex.interaction.obfuscatePrivateTelLink
+								window.annex.interaction.obfuscatePrivateTelLink,
+								window.annex.interaction.setTappedState,
+								window.annex.interaction.setupAutoTappedStates
 							);
 						}
 					}
@@ -288,6 +329,20 @@
 						data-country="+49"
 						data-secondpart="321"
 					>this person</a>.
+				</p>
+			</section>
+
+			<h3>setTappedState & setupAutoTappedStates</h3>
+			<section>
+				<p>
+					All buttons and links on this page (including other functions, but not navigation) should shortly
+					show a green caret, when clicked upon (regardless if pointer click or touch).
+					This includes both elements below. The second element is neither button nor link, but should also
+					show a (slightly longer lasting) caret, when tapped.
+				</p>
+				<p>
+					<button id="tap-1">tap me</button>
+					<span id="tap-2">tap me as well</span>
 				</p>
 			</section>
 		</main>

@@ -1,6 +1,6 @@
 {
 	"name" : "annex",
-	"version" : "0.1.0-dev",
+	"version" : "0.1.0-beta",
 	"authors" : ["Sebastian Schlapkohl"],
 	"license" : "MIT",
 	"repository" : "github:oktarintentakel/annex",
@@ -8,11 +8,21 @@
 	"private" : false,
 	"keywords" : [
 		"frontend helpers",
+		"basic type checks",
+		"basic value checks",
+		"data structure helpers",
 		"dom handling",
 		"string operations",
+		"randomization",
 		"better timers",
 		"events",
-		"requests"
+		"requests",
+		"browser context evaluation",
+		"interaction helpers",
+		"navigation helpers",
+		"viewport helpers",
+		"better logging",
+		"cookie handling"
 	],
 
 	"type" : "module",

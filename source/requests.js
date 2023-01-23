@@ -855,3 +855,99 @@ export function createHtmlRequest(url, options=null, useNative=false){
 		}
 	};
 }
+
+
+
+/**
+ * @namespace Requests:visitUrl
+ */
+
+/**
+ * This function opens a given URL, using a dynamically created iframe, thereby opening the URL as if the user
+ * him- or herself navigates to the URL using a browser window. Why should we do this you ask?
+ *
+ * For example: In session management, you'll sometimes have the case, that you need to trigger URLs on login or logout,
+ * that construct or destruct parts of the session by creating of removing cookie or other client-storage items.
+ * If that domain is part of a system running on another (sub)domain, using a usual client request for this will
+ * not work, since the calling context of the request will have no access to the storage scope of that domain.
+ *
+ * So, to allow those domains to do their tasks, triggered from a different context, we can use this method to execute
+ * those webhooks with the iframe, which natively runs in the called domains scope and therefore can do all necessary
+ * domain-based storage actions.
+ *
+ * The big downside of this is, that we cannot really handle errors well this way. So if the URL returns a 404
+ * or a 500, this will actually be treated as a resolved promise, since the iframe loaded. The only case a request
+ * of this kind fails, is if the request runs into a timeout. So, for really critical actions, this way of handling
+ * thing should be avoided in favour of an approach, that actually includes a postMessage implementation on the other
+ * domain, to verify completion on load.
+ *
+ * @param {String} url - the URL to query, will be the current one if left empty
+ * @param {?Number} [timeout=5000] - the timeout in ms to wait for completion of the request, before rejecting the promise
+ * @param {?String} [tokenValue=null] - if the URL needs to include a token, you can provide this token here, which will replace the placeholder defined in "tokenPlaceholder"
+ * @param {?String} [tokenPlaceholder='token'] = the placeholder in the url to replace with the tokenValue, must be surrounded with curly braces in the url ("{token}")
+ * @returns {Deferred} resolves on load of URL (with the final URL as resolution value), rejects on timeout (with a "timeout" error)
+ *
+ * @memberof Requests:visitUrl
+ * @alias visitUrl
+ * @example
+ * visitUrl('https://some.other.domain?token={token}', 2500, 'A38')
+ *   .then(() => { console.log('loaded!'); })
+ * ;
+ * visitUrl(
+ *   'https://some.other.domain?token={session_value}',
+ *   5000,
+ *   'A38',
+ *   'session_value'
+ * )
+ *   .then(url => { console.log(`"${url}" loaded!`); })
+ *   .catch(error => { console.log(`${error.message} - URL did not load super fast, blimey!`); })
+ * ;
+ */
+export function visitUrl(url, timeout=5000, tokenValue=null, tokenPlaceholder='token'){
+	url = orDefault(url, '', 'str');
+	timeout = Math.abs(orDefault(timeout, 5000, 'int'));
+	tokenValue = orDefault(tokenValue, null, 'str');
+	tokenPlaceholder = orDefault(tokenPlaceholder, 'token', 'str');
+	url = hasValue(tokenValue) ? url.replaceAll(`{${tokenPlaceholder}}`, tokenValue) : url;
+
+	const
+		deferred = new Deferred(),
+		outerNode = document.createElement('div')
+	;
+
+	outerNode.innerHTML = `
+		<iframe
+			class="webhook"
+			frameborder="0"
+			frameborder="0"
+			marginwidth="0"
+			marginheight="0"
+			style="width:0;height:0;opacity:0;"
+			src="${url}"
+		></iframe>
+	`.trim();
+
+	const
+		iframe = outerNode.firstChild,
+		fOnLoad = () => {
+			iframe.removeEventListener('load', fOnLoad);
+			window.clearTimeout(loadTimeout);
+			// we need to wait a bit after load before removing the iframe,
+			// otherwise safari considers the request cancelled :(
+			window.setTimeout(() => {
+				document.body.removeChild(iframe);
+				deferred.resolve(url);
+			}, 250);
+		},
+		loadTimeout = window.setTimeout(() => {
+			iframe.removeEventListener('load', fOnLoad);
+			document.body.removeChild(iframe);
+			deferred.reject(new Error('timeout'));
+		}, timeout)
+	;
+
+	iframe.addEventListener('load', fOnLoad);
+	document.body.appendChild(iframe);
+
+	return deferred;
+}

@@ -12,7 +12,30 @@ const MODULE_NAME = 'Urls';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {hasValue, orDefault, size} from './basic.js';
+import {hasValue, orDefault, size, assert} from './basic.js';
+import {log} from './logging.js';
+
+
+
+//###[ DATA ]###########################################################################################################
+
+export const COMMON_TOP_LEVEL_DOMAINS = [
+	'aero', 'biz', 'cat', 'com', 'coop', 'edu', 'gov', 'info', 'int', 'jobs', 'mil', 'mobi', 'museum', 'name', 'net',
+	'org', 'travel', 'ac', 'ad', 'ae', 'af', 'ag', 'ai', 'al', 'am', 'an', 'ao', 'aq', 'ar', 'as', 'at', 'au', 'aw',
+	'az', 'ba', 'bb', 'bd', 'be', 'bf', 'bg', 'bh', 'bi', 'bj', 'bm', 'bn', 'bo', 'br', 'bs', 'bt', 'bv', 'bw', 'by',
+	'bz', 'ca', 'cc', 'cd', 'cf', 'cg', 'ch', 'ci', 'ck', 'cl', 'cm', 'cn', 'co', 'cr', 'cs', 'cu', 'cv', 'cx', 'cy',
+	'cz', 'de', 'dj', 'dk', 'dm', 'do', 'dz', 'ec', 'ee', 'eg', 'eh', 'er', 'es', 'et', 'eu', 'fi', 'fj', 'fk', 'fm',
+	'fo', 'fr', 'ga', 'gb', 'gd', 'ge', 'gf', 'gg', 'gh', 'gi', 'gl', 'gm', 'gn', 'gp', 'gq', 'gr', 'gs', 'gt', 'gu',
+	'gw', 'gy', 'hk', 'hm', 'hn', 'hr', 'ht', 'hu', 'id', 'ie', 'il', 'im', 'in', 'io', 'iq', 'ir', 'is', 'it', 'je',
+	'jm', 'jo', 'jp', 'ke', 'kg', 'kh', 'ki', 'km', 'kn', 'kp', 'kr', 'kw', 'ky', 'kz', 'la', 'lb', 'lc', 'li', 'lk',
+	'lr', 'ls', 'lt', 'lu', 'lv', 'ly', 'ma', 'mc', 'md', 'mg', 'mh', 'mk', 'ml', 'mm', 'mn', 'mo', 'mp', 'mq', 'mr',
+	'ms', 'mt', 'mu', 'mv', 'mw', 'mx', 'my', 'mz', 'na', 'nc', 'ne', 'nf', 'ng', 'ni', 'nl', 'no', 'np', 'nr', 'nu',
+	'nz', 'om', 'pa', 'pe', 'pf', 'pg', 'ph', 'pk', 'pl', 'pm', 'pn', 'pr', 'ps', 'pt', 'pw', 'py', 'qa', 're', 'ro',
+	'ru', 'rw', 'sa', 'sb', 'sc', 'sd', 'se', 'sg', 'sh', 'si', 'sj', 'sk', 'sl', 'sm', 'sn', 'so', 'sr', 'st', 'su',
+	'sv', 'sy', 'sz', 'tc', 'td', 'tf', 'tg', 'th', 'tj', 'tk', 'tm', 'tn', 'to', 'tp', 'tr', 'tt', 'tv', 'tw', 'tz',
+	'ua', 'ug', 'uk', 'um', 'us', 'uy', 'uz', 'va', 'vc', 've', 'vg', 'vi', 'vn', 'vu', 'wf', 'ws', 'ye', 'yt', 'yu',
+	'za', 'zm', 'zr', 'zw', 'local'
+];
 
 
 
@@ -169,4 +192,165 @@ export function urlAnchor(url, withCaret=false){
 	}
 
 	return anchor;
+}
+
+
+
+/**
+ * @namespace Urls:addNextParameter
+ */
+
+/**
+ * Adds a "next"-parameter to a given URL. If there is already a parameter of that name, it will be replaced.
+ *
+ * A "next"-parameter is usually used to relay a second URL, which should be redirected to after something happens,
+ * such as a login or another (possibly automatic) action.
+ *
+ * @param {?String} [url=''] - the URL to add the next parameter to, if left empty, will be "", which is synonymous with the current URL
+ * @param {?String} [next=''] - the next URL to add as parameter to the given URL (will automatically be URL-encoded)
+ * @param {?String} [paramName='next'] - the name of the next parameter
+ * @param {?Boolean} [assertSameBaseDomain=false] - if true, url and next must have the same base domain (ignoring subdomains), to prevent injections
+ * @param {?Array<String>} [additionalTopLevelDomains=null] - this function uses a list of common TLDs (if assertSameBaseDomain is true), if yours is missing, you may provide it, using this parameter
+ * @throws error if assertBaseDomain is true an the base domains of url and next differ
+ * @returns {String} the transformed URL with the added next parameter
+ *
+ * @memberof Urls:addNextParameter
+ * @alias addNextParameter
+ * @example
+ * addNextParameter('https://foobar.com', 'https://foo.bar', 'redirect');
+ * => 'https://foobar.com?redirect=https%3A%2F%2Ffoo.bar'
+ * addNextParameter('https://foobar.com?next=https%3A%2F%2Ffoo.bar', 'https://kittens.com');
+ * => 'https://foobar.com?next=https%3A%2F%2Fkittens.com'
+ */
+export function addNextParameter(url, next, paramName='next', assertSameBaseDomain=false, additionalTopLevelDomains=null){
+	const __methodName__ = 'addNextParameter';
+
+	url = new URL(orDefault(url, '', 'str'));
+	next = new URL(orDefault(next, '', 'str'));
+	paramName = orDefault(paramName, 'next', 'str');
+	assertSameBaseDomain = orDefault(assertSameBaseDomain, true, 'bool');
+
+	if( assertSameBaseDomain ){
+		assert(
+			evaluateBaseDomain(url.hostname, additionalTopLevelDomains) === evaluateBaseDomain(next.hostname, additionalTopLevelDomains),
+			`${MODULE_NAME}:${__methodName__} | different base domains in url and next`
+		);
+	}
+
+	const urlParams = new URLSearchParams(url.search);
+
+	if( urlParams.has(paramName) ){
+		log().info(`${MODULE_NAME}:${__methodName__} | replaced "${paramName}" value "${urlParams.get(paramName)}" with "${next.href}"`);
+	}
+
+	urlParams.set(paramName, next.href);
+
+	return `${url.origin}${url.pathname}?${urlParams.toString().replaceAll('+', '%20')}${url.hash}`;
+}
+
+
+
+/**
+ * @namespace Urls:addCacheBuster
+ */
+
+/**
+ * Adds a cache busting parameter to a given URL. If there is already a parameter of that name, it will be replaced.
+ * This prevents legacy browsers from caching requests by changing the request URL dynamically, based on current time.
+ *
+ * @param {?String} [url=''] - the URL to add the cache busting parameter to, if left empty, will be "", which is synonymous with the current URL
+ * @param {?String} [paramName='_'] - the name of the cache busting parameter
+ * @returns {String} the transformed URL with the added cache busting parameter
+ *
+ * @memberof Urls:addCacheBuster
+ * @alias addCacheBuster
+ * @example
+ * addCacheBuster('https://foobar.com');
+ * => 'https://foobar.com?_=1648121948009'
+ * addCacheBuster('https://foobar.com?next=https%3A%2F%2Ffoo.bar', 'nocache');
+ * => 'https://foobar.com?next=https%3A%2F%2Ffoo.bar&nocache=1648121948009'
+ */
+export function addCacheBuster(url, paramName='_'){
+	const __methodName__ = 'addCacheBuster';
+
+	url = new URL(orDefault(url, '', 'str'));
+
+	const
+		urlParams = new URLSearchParams(url.search),
+		buster = Date.now()
+	;
+
+	if( urlParams.has(paramName) ){
+		log().info(`${MODULE_NAME}:${__methodName__} | replaced "${paramName}" value "${urlParams.get(paramName)}" with "${buster}"`);
+	}
+
+	urlParams.set(paramName, buster);
+
+	return `${url.origin}${url.pathname}?${urlParams}${url.hash}`;
+}
+
+
+
+/**
+ * @namespace Urls:evaluateBaseDomain
+ */
+
+/**
+ * Walks a domain string (e.g. foobar.barfoo.co.uk) backwards, separated by dots, skips over all top level
+ * domains it finds and includes the first non-TLD value to retrieve the base domain without any subdomains
+ * (e.g. barfoo.co.uk).
+ *
+ * This is not completely fool-proof in case of very exotic TLDs, but quite robust in most cases.
+ *
+ * This method is particularly helpful if you want to set a domain cookie while being on a subdomain.
+ *
+ * @param {String} domain - the domain string (hostname), which should be evaluated; you may also provide a full, parsable URL, from which to extract the hostname
+ * @param {?Array<String>} [additionalTopLevelDomains=null] - this function uses a list of common TLDs, if yours is missing, you may provide it, using this parameter
+ * @returns {String} the evaluated base domain string
+ *
+ * @memberof Urls:evaluateBaseDomain
+ * @alias evaluateBaseDomain
+ * @example
+ * evaluateBaseDomain('foobar.barfoo.co.uk');
+ * => 'barfoo.co.uk'
+ * evaluateBaseDomain('https://foobar.barfoo.co.uk/?foo=bar');
+ * => 'barfoo.co.uk'
+ */
+export function evaluateBaseDomain(domain, additionalTopLevelDomains=null){
+	domain = orDefault(domain, window.location.hostname, 'str');
+	additionalTopLevelDomains = orDefault(additionalTopLevelDomains, null, 'arr');
+
+	let url;
+	try {
+		url = new URL(domain);
+	} catch(error){
+		url = null;
+	}
+	if( hasValue(url) ){
+		domain = url.hostname;
+	}
+
+	const
+		topLevelDomains = new Set([
+			...COMMON_TOP_LEVEL_DOMAINS,
+			...(hasValue(additionalTopLevelDomains) ? additionalTopLevelDomains.map(tld => `${tld}`) : [])
+		]),
+		domainParts = domain.split('.').reverse()
+	;
+
+	let baseDomain = domain;
+
+	if( domainParts.length > 2 ){
+		let i;
+
+		for( i = 0; i < domainParts.length; i++ ){
+			if( !topLevelDomains.has(domainParts[i]) ){
+				break;
+			}
+		}
+
+		baseDomain = domainParts.slice(0, i + 1).reverse().join('.');
+	}
+
+	return baseDomain;
 }

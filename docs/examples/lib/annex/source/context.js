@@ -114,7 +114,7 @@ export function contextHasHighDpi(){
 
 
 /**
- * @namespace Context:browserScrollbarWidth
+ * @namespace Context:getBrowserScrollbarWidth
  */
 
 /**
@@ -128,12 +128,12 @@ export function contextHasHighDpi(){
  *
  * @returns {Number} the width of the body scrollbar in pixels
  *
- * @memberof Context:browserScrollbarWidth
- * @alias browserScrollbarWidth
+ * @memberof Context:getBrowserScrollbarWidth
+ * @alias getBrowserScrollbarWidth
  * @example
- * foobarElement.style.width = `calc(100vw - ${browserScrollbarWidth()}px)`;
+ * foobarElement.style.width = `calc(100vw - ${getBrowserScrollbarWidth()}px)`;
  */
-export function browserScrollbarWidth(){
+export function getBrowserScrollbarWidth(){
 	const sandbox = document.createElement('div');
 	sandbox.style.visibility = 'hidden';
 	sandbox.style.opacity = '0';
@@ -291,4 +291,159 @@ export function detectAppleDevice(additionalTest=null){
 	}
 
 	return deviceType;
+}
+
+
+
+/**
+ * @namespace Context:getBrowserLanguage
+ */
+
+/**
+ * Evaluates all available browser languages and tries to return the preferred one.
+ *
+ * Since browsers could not agree on a uniform way to return language values yet, the returned language
+ * will always be "lowercaselanguage-UPPERCASECOUNTRY" or just "lowercaselanguage", if we have no country.
+ *
+ * @param {?String} [fallbackLanguage=null] - fallback value to return if no language could be evaluated
+ * @returns {String|null} the preferred browser language if available, null if no language can be detected and no fallback has been defined
+ *
+ * @memberof Context:getBrowserLanguage
+ * @alias getBrowserLanguage
+ * @see getBrowserLocale
+ * @example
+ * getBrowserLanguage()
+ * => "en"
+ */
+export function getBrowserLanguage(fallbackLanguage=null){
+	let language = null;
+
+	if( hasValue(window.navigator.languages) ){
+		const browserLanguages = Array.from(window.navigator.languages);
+		if( isA(browserLanguages, 'array') && (browserLanguages.length > 0) ){
+			language = `${browserLanguages[0]}`;
+		}
+	}
+
+	if( !hasValue(language) ){
+		['language', 'browserLanguage', 'userLanguage', 'systemLanguage'].forEach(browserLanguagePropertyKey => {
+			if( !hasValue(language) ){
+				const browserLanguage = window.navigator[browserLanguagePropertyKey];
+				language = hasValue(browserLanguage) ? `${browserLanguage}` : null;
+			}
+		});
+	}
+
+	if( !hasValue(language) && hasValue(fallbackLanguage) ){
+		language = `${fallbackLanguage}`;
+	}
+
+	const languageParts = language.split('-');
+	language = languageParts[0].toLowerCase().trim();
+	const country = languageParts?.[1]?.toUpperCase()?.trim();
+	language = hasValue(country) ? `${language}-${country}` : language;
+
+	return language;
+}
+
+
+
+/**
+ * @namespace Context:getLocale
+ */
+
+/**
+ * Evaluates the document's locale by having a look at the HTML element's lang-attribute.
+ *
+ * Since browsers could not agree on a uniform way to return locale values yet, the returned "code" will always be
+ * "lowercaselanguage-UPPERCASECOUNTRY" (or just "lowercaselanguage", if we have no country), regardless of how the
+ * browser returns the value, while "country" and "language" will always be lower case.
+ *
+ * @param {?HTMLElement} [element=document.documentElement] - the element holding the lang-attribute to evaluate
+ * @param {?String} [fallbackLanguage=null] - if defined, a fallback lang value if element holds no lang information
+ * @returns {Object} the locale as an object, having the lang value as "code", the split-up parts in "country" and "language" (if available) and "isFallback" to tell us if the fallback had to be used
+ *
+ * @memberof Context:getLocale
+ * @alias getLocale
+ * @see getBrowserLocale
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang
+ * @example
+ * getLocale()
+ * => {
+ *   code : 'en-GB',
+ *   country : 'gb',
+ *   language : 'en',
+ *   isFallback : false
+ * }
+ * getLocale(document.querySelector('p'), 'en-US')
+ * => {
+ *   code : 'en-US',
+ *   country : 'us',
+ *   language : 'en',
+ *   isFallback : true
+ * }
+ */
+export function getLocale(element=document.documentElement, fallbackLanguage=null){
+	element = orDefault(element, document.documentElement);
+
+	const locale = {
+		code : null,
+		country : null,
+		language : null,
+		isFallback : false
+	};
+
+	let langAttr = isA(element.getAttribute, 'function') ?  element.getAttribute('lang') : null;
+	if( !hasValue(langAttr) && hasValue(fallbackLanguage) ){
+		langAttr = `${fallbackLanguage}`;
+		locale.isFallback = true;
+	}
+
+	if( hasValue(langAttr) ){
+		const localeParts = `${langAttr}`.split('-');
+		locale.country = localeParts?.[1]?.toLowerCase()?.trim();
+		locale.language = localeParts[0].toLowerCase().trim();
+		locale.code = hasValue(locale.country) ? `${locale.language}-${locale.country.toUpperCase()}` : locale.language;
+	}
+
+	return locale;
+}
+
+
+
+/**
+ * @namespace Context:getBrowserLocale
+ */
+
+/**
+ * Evaluates the browser's locale by having a look at the preferred browser language, as reported by `getBrowserLanguage`.
+ *
+ * Since browsers could not agree on a uniform way to return locale values yet, the returned "code" will always be
+ * "lowercaselanguage-UPPERCASECOUNTRY" (or just "lowercaselanguage", if we have no country), regardless of how the
+ * browser returns the value, while "country" and "language" will always be lower case.
+ *
+ * @param {?String} [fallbackLanguage=null] - if defined, a fallback lang value if browser reports no preferred language
+ * @returns {Object} the locale as an object, having the in "country" and "language" (if available) and "isFallback" to tell us if the fallback had to be used
+ *
+ * @memberof Context:getBrowserLocale
+ * @alias getBrowserLocale
+ * @see getBrowserLanguage
+ * @example
+ * getBrowserLocale()
+ * => {
+ *   code : 'en-GB',
+ *   country : 'gb',
+ *   language : 'en',
+ *   isFallback : false
+ * }
+ * getBrowserLocale('en-US')
+ * => {
+ *   code : 'en-US',
+ *   country : 'us',
+ *   language : 'en',
+ *   isFallback : true
+ * }
+ */
+export function getBrowserLocale(fallbackLanguage=null){
+	return getLocale({getAttribute(){ return getBrowserLanguage(fallbackLanguage); }}, fallbackLanguage);
 }

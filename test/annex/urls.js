@@ -12,7 +12,10 @@ if( global.__AVA_SOURCE__ === 'es5-monolith' ){
 const {
 	urlParameter,
 	urlParameters,
-	urlAnchor
+	urlAnchor,
+	addNextParameter,
+	addCacheBuster,
+	evaluateBaseDomain
 } = pkg;
 
 
@@ -99,3 +102,50 @@ test('urlAnchor', assert => {
 	});
 });
 
+
+
+test('addNextParameter', assert => {
+	assert.is(
+		addNextParameter('https://foobar.com', 'https://foo.bar', 'redirect'),
+		'https://foobar.com/?redirect=https%3A%2F%2Ffoo.bar%2F'
+	);
+	assert.throws(() => {
+		addNextParameter('https://foobar.com', 'https://foo.bar', 'redirect', true);
+	});
+	assert.is(
+		addNextParameter('https://lol.foobar.lol', 'https://rofl.foobar.lol', null, true, ['lol']),
+		'https://lol.foobar.lol/?next=https%3A%2F%2Frofl.foobar.lol%2F'
+	);
+	assert.is(
+		addNextParameter('https://foobar.com?next=https%3A%2F%2Ffoo.bar', 'https://kittens.com'),
+		'https://foobar.com/?next=https%3A%2F%2Fkittens.com%2F'
+	);
+});
+
+
+
+test('addCacheBuster', assert => {
+	assert.regex(
+		addCacheBuster('https://foobar.com'),
+		/^https:\/\/foobar\.com\/\?_=[0-9]+$/
+	);
+	assert.regex(
+		addCacheBuster('https://foobar.com?_=foobar'),
+		/^https:\/\/foobar\.com\/\?_=[0-9]+$/
+	);
+	assert.regex(
+		addCacheBuster('https://foobar.com?next=https%3A%2F%2Ffoo.bar', 'nocache'),
+		/^https:\/\/foobar.com\/\?next=https%3A%2F%2Ffoo\.bar&nocache=[0-9]+$/
+	);
+});
+
+
+
+test('evaluateBaseDomain', assert => {
+	assert.is(evaluateBaseDomain('foobar.barfoo.co.uk'), 'barfoo.co.uk');
+	assert.is(evaluateBaseDomain('foobar.barfoo.co.uk', ['barfoo']), 'foobar.barfoo.co.uk');
+	assert.is(evaluateBaseDomain('https://foobar.barfoo.co.uk/?test=foobar', ['foobar', 'barfoo']), 'foobar.barfoo.co.uk');
+	assert.is(evaluateBaseDomain('soft.kittens.ifschleife.de'), 'ifschleife.de');
+	assert.is(evaluateBaseDomain('very.soft.kittens.ifschleife.de', ['kittens', 'ifschleife']), 'soft.kittens.ifschleife.de');
+	assert.is(evaluateBaseDomain('http://very.soft.kittens.ifschleife.de?a=b&c=d', ['very', 'ifschleife']), 'kittens.ifschleife.de');
+});

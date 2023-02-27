@@ -134,8 +134,8 @@ export function preload(images){
  * @alias loaded
  * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/naturalWidth
  * @example
- * onLoad(image).then(image => { image.classList.remove('hidden'); });
- * onLoad([image1, image2, image3]).then(images => { alert(`all ${images.length} images have loaded`); })
+ * loaded(image).then(image => { image.classList.remove('hidden'); });
+ * loaded([image1, image2, image3]).then(images => { alert(`all ${images.length} images have loaded`); })
  */
 export function loaded(images, dimensionsNeeded=false){
 	const __methodName__ = 'loaded';

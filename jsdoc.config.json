@@ -4,7 +4,6 @@
 		"encoding": "utf8",
 		"destination": "./docs/documentation/",
 		"recurse": true,
-		"//tutorials": "path/to/tutorials",
 		"readme" : "readme.md"
 	},
 	"tags": {

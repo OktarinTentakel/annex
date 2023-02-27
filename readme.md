@@ -6,6 +6,9 @@ annex
 =====
 by Sebastian Schlapkohl
 
+> Unit-tested and semantically packaged standard solutions for everyday frontend tasks and syntax streamlining for
+> those ugly darks corners of JS.
+
 ![NPM - no peer dependencies](https://img.shields.io/badge/NPM-no%20peer%20dependencies-blue)
 ![JavaScript - ES6+](https://img.shields.io/badge/JavaScript-ES6%2B-blue)
 ![JavaScript - Module](https://img.shields.io/badge/JavaScript-Modules-blue)

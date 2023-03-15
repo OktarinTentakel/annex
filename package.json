@@ -1,10 +1,16 @@
 {
-	"name" : "annex",
-	"version" : "0.1.1-beta",
-	"authors" : ["Sebastian Schlapkohl"],
-	"license" : "MIT",
-	"repository" : "github:oktarintentakel/annex",
+	"name" : "@oktarintentakel/annex",
+	"version" : "0.1.2-beta",
+	"author" : "Sebastian Schlapkohl",
 	"description" : "Unit-tested and semantically packaged standard solutions for everyday frontend tasks and syntax streamlining for those ugly darks corners of JS.",
+	"license" : "MIT",
+	"repository" : {
+		"type" : "git",
+		"url" : "git+https://github.com/OktarinTentakel/annex.git"
+	},
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com"
+	},
 	"private" : false,
 	"keywords" : [
 		"frontend helpers",

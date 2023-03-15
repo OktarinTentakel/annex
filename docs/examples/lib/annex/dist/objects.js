@@ -1,5 +1,5 @@
 /*!
- * annex v0.1.1-beta
+ * @oktarintentakel/annex v0.1.2-beta
  */
 /*!
  * Module Objects

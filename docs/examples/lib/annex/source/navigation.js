@@ -25,8 +25,7 @@ export const HISTORY = {
 	current : {
 		state : null,
 		title : '',
-		host : window?.location?.host,
-		path : window?.location?.pathname
+		...getHostAndPathname()
 	},
 	popState : {
 		listening : false,
@@ -35,8 +34,7 @@ export const HISTORY = {
 			const historyNew = {
 				state : e.state,
 				title : e.title,
-				host : window.location.host,
-				path : window.location.pathname
+				...getHostAndPathname()
 			};
 
 			HISTORY.popState.callbacks.forEach(cb => {
@@ -47,6 +45,27 @@ export const HISTORY = {
 		}
 	}
 };
+
+
+
+//###[ HELPERS ]########################################################################################################
+
+function getHostAndPathname(){
+	const hostAndPathname = {
+		host : undefined,
+		pathname : undefined
+	};
+
+	try {
+		hostAndPathname.host = window.location.host;
+		hostAndPathname.pathname = window.location.pathname;
+	} catch(ex){
+		hostAndPathname.host = undefined;
+		hostAndPathname.pathname = undefined;
+	}
+
+	return hostAndPathname;
+}
 
 
 

@@ -1,5 +1,5 @@
 /*!
- * @oktarintentakel/annex v0.1.2-beta
+ * @oktarintentakel/annex v0.1.3-beta
  */
 /*!
  * Module Cookies

@@ -16,12 +16,6 @@ import {log, warn} from './logging.js';
 
 
 
-//###[ DATA ]###########################################################################################################
-
-const DOCUMENT_FRAGMENT = document.createDocumentFragment();
-
-
-
 //###[ EXPORTS ]########################################################################################################
 
 /**
@@ -652,8 +646,10 @@ export function isSelector(value){
 	// almost all values like "null", "undefined" and "NaN" are accepted querySelectors, numbers are not
 	value = orDefault(value, 0, 'str');
 
+	const fragment = document.createDocumentFragment();
+
 	try {
-		DOCUMENT_FRAGMENT.querySelector(value);
+		fragment.querySelector(value);
 	} catch(ex){
 		return false;
 	}

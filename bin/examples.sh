@@ -2,4 +2,4 @@
 
 cd "${0%/*}" && \
 cd .. && \
-docker-compose up
+docker compose up

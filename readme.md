@@ -116,11 +116,10 @@ package, not using the repository URL, , you'll have to tell NPM/Yarn, that `@ok
 packages and not at the central NPM registry and add an access token to use for installing. To do this, add or edit a
 `.npmrc` file (either globally in your home folder or next to the `package.json` to your project) and add
 `@oktarintentakel:registry=https://npm.pkg.github.com` to the file (following GitHub's
-[documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)
-). After this, the defined namespace is installed from there automatically. Additionally, we also need a personal access
+[documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)).
+After this, the defined namespace is installed from there automatically. Additionally, we also need a personal access
 token by adding the line `//npm.pkg.github.com/:_authToken=TOKEN` (following GitHub's
-[documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-with-a-personal-access-token)
-).
+[documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-with-a-personal-access-token)).
 
 **Hint:** I am aware, that this is rather cumbersome currently, and therefore I currently suggest using the repository
 URL, but I implemented the workflow anyway, awaiting an easier workflow in the future.
@@ -230,7 +229,7 @@ So, I propose to generally use an alias location for client packages, such as th
 ```json
 {
   "dependencies": {
-      "@client/jig" : "oktarintentakel/annex#vX.X.X"
+      "@client/annex" : "oktarintentakel/annex#vX.X.X"
   }
 }
 ```

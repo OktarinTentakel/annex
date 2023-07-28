@@ -10,7 +10,6 @@ import terser from 'gulp-terser';
 import inject from 'gulp-inject-string';
 import connect from 'gulp-connect';
 
-import {deleteAsync as del} from 'del';
 import serveStatic from 'st';
 
 import * as rollup from 'rollup';
@@ -36,12 +35,6 @@ const
 
 
 //###[ FUNCTIONS ]######################################################################################################
-
-function clearDist(){
-	return del(`${DIST_DIR}/**/*`);
-}
-
-
 
 function buildJs(){
 	return gulp.src([`${SOURCE_DIR}/**/*.js`, `!${SOURCE_DIR}/_monolith.js`])
@@ -182,14 +175,21 @@ gulp.task('watch', function(done){
 	done();
 });
 
-gulp.task('documentation', shell.task([`rm -rf ${DOCUMENTATION_DIR}`, 'jsdoc -c jsdoc.config.json --verbose']));
+gulp.task('documentation', shell.task([`rm -rf ${DOCUMENTATION_DIR}`, 'sleep 1', 'jsdoc -c jsdoc.config.json --verbose']));
 
 const testTopic = ARGV.topic ? ` --topic=${ARGV.topic}` : '';
 gulp.task('test', shell.task(`yarn run test${testTopic}`));
 gulp.task('test-dist', shell.task(`yarn run test-dist${testTopic}`));
 gulp.task('test-es5-monolith', shell.task(`yarn run test-es5-monolith${testTopic}`));
 
-gulp.task('build', gulp.series('test', clearDist, buildJs, 'test-dist', buildEs5Monolith, 'test-es5-monolith', copyExamplesLibs));
+gulp.task('build', gulp.series(
+	shell.task(`rm -rf ${DIST_DIR}/*`), shell.task(`rm -rf ${EXAMPLES_DIR}/lib/annex/dist/*`),
+	shell.task(`sleep 1`),
+	'test',
+	buildJs, 'test-dist',
+	buildEs5Monolith, 'test-es5-monolith',
+	copyExamplesLibs
+));
 
 gulp.task('examples', gulp.series('build', serveExamples, 'watch'));
 

@@ -522,7 +522,7 @@ export function setTappedState(element, tappedClass='tapped', tappedDuration=200
  * setupAutoTappedStates(document.body, 'a, button', 'customevent');
  */
 export function setupAutoTappedStates(
-	element=document.body,
+	element=null,
 	tappableElementsSelector=TAPPABLE_ELEMENTS_SELECTOR,
 	tapEvents='click',
 	tappedClass='tapped',
@@ -530,6 +530,8 @@ export function setupAutoTappedStates(
 ){
 	const __methodName__ = 'setupAutoTappedStates';
 
+	// document.body not in function default to prevent errors on import in document-less contexts
+	element = orDefault(element, document.body);
 	tappableElementsSelector = orDefault(tappableElementsSelector, TAPPABLE_ELEMENTS_SELECTOR, 'str');
 	tapEvents = orDefault(tapEvents, 'click', 'str');
 	tapEvents = [].concat(tapEvents);

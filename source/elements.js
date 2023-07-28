@@ -12,7 +12,7 @@ const MODULE_NAME = 'Elements';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, hasValue, assert, size, Deferred} from './basic.js';
+import {orDefault, isA, isPlainObject, isSelector, hasValue, assert, size, Deferred} from './basic.js';
 import {randomUuid} from './random.js';
 import {clone} from './objects.js';
 import {onDomReady} from './events.js';
@@ -1026,7 +1026,7 @@ export function prime(node, init, classChanges=null, markerAttributesName='prime
  * measureHiddenDimensions(document.body.querySelector('div.hidden:first'), 'inner');
  * measureHiddenDimensions(document.body, 'outer, 'div.hidden:first', document.body.querySelector('main'));
  */
-export function measureHiddenDimensions(node, method='outer', selector=null, context=document.body){
+export function measureHiddenDimensions(node, method='outer', selector=null, context=null){
 	const __methodName__ = 'measureHidden';
 
 	const methods = {
@@ -1037,6 +1037,8 @@ export function measureHiddenDimensions(node, method='outer', selector=null, con
 		scroll : {width : 'scrollWidth', height : 'scrollHeight'}
 	};
 	method = methods[orDefault(method, 'outer', 'str')] ?? methods.outer;
+	// document.body not in function default to prevent errors on import in document-less contexts
+	context = orDefault(context, document.body);
 
 	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 	assert(isA(context, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | context is no an htmlelement`);
@@ -1054,7 +1056,7 @@ export function measureHiddenDimensions(node, method='outer', selector=null, con
 	sandbox.appendChild(measureClone);
 
 	const
-		target = hasValue(selector) ? measureClone.querySelector(selector) : measureClone,
+		target = isSelector(selector) ? measureClone.querySelector(selector) : measureClone,
 		width = target?.[method.width] ?? 0,
 		height = target?.[method.height] ?? 0,
 		dimensions = {

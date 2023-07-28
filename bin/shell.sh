@@ -2,5 +2,5 @@
 
 cd "${0%/*}" && \
 cd .. && \
-docker-compose run --rm \
+docker compose run --rm \
 annex bash

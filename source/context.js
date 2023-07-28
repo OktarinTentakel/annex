@@ -383,7 +383,8 @@ export function getBrowserLanguage(fallbackLanguage=null){
  *   isFallback : true
  * }
  */
-export function getLocale(element=document.documentElement, fallbackLanguage=null){
+export function getLocale(element=null, fallbackLanguage=null){
+	// document.documentElement not as function default to prevent errors in document-less context on import
 	element = orDefault(element, document.documentElement);
 
 	const locale = {

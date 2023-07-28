@@ -25,8 +25,8 @@ export const HISTORY = {
 	current : {
 		state : null,
 		title : '',
-		host : window.location.host,
-		path : window.location.pathname
+		host : window?.location?.host,
+		path : window?.location?.pathname
 	},
 	popState : {
 		listening : false,

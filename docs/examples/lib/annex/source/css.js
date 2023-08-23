@@ -12,7 +12,7 @@ const MODULE_NAME = 'CSS';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, orDefault, isPlainObject, hasValue, isNaN} from './basic.js';
+import {assert, isA, orDefault, isPlainObject, isElement, hasValue, isNaN} from './basic.js';
 import {maskForRegEx} from './strings.js';
 
 
@@ -64,7 +64,7 @@ export function applyStyles(element, styles, crossBrowser=false, returnCssStyleD
 	crossBrowser = orDefault(crossBrowser, false, 'bool');
 	returnCssStyleDeclaration = orDefault(returnCssStyleDeclaration, false, 'bool');
 
-	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | element is not an html element`);
+	assert(isElement(element), `${MODULE_NAME}:${__methodName__} | element is not an html element`);
 	assert(isPlainObject(styles), `${MODULE_NAME}:${__methodName__} | styles must be a plain object`);
 
 	const vendorPrefixes = ['-webkit-', '-moz-', '-ms-', '-o-', '-khtml-'];
@@ -212,7 +212,7 @@ export function remByPx(px, initial='html'){
 	px = cssValueToNumber(px);
 	initial = orDefault(initial, 'html');
 
-	if( isA(initial, 'htmlelement') ){
+	if( isElement(initial) ){
 		initial = cssValueToNumber(initial.style.getPropertyValue('font-size'));
 	} else {
 		const value = cssValueToNumber(initial);

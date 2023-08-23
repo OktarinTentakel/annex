@@ -23,6 +23,7 @@ const {
 	isFloat,
 	isPlainObject,
 	isNaN,
+	isElement,
 	isEventTarget,
 	isSelector,
 	isPotentialId,
@@ -347,6 +348,26 @@ test('isNaN', assert => {
 	assert.false(isNaN(boo));
 	assert.false(isNaN(far));
 	assert.false(isNaN(boofar));
+});
+
+
+
+test('isElement', assert => {
+	const
+		foo = document,
+		bar = document.body,
+		foobar = document.querySelector('body'),
+		boo = document.createElement('div'),
+		far = new CustomEvent('test'),
+		boofar = {a : 1}
+	;
+
+	assert.false(isElement(foo));
+	assert.true(isElement(bar));
+	assert.true(isElement(foobar));
+	assert.true(isElement(boo));
+	assert.false(isElement(far));
+	assert.false(isElement(boofar));
 });
 
 

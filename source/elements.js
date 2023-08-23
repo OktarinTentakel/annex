@@ -12,7 +12,7 @@ const MODULE_NAME = 'Elements';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, isSelector, hasValue, assert, size, Deferred} from './basic.js';
+import {orDefault, isA, isPlainObject, isSelector, isElement, hasValue, assert, size, Deferred} from './basic.js';
 import {randomUuid} from './random.js';
 import {clone} from './objects.js';
 import {onDomReady} from './events.js';
@@ -142,9 +142,9 @@ export function createNode(tag, attributes=null, content=null){
 export function insertNode(target, node, position='beforeend'){
 	const __methodName__ = 'insertNode';
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(target), `${MODULE_NAME}.${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
-	if( !isA(node, 'htmlelement') ){
+	if( !isElement(node) ){
 		node = createNode(`${node}`);
 	}
 
@@ -203,13 +203,13 @@ export function insertNode(target, node, position='beforeend'){
 export function replaceNode(target, node){
 	const __methodName__ = 'replaceNode';
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(target), `${MODULE_NAME}.${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
-	if( !isA(node, 'htmlelement') ){
+	if( !isElement(node) ){
 		node = createNode(`${node}`);
 	}
 
-	assert(isA(target.parentNode, 'htmlelement'), `${MODULE_NAME}.${__methodName__} | given target does not have a parent)`);
+	assert(isElement(target.parentNode), `${MODULE_NAME}.${__methodName__} | given target does not have a parent)`);
 
 	insertNode(target, node, 'after');
 	target.parentNode.removeChild(target);
@@ -264,12 +264,12 @@ export function replaceNode(target, node){
 export function defineNode(node, definition, boilerplateNode=null){
 	const __methodName__ = 'defineNode';
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 	assert(isPlainObject(definition), `${MODULE_NAME}:${__methodName__} | definitions is not a plain object`);
 
 	const inheritValue = '<-';
 
-	if( isA(boilerplateNode, 'htmlelement') ){
+	if( isElement(boilerplateNode) ){
 		Array.from(boilerplateNode.attributes).forEach(attribute => {
 			if(
 				(definition[attribute.name] === inheritValue)
@@ -412,7 +412,7 @@ export function getTextContent(target, onlyFirstLevel=false){
 		target = createNode(target);
 	}
 
-	assert(isA(target, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | target is neither node nor markup`);
+	assert(isElement(target), `${MODULE_NAME}:${__methodName__} | target is neither node nor markup`);
 
 	if( onlyFirstLevel ){
 		let textContent = '';
@@ -452,7 +452,7 @@ export function getTextContent(target, onlyFirstLevel=false){
 export function isInDom(node){
 	const __methodName__ = 'isInDom';
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	return isA(document.contains, 'function') ? document.contains(node) : document.body.contains(node);
 }
@@ -506,7 +506,7 @@ export function getData(node, properties=null){
 
 	properties = orDefault(properties, null, 'arr');
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	let data = {};
 
@@ -596,7 +596,7 @@ export function getData(node, properties=null){
 export function setData(node, dataSet, singleValue=null){
 	const __methodName__ = 'setData';
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	let singleKey = null;
 	if( hasValue(singleValue) ){
@@ -687,7 +687,7 @@ export function removeData(node, properties=null){
 
 	properties = orDefault(properties, null, 'arr');
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	let data = getData(node, properties);
 	if( hasValue(data) ){
@@ -758,7 +758,7 @@ export function find(node, selector='*', onlyOne=false){
 		scopeRex = /:scope(?![\w-])/gi
 	;
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	selector = orDefault(selector, '*', 'str').trim();
 	if( !(scopeRex.test(selector)) ){
@@ -860,7 +860,7 @@ export function findTextNodes(node, filter=null, onlyFirstLevel=false){
 	filter = isA(filter, 'function') ? filter : () => true;
 	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	const
 		textNodeType = 3,
@@ -938,7 +938,7 @@ export function prime(node, init, classChanges=null, markerAttributesName='prime
 	classChanges = orDefault(classChanges, {});
 	markerAttributesName = orDefault(markerAttributesName, 'primed', 'str');
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 	assert(isA(init, 'function'), `${MODULE_NAME}:${__methodName__} | init is not a function`);
 
 	const deferred = new Deferred();
@@ -1040,8 +1040,8 @@ export function measureHiddenDimensions(node, method='outer', selector=null, con
 	// document.body not in function default to prevent errors on import in document-less contexts
 	context = orDefault(context, document.body);
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
-	assert(isA(context, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | context is no an htmlelement`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(context), `${MODULE_NAME}:${__methodName__} | context is no an htmlelement`);
 
 	const
 		sandbox = createNode('div', {

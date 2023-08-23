@@ -12,7 +12,7 @@ const MODULE_NAME = 'Events';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, isEventTarget, isPlainObject, orDefault, hasValue, isEmpty, isSelector} from './basic.js';
+import {assert, isA, isEventTarget, isPlainObject, isElement, orDefault, hasValue, isEmpty, isSelector} from './basic.js';
 import {slugify} from './strings.js';
 import {removeFrom} from './arrays.js';
 import {detectInteractionType} from './context.js';
@@ -1370,7 +1370,7 @@ export function offDetachedElements(targets){
 	let offCount = 0;
 
 	targets.forEach(target => {
-		if( isA(target, 'htmlelement') && !document.body.contains(target) && EVENT_MAP.has(target) ){
+		if( isElement(target) && !document.body.contains(target) && EVENT_MAP.has(target) ){
 			offCount++;
 			off(target, '*');
 		}

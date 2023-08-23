@@ -12,7 +12,7 @@ const MODULE_NAME = 'Animation';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {hasValue, isA, isPlainObject, isEmpty, isNaN, orDefault, assert, Deferred} from './basic.js';
+import {hasValue, isPlainObject, isEmpty, isNaN, isElement, orDefault, assert, Deferred} from './basic.js';
 import {warn} from './logging.js';
 import {pschedule, countermand, waitForRepaint} from './timers.js';
 import {applyStyles} from './css.js';
@@ -140,7 +140,7 @@ export function transition(element, classChanges=null, styleChanges=null, reject
 	styleChanges = orDefault(styleChanges, {});
 	rejectOnInterruption = orDefault(rejectOnInterruption, false, 'bool');
 
-	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | element is not usable`);
+	assert(isElement(element), `${MODULE_NAME}:${__methodName__} | element is not usable`);
 	assert(isPlainObject(classChanges), `${MODULE_NAME}:${__methodName__} | classChanges is not a plain object`);
 	assert(isPlainObject(styleChanges), `${MODULE_NAME}:${__methodName__} | styleChanges is not a plain object`);
 

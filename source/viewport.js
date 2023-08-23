@@ -12,7 +12,7 @@ const MODULE_NAME = 'Viewport';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {hasValue, orDefault, isA, Deferred, assert} from './basic.js';
+import {hasValue, orDefault, isA, isElement, Deferred, assert} from './basic.js';
 import {EasingFunctions} from './animation.js';
 import {requestAnimationFrame} from './timers.js';
 
@@ -122,7 +122,7 @@ export function scrollTo(element, durationMs=1000, offset=0, easing='easeInOutCu
 	scrollEvenIfFullyInViewport = orDefault(scrollEvenIfFullyInViewport, false, 'bool');
 	cancelOnUserScroll = orDefault(cancelOnUserScroll, false, 'bool');
 
-	assert(isA(element, 'htmlelement') || isA(element, 'window'), `${MODULE_NAME}:scrollTo | element unusable`);
+	assert(isElement(element) || isA(element, 'window'), `${MODULE_NAME}:scrollTo | element unusable`);
 	assert(durationMs > 0, `${MODULE_NAME}:scrollTo | durationMs must be > 0`);
 
 	if( !isA(EasingFunctions[easing], 'function') ){

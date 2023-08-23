@@ -12,7 +12,7 @@ const MODULE_NAME = 'Interaction';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, orDefault, hasValue, Deferred} from './basic.js';
+import {assert, isA, isElement, orDefault, hasValue, Deferred} from './basic.js';
 import {findTextNodes} from './elements.js';
 import {applyStyles} from './css.js';
 
@@ -63,7 +63,7 @@ export function createSelection(node, startOffset=0, endOffset=0){
 	startOffset = orDefault(startOffset, 0, 'int');
 	endOffset = orDefault(endOffset, 0, 'int');
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	let	selectionText, range, selection, rangeText;
 
@@ -205,7 +205,7 @@ export function removeSelections(){
 export function disableSelection(node){
 	const __methodName__ = 'disableSelection';
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	node.onselectstart = () => false;
 	node.unselectable = 'on';
@@ -237,7 +237,7 @@ export function disableSelection(node){
 export function enableSelection(node){
 	const __methodName__ = 'disableSelection';
 
-	assert(isA(node, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	node.onselectstart = undefined;
 	node.unselectable = 'off';
@@ -468,7 +468,7 @@ export function setTappedState(element, tappedClass='tapped', tappedDuration=200
 	tappedClass = orDefault(tappedClass, 'tapped', 'str');
 	tappedDuration = orDefault(tappedDuration, 200, 'int');
 
-	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(element), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	const deferred = new Deferred();
 
@@ -536,7 +536,7 @@ export function setupAutoTappedStates(
 	tapEvents = orDefault(tapEvents, 'click', 'str');
 	tapEvents = [].concat(tapEvents);
 
-	assert(isA(element, 'htmlelement'), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
+	assert(isElement(element), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
 	tapEvents.forEach(tapEvent => {
 		element.addEventListener(tapEvent, e => {

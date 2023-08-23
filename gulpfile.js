@@ -184,7 +184,7 @@ gulp.task('test-es5-monolith', shell.task(`yarn run test-es5-monolith${testTopic
 
 gulp.task('build', gulp.series(
 	shell.task(`rm -rf ${DIST_DIR}/*`), shell.task(`rm -rf ${EXAMPLES_DIR}/lib/annex/dist/*`),
-	shell.task(`sleep 1`),
+	shell.task(`sleep 10`),
 	'test',
 	buildJs, 'test-dist',
 	buildEs5Monolith, 'test-es5-monolith',

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Timers:cancelAnimationFrame</title>
+    <title>JSDoc: Namespace: Basic:isElement</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Timers:cancelAnimationFrame</h1>
+    <h1 class="page-title">Namespace: Basic:isElement</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Timers:cancelAnimationFrame</h2>
+        <h2>Basic:isElement</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="timers.js.html">timers.js</a>, <a href="timers.js.html#line340">line 340</a>
+        <a href="basic.js.html">basic.js</a>, <a href="basic.js.html#line596">line 596</a>
     </li></ul></dd>
     
 
@@ -106,14 +106,16 @@
 
     
 
-    <h4 class="name" id="cancelAnimationFrame"><span class="type-signature"></span>cancelAnimationFrame<span class="signature">(id)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="isElement"><span class="type-signature"></span>isElement<span class="signature">(value)</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>This is a simple streamlined, vendor-cascading version of window.cancelAnimationFrame.</p>
+    <p>Returns if a value is an HTML element.
+Be aware, that this explicitly means an element, not necessarily any node.
+So text nodes, comments and such do not qualify.</p>
 </div>
 
 
@@ -149,13 +151,13 @@
 
         <tr>
             
-                <td class="name"><code>id</code></td>
+                <td class="name"><code>value</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">*</span>
 
 
             
@@ -165,7 +167,7 @@
 
             
 
-            <td class="description last"><p>either the id of the requestAnimationFrame or its timeout fallback</p></td>
+            <td class="description last"><p>the value to check</p></td>
         </tr>
 
     
@@ -206,23 +208,12 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="timers.js.html">timers.js</a>, <a href="timers.js.html#line357">line 357</a>
+        <a href="basic.js.html">basic.js</a>, <a href="basic.js.html#line615">line 615</a>
     </li></ul></dd>
     
 
     
 
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="Timers_requestAnimationFrame.html">requestAnimationFrame</a></li>
-        
-            <li>raf</li>
-        
-            <li>caf</li>
-        </ul>
-    </dd>
     
 
     
@@ -240,11 +231,35 @@
 
 
 
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    true if value is an HTML element
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Boolean</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>cancelAnimationFrame(requestAnimationFrame(function(){ window.body.style.opacity = 0; }));</code></pre>
+    <pre class="prettyprint"><code>if( isElement(target) ){
+  target.classList.add('foo');
+}</code></pre>
 
 
 

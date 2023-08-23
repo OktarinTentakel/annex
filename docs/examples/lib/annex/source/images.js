@@ -12,7 +12,7 @@ const MODULE_NAME = 'Images';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, assert, isEmpty, hasValue, Deferred} from './basic.js';
+import {orDefault, isA, isPlainObject, assert, isEmpty, isElement, hasValue, Deferred} from './basic.js';
 import {waitForRepaint} from './timers.js';
 
 
@@ -193,7 +193,7 @@ export function loaded(images, dimensionsNeeded=false){
 		const
 			src = image.src,
 			parent = image.parentNode,
-			isPicture = isA(image.parentNode, 'htmlelement') ? (parent.nodeName.toLowerCase() === 'picture') : false
+			isPicture = isElement(image.parentNode) ? (parent.nodeName.toLowerCase() === 'picture') : false
 		;
 
 		assert(!isEmpty(src), `${MODULE_NAME}:${__methodName__} | image has no src`);

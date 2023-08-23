@@ -594,6 +594,31 @@ export function isNaN(expression, checkForIdentity=true){
 
 
 /**
+ * @namespace Basic:isElement
+ */
+
+/**
+ * Returns if a value is an HTML element.
+ * Be aware, that this explicitly means an element, not necessarily any node.
+ * So text nodes, comments and such do not qualify.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is an HTML element
+ *
+ * @memberof Basic:isElement
+ * @alias isElement
+ * @example
+ * if( isElement(target) ){
+ *   target.classList.add('foo');
+ * }
+ */
+export function isElement(value){
+	return isA(value, 'htmlelement');
+}
+
+
+
+/**
  * @namespace Basic:isEventTarget
  */
 

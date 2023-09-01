@@ -16,6 +16,7 @@ if( global.__AVA_SOURCE__ === 'es5-monolith' ){
 const {
 	createFetchRequest,
 	createJsonRequest,
+	createRestfulJsonClient,
 	createJsRequest,
 	createCssRequest,
 	createHtmlRequest
@@ -304,6 +305,132 @@ test.serial('createJsonRequest', assert => {
 				end(error);
 			})
 		;
+	});
+});
+
+
+
+test.serial('createRestfulJsonClient', assert => {
+	return new Promise(async (resolve, reject) => {
+		let endCount = 0;
+		function end(error){
+			endCount++;
+
+			if( error ){
+				reject(error);
+			} else if( endCount === 4 ){
+				while( document.body.firstChild ){
+					document.body.removeChild(document.body.firstChild);
+				}
+				resolve();
+			}
+		}
+
+		const client = createRestfulJsonClient('https://jsonplaceholder.typicode.com', {credentials : 'include'});
+		assert.is(client.config.url.toString(), 'https://jsonplaceholder.typicode.com/');
+		assert.is(client.config.url.search, '');
+		assert.is(client.config.params.toString(), '');
+		assert.is(client.config.options.credentials, 'include');
+
+		client
+			.path('/posts/1')
+			.get()
+				.then(json => {
+					assert.is(typeof json, 'object');
+					assert.truthy(json.id);
+					end();
+				})
+				.catch(error => {
+					end(error);
+				})
+		;
+
+		const datetime = new Date('1990-01-31T12:00:00');
+		datetime.toString = datetime.toISOString;
+
+		client
+			.path('/posts')
+			.params({
+				foo : [1, 2, {}],
+				bar : datetime,
+				q : 'lorem'
+			})
+			.data({
+				title : 'foo',
+				body : 'bar',
+				userId : 1,
+			})
+			.post()
+				.then(json => {
+					assert.falsy(client.config.options.headers['Content-Type']);
+					assert.is(json.title, 'foo');
+					assert.is(json.body, 'bar');
+					assert.is(json.userId, 1);
+					end();
+				})
+				.catch(error => {
+					end(error);
+				})
+		;
+
+		assert.is(
+			client.config.params.toString(),
+			'foo=1&foo=2&foo=%5Bobject+Object%5D&bar=1990-01-31T12%3A00%3A00.000Z&q=lorem'
+		);
+		assert.is(
+			client.config.url.toString(),
+			'https://jsonplaceholder.typicode.com/posts?foo=1&foo=2&foo=%5Bobject+Object%5D&bar=1990-01-31T12%3A00%3A00.000Z&q=lorem'
+		);
+
+		client
+			.path('/posts/1')
+			.params(null)
+			.patch({title : 'foo'})
+				.then(json => {
+					assert.is(json.title, 'foo');
+					assert.not(json.body, 'bar');
+					end();
+				})
+				.catch(error => {
+					end(error);
+				})
+		;
+
+		assert.is(client.config.params.toString(), '');
+		assert.is(client.config.url.toString(), 'https://jsonplaceholder.typicode.com/posts/1');
+		assert.deepEqual(client.config.data, {
+			title : 'foo',
+			body : 'bar',
+			userId : 1,
+		});
+
+		const emptyJson = await client
+			.data(null)
+			.delete()
+		;
+
+		assert.deepEqual(emptyJson, {});
+		assert.deepEqual(client.config.data, {});
+
+		client
+			.options({timeout : 1})
+			.get()
+				.then(() => {
+					end(new Error('should have timed out'));
+				})
+				.catch(error => {
+					if( error.message === 'timeout' ){
+						end();
+					} else {
+						end(new Error('should have timed out'));
+					}
+				})
+		;
+
+		client.options(null);
+
+		assert.is(client.config.options.credentials, 'include');
+		assert.is(client.config.options.timeout, 10000);
 	});
 });
 

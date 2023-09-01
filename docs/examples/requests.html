@@ -398,6 +398,95 @@
 
 
 
+			function setupRestfulJsonClient(createRestfulJsonClient){
+				var	sourceDisplay = document.querySelector('#create-restful-json-client-result .source');
+				hljs.highlightBlock(sourceDisplay);
+
+				document.querySelector('#create-restful-json-client-1').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createRestfulJsonClient('https://jsonplaceholder.typicode.com')
+						.path('/posts/1')
+						.get()
+						.then(function(json){
+							sourceDisplay.innerHTML = JSON.stringify(json, null, 4);
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-restful-json-client-2').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createRestfulJsonClient('https://jsonplaceholder.typicode.com')
+						.path('/posts')
+						.params({
+							foo : [1, 2, {}],
+							bar : new Date('1990-01-31T12:00:00'),
+							q : 'lorem'
+						})
+						.data({
+							title : 'foo',
+							body : 'bar',
+							userId : 1,
+						})
+						.post()
+						.then(function(json){
+							sourceDisplay.innerHTML = JSON.stringify(json, null, 4);
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-restful-json-client-3').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createRestfulJsonClient('https://jsonplaceholder.typicode.com')
+						.path('/posts/1')
+						.params({
+							foo : [1, 2, {}],
+							bar : new Date('1990-01-31T12:00:00'),
+							q : 'lorem'
+						})
+						.params(null)
+						.data({
+							title : 'foo',
+							body : 'bar',
+							userId : 1,
+						})
+						.data(null)
+						.patch({title : 'foo'})
+						.then(function(json){
+							sourceDisplay.innerHTML = JSON.stringify(json, null, 4);
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+
+				document.querySelector('#create-restful-json-client-4').addEventListener('click', function(e){
+					e.preventDefault();
+
+					sourceDisplay.innerHTML = '';
+
+					createRestfulJsonClient('https://jsonplaceholder.typicode.com')
+						.path('/posts/1')
+						.delete()
+						.then(function(json){
+							sourceDisplay.innerHTML = JSON.stringify(json, null, 4);
+							hljs.highlightBlock(sourceDisplay);
+						})
+					;
+				});
+			}
+
+
+
 			function setupJs(createJsRequest){
 				var
 					sourceDisplay = document.querySelector('#create-js-request-result .source'),
@@ -763,6 +852,7 @@
 				polyfillFetch,
 				createFetchRequest,
 				createJsonRequest,
+				createRestfulJsonClient,
 				createJsRequest,
 				createCssRequest,
 				createHtmlRequest,
@@ -770,6 +860,7 @@
 			){
 				setupFetch(createFetchRequest, polyfillFetch);
 				setupJson(createJsonRequest);
+				setupRestfulJsonClient(createRestfulJsonClient);
 				setupJs(createJsRequest);
 				setupCss(createCssRequest);
 				setupHtml(createHtmlRequest);
@@ -786,6 +877,7 @@
 					const {
 						createFetchRequest,
 						createJsonRequest,
+						createRestfulJsonClient,
 						createJsRequest,
 						createCssRequest,
 						createHtmlRequest,
@@ -796,6 +888,7 @@
 						polyfillFetch,
 						createFetchRequest,
 						createJsonRequest,
+						createRestfulJsonClient,
 						createJsRequest,
 						createCssRequest,
 						createHtmlRequest,
@@ -818,6 +911,7 @@
 								window.annex.polyfills.polyfillFetch,
 								window.annex.requests.createFetchRequest,
 								window.annex.requests.createJsonRequest,
+								window.annex.requests.createRestfulJsonClient,
 								window.annex.requests.createJsRequest,
 								window.annex.requests.createCssRequest,
 								window.annex.requests.createHtmlRequest,
@@ -881,6 +975,20 @@
 					<a id="create-json-request-2">Should query a JSON API, append a JSON script to injection target and show the script's content</a>
 					<a id="create-json-request-3">Should query a JSON API, prepend a JSON script in the injection target and show the script's raw content</a>
 					<a id="create-json-request-4">Should query a JSON API, prepend a JSON script before the injection target and show the script's content</a>
+				</div>
+			</section>
+
+			<h3>createRestfulJsonClient</h3>
+			<section>
+				<p>
+					Trigger a request below, to see the response information.
+				</p>
+				<div>
+					<pre id="create-restful-json-client-result"><code class="source language-json">trigger request to see result</code></pre>
+					<a id="create-restful-json-client-1">Should query a JSON API and return a post in the payload</a>
+					<a id="create-restful-json-client-2">Should query a JSON API and return a newly created post with title "foo" and body "bar" in the payload</a>
+					<a id="create-restful-json-client-3">Should query a JSON API and return a patched post with title "foo" in the payload</a>
+					<a id="create-restful-json-client-4">Should query a JSON API and delete a post, which should result in an empty payload</a>
 				</div>
 			</section>
 

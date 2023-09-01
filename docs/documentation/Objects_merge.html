@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Random:randomNumber</title>
+    <title>JSDoc: Namespace: Objects:merge</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Random:randomNumber</h1>
+    <h1 class="page-title">Namespace: Objects:merge</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Random:randomNumber</h2>
+        <h2>Objects:merge</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="random.js.html">random.js</a>, <a href="random.js.html#line27">line 27</a>
+        <a href="objects.js.html">objects.js</a>, <a href="objects.js.html#line182">line 182</a>
     </li></ul></dd>
     
 
@@ -106,17 +106,23 @@
 
     
 
-    <h4 class="name" id="randomNumber"><span class="type-signature"></span>randomNumber<span class="signature">(floor<span class="signature-attributes">opt, nullable</span>, ceiling<span class="signature-attributes">opt, nullable</span>, float<span class="signature-attributes">opt, nullable</span>, precision<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Number}</span></h4>
+    <h4 class="name" id="merge"><span class="type-signature"></span>merge<span class="signature">(base, extensions)</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Special form of Math.random, returning a value in a defined range,
-where floor and ceiling are included in the range.</p>
-<p>By default this method return an integer, but by setting &quot;float&quot; to true and
-optionally providing a float precision you can also work with floating point numbers.</p>
+    <p>Merging objects in JS is easy, using spread operators, as long as we are talking about shallow merging of the first
+level. This method aims to deep merge recursively, always returning a new object, never touching or changing the
+original one.</p>
+<p>This method implements LIFO precedence: the last extension wins.</p>
+<p>Possible differences to other implementations (like lodash's):</p>
+<ul>
+<li>arrays are not concatenated here, but replaced.</li>
+<li>explicitly extending an empty object, replaces the value with the empty object instead of doing nothing</li>
+<li>all involved objects are cloned, so references in the resulting object will differ</li>
+</ul>
 </div>
 
 
@@ -140,11 +146,7 @@ optionally providing a float precision you can also work with floating point num
         <th>Type</th>
 
         
-        <th>Attributes</th>
-        
 
-        
-        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -156,164 +158,46 @@ optionally providing a float precision you can also work with floating point num
 
         <tr>
             
-                <td class="name"><code>floor</code></td>
+                <td class="name"><code>base</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">Object</span>
 
 
             
             </td>
 
             
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
 
             
-                <td class="default">
-                
-                    0
-                
-                </td>
-            
 
-            <td class="description last"><p>the lower end of random range, can either be integer or float</p></td>
+            <td class="description last"><p>the object to extend</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>ceiling</code></td>
+                <td class="name"><code>extensions</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">Array.&lt;Object></span>
 
 
             
             </td>
 
             
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
 
             
-                <td class="default">
-                
-                    10
-                
-                </td>
-            
 
-            <td class="description last"><p>the upper end of random range, can either be integer or float</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>float</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    false
-                
-                </td>
-            
-
-            <td class="description last"><p>define if we are working with floating point numbers</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>precision</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    2
-                
-                </td>
-            
-
-            <td class="description last"><p>if we are working with floats, what precision are we working with, considering floor, ceiling and result?</p></td>
+            <td class="description last"><p>one or more objects to merge into base sequentially, the last taking precedence</p></td>
         </tr>
 
     
@@ -354,7 +238,7 @@ optionally providing a float precision you can also work with floating point num
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="random.js.html">random.js</a>, <a href="random.js.html#line51">line 51</a>
+        <a href="objects.js.html">objects.js</a>, <a href="objects.js.html#line212">line 212</a>
     </li></ul></dd>
     
 
@@ -375,25 +259,13 @@ optionally providing a float precision you can also work with floating point num
 
 
 
-<h5>Throws:</h5>
-
-        
-
-    <div class="param-desc">
-    
-        <p>error if ceiling is smaller than floor</p>
-    
-    </div>
-
-
-    
 
 
 <h5>Returns:</h5>
 
         
 <div class="param-desc">
-    random integer or float between floor and ceiling
+    the (newly created) merged object
 </div>
 
 
@@ -404,7 +276,7 @@ optionally providing a float precision you can also work with floating point num
     </dt>
     <dd>
         
-<span class="param-type">Number</span>
+<span class="param-type">Object</span>
 
 
     </dd>
@@ -415,8 +287,12 @@ optionally providing a float precision you can also work with floating point num
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>let randomInt = randomNumber(23, 42);
-let randomFloat = randomNumber(23.5, 42.123, true, 3);</code></pre>
+    <pre class="prettyprint"><code>merge(
+  {ducks : {uncles : ['Donald', 'Scrooge'], nephews : {huey : true}}},
+  {ducks : {nephews : {dewey : true}}, mice : ['Mickey']},
+  {ducks : {uncles : ['Gladstone'], nephews : {louie : true}}, mice : ['Mickey', 'Minnie']}
+)
+=> {ducks : {uncles : ['Gladstone'], nephews : {huey : true, dewey : true, louie : true}}, mice : ['Mickey', 'Minnie']}</code></pre>
 
 
 

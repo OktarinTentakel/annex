@@ -176,3 +176,59 @@ export function clone(target, deep=true){
 		default: return target;
 	}
 }
+
+
+
+/**
+ * @namespace Objects:merge
+ */
+
+/**
+ * Merging objects in JS is easy, using spread operators, as long as we are talking about shallow merging of the first
+ * level. This method aims to deep merge recursively, always returning a new object, never touching or changing the
+ * original one.
+ *
+ * This method implements LIFO precedence: the last extension wins.
+ *
+ * Possible differences to other implementations (like lodash's):
+ * - arrays are not concatenated here, but replaced.
+ * - explicitly extending an empty object, replaces the value with the empty object instead of doing nothing
+ * - all involved objects are cloned, so references in the resulting object will differ
+ *
+ * @param {Object} base - the object to extend
+ * @param {Array<Object>} extensions - one or more objects to merge into base sequentially, the last taking precedence
+ * @returns {Object} the (newly created) merged object
+ *
+ * @memberof Objects:merge
+ * @alias merge
+ * @example
+ * merge(
+ *   {ducks : {uncles : ['Donald', 'Scrooge'], nephews : {huey : true}}},
+ *   {ducks : {nephews : {dewey : true}}, mice : ['Mickey']},
+ *   {ducks : {uncles : ['Gladstone'], nephews : {louie : true}}, mice : ['Mickey', 'Minnie']}
+ * )
+ * => {ducks : {uncles : ['Gladstone'], nephews : {huey : true, dewey : true, louie : true}}, mice : ['Mickey', 'Minnie']}
+ */
+export function merge(base, ...extensions){
+	base = clone(base);
+
+	Array.from(extensions).forEach(extension => {
+		extension = clone(extension);
+
+		for( let prop in extension ){
+			if( extension.hasOwnProperty(prop) ){
+				if(
+					base.hasOwnProperty(prop)
+					&& (isA(base[prop], 'object') && isA(extension[prop], 'object'))
+					&& (Object.keys(extension[prop]).length > 0)
+				){
+					base[prop] = merge(base[prop], extension[prop]);
+				} else {
+					base[prop] = extension[prop];
+				}
+			}
+		}
+	});
+
+	return base;
+}

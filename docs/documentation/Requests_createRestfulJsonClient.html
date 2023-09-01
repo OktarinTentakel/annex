@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Random:randomNumber</title>
+    <title>JSDoc: Namespace: Requests:createRestfulJsonClient</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Random:randomNumber</h1>
+    <h1 class="page-title">Namespace: Requests:createRestfulJsonClient</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Random:randomNumber</h2>
+        <h2>Requests:createRestfulJsonClient</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="random.js.html">random.js</a>, <a href="random.js.html#line27">line 27</a>
+        <a href="requests.js.html">requests.js</a>, <a href="requests.js.html#line389">line 389</a>
     </li></ul></dd>
     
 
@@ -106,17 +106,17 @@
 
     
 
-    <h4 class="name" id="randomNumber"><span class="type-signature"></span>randomNumber<span class="signature">(floor<span class="signature-attributes">opt, nullable</span>, ceiling<span class="signature-attributes">opt, nullable</span>, float<span class="signature-attributes">opt, nullable</span>, precision<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Number}</span></h4>
+    <h4 class="name" id="createRestfulJsonClient"><span class="type-signature"></span>createRestfulJsonClient<span class="signature">(baseUrl, baseOptions<span class="signature-attributes">opt, nullable</span>, useNative<span class="signature-attributes">opt</span>, strict<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {<a href="global.html#RestfulJsonClient">RestfulJsonClient</a>}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Special form of Math.random, returning a value in a defined range,
-where floor and ceiling are included in the range.</p>
-<p>By default this method return an integer, but by setting &quot;float&quot; to true and
-optionally providing a float precision you can also work with floating point numbers.</p>
+    <p>This method creates a dedicated client for restful operations against an API via JSON payloads and responses.</p>
+<p>Internally this implementation uses createJsonRequest to actually request stuff, while the return value of this
+method is a wrapper, providing central configuration, such as a base URL and options like credentials, as well as
+standard methods for HTTP verbs and setup things like setting headers.</p>
 </div>
 
 
@@ -156,13 +156,48 @@ optionally providing a float precision you can also work with floating point num
 
         <tr>
             
-                <td class="name"><code>floor</code></td>
+                <td class="name"><code>baseUrl</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>the base URL for all queries, based on which final request URLs will be built, adding the paths</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseOptions</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
 
 
             
@@ -185,25 +220,28 @@ optionally providing a float precision you can also work with floating point num
             
                 <td class="default">
                 
-                    0
+                    null
                 
                 </td>
             
 
-            <td class="description last"><p>the lower end of random range, can either be integer or float</p></td>
+            <td class="description last"><p>the base request options, can be expanded later via options() (see: createFetchRequests for details)</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>ceiling</code></td>
+                <td class="name"><code>useNative</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">Boolean</span>
+|
+
+<span class="param-type">String</span>
 
 
             
@@ -216,8 +254,6 @@ optionally providing a float precision you can also work with floating point num
                 
 
                 
-                    &lt;nullable><br>
-                
 
                 
                 </td>
@@ -226,19 +262,19 @@ optionally providing a float precision you can also work with floating point num
             
                 <td class="default">
                 
-                    10
+                    false
                 
                 </td>
             
 
-            <td class="description last"><p>the upper end of random range, can either be integer or float</p></td>
+            <td class="description last"><p>determines if the native Fetch implementation of the browser should be used, true forces usage, &quot;auto&quot; uses it only if available</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>float</code></td>
+                <td class="name"><code>strict</code></td>
             
 
             <td class="type">
@@ -267,53 +303,12 @@ optionally providing a float precision you can also work with floating point num
             
                 <td class="default">
                 
-                    false
+                    true
                 
                 </td>
             
 
-            <td class="description last"><p>define if we are working with floating point numbers</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>precision</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                    &lt;nullable><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    2
-                
-                </td>
-            
-
-            <td class="description last"><p>if we are working with floats, what precision are we working with, considering floor, ceiling and result?</p></td>
+            <td class="description last"><p>if true, enforces &quot;application/json&quot; as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning</p></td>
         </tr>
 
     
@@ -354,12 +349,19 @@ optionally providing a float precision you can also work with floating point num
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="random.js.html">random.js</a>, <a href="random.js.html#line51">line 51</a>
+        <a href="requests.js.html">requests.js</a>, <a href="requests.js.html#line518">line 518</a>
     </li></ul></dd>
     
 
     
 
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Requests_createJsonRequest.html">createJsonRequest</a></li>
+        </ul>
+    </dd>
     
 
     
@@ -381,7 +383,7 @@ optionally providing a float precision you can also work with floating point num
 
     <div class="param-desc">
     
-        <p>error if ceiling is smaller than floor</p>
+        <p>error in strict mode if response content type is not &quot;application/json&quot;</p>
     
     </div>
 
@@ -392,10 +394,6 @@ optionally providing a float precision you can also work with floating point num
 <h5>Returns:</h5>
 
         
-<div class="param-desc">
-    random integer or float between floor and ceiling
-</div>
-
 
 
 <dl>
@@ -404,7 +402,7 @@ optionally providing a float precision you can also work with floating point num
     </dt>
     <dd>
         
-<span class="param-type">Number</span>
+<span class="param-type"><a href="global.html#RestfulJsonClient">RestfulJsonClient</a></span>
 
 
     </dd>
@@ -415,8 +413,20 @@ optionally providing a float precision you can also work with floating point num
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>let randomInt = randomNumber(23, 42);
-let randomFloat = randomNumber(23.5, 42.123, true, 3);</code></pre>
+    <pre class="prettyprint"><code>const client = createRestfulJsonClient('https://jsonplaceholder.typicode.com', {credentials : 'include'});
+const postJson = await client
+  .path('/posts')
+	 .params({
+	   ids : [1, 2],
+	   q : 'lorem'
+	 })
+	 .data({
+	   title : 'foo',
+	   body : 'bar',
+	   userId : 1,
+	 })
+	 .post()
+;</code></pre>
 
 
 

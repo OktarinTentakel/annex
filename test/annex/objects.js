@@ -10,7 +10,8 @@ if( global.__AVA_SOURCE__ === 'es5-monolith' ){
 }
 
 const {
-	clone
+	clone,
+	merge
 } = pkg;
 
 
@@ -126,4 +127,80 @@ test('clone', assert => {
 	assert.is(shallowClonedLaaloo.loolaa[0], laaloo.loolaa[0]);
 	assert.is(shallowClonedLaaloo.laaloo[1], laaloo.laaloo[1]);
 	assert.true(shallowClonedLaaloo.laaloo[1].classList.contains('test'));
+});
+
+
+
+test('merge', assert => {
+	const
+		foo = {
+			name : 'Hagenbecks',
+			animals : ['lion', 'zebra'],
+			founded : new Date(),
+			jobs : {
+				boss : 'Mr. Hagenbeck',
+				elephantWrangler : 'Hulk Hogan',
+				it : {
+					frontend : 'Sebastian Schlapkohl',
+					backend : 'Bart Simpson',
+					admin : 'Penny Lane'
+				},
+				open : ['lizardWrangler', 'chief twit']
+			}
+		},
+		bar = {
+			founded : '1899-01-01',
+			jobs : {
+				it : {
+					admin : 'Montgomery Burns'
+				},
+				open : ['lizardWrangler']
+			}
+		},
+		foobar = {
+			name : 'Berlin Tiergarten',
+			animals : ['ice bears'],
+			jobs : {
+				lizardWrangler : 'Mike Tyson',
+				open : []
+			}
+		},
+		boofar = {
+			jobs : {},
+			open : true
+		}
+	;
+
+	let mergedFoo = merge(foo, bar);
+	assert.not(mergedFoo, foo);
+	assert.is(mergedFoo.founded, '1899-01-01');
+	assert.is(mergedFoo.jobs.it.admin, 'Montgomery Burns');
+	assert.is(mergedFoo.jobs.open.length, 1);
+
+	mergedFoo = merge(foo, bar, foobar);
+	assert.deepEqual(mergedFoo, {
+		name : 'Berlin Tiergarten',
+		animals : ['ice bears'],
+		founded : '1899-01-01',
+		jobs : {
+			boss : 'Mr. Hagenbeck',
+			elephantWrangler : 'Hulk Hogan',
+			it : {
+				frontend : 'Sebastian Schlapkohl',
+				backend : 'Bart Simpson',
+				admin : 'Montgomery Burns'
+			},
+			lizardWrangler : 'Mike Tyson',
+			open : []
+		}
+	});
+
+	mergedFoo = merge(foo, bar, foobar, boofar);
+	assert.deepEqual(mergedFoo, {
+		name : 'Berlin Tiergarten',
+		animals : ['ice bears'],
+		founded : '1899-01-01',
+		jobs : {},
+		open : true
+	});
 });

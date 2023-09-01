@@ -13,7 +13,8 @@ const MODULE_NAME = 'Requests';
 //###[ IMPORTS ]########################################################################################################
 
 import {warn} from './logging.js';
-import {hasValue, orDefault, isPlainObject, assert, Deferred} from './basic.js';
+import {hasValue, orDefault, isPlainObject, assert, Deferred, getType} from './basic.js';
+import {merge} from './objects.js';
 import {createNode, insertNode} from './elements.js';
 import {schedule, countermand} from './timers.js';
 
@@ -76,6 +77,9 @@ import {schedule, countermand} from './timers.js';
  * All usual responses (40X and 50X as well) resolve, only uncompletable requests, such as those being prevented by a
  * general network error, reject with the provided error.
  *
+ * Set __ANNEX_USE_NATIVE_FETCH__ on window (true/false/'auto') to force useNative setting for all annex requests
+ * globally.
+ *
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options
  * @param {?String} [options.method='GET'] - indicates the request method to be performed on the target resource (one of "GET", "POST", "PUT", "PATCH", "HEAD", "OPTIONS" or "DELETE")
@@ -118,9 +122,11 @@ export function createFetchRequest(url, options=null, useNative=false){
 		: 'GET'
 	;
 
-	// 0 would be unlimited/unset/default
+	// 0 would be unlimited/unset
 	options.timeout = orDefault(options.timeout, 10000, 'int');
 	options.timeout = (options.timeout < 0) ? 0 : options.timeout;
+
+	useNative = window.__ANNEX_USE_NATIVE_FETCH__ ?? useNative;
 
 	return {
 		url,
@@ -278,6 +284,8 @@ export function createFetchRequest(url, options=null, useNative=false){
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options (see: createFetchRequests for details)
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
+ * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
+ * @throws error in strict mode if response content type is not "application/json"
  * @returns {JsonFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createJsonRequest
@@ -296,8 +304,23 @@ export function createFetchRequest(url, options=null, useNative=false){
  *         .then(rawJson => { console.log(`"${rawJson}" has been inserted at the beginning of the document's body`); })
  * ;
  */
-export function createJsonRequest(url, options=null, useNative=false){
-	const __methodName__ = 'createJsonRequest';
+export function createJsonRequest(url, options=null, useNative=false, strict=true){
+	const
+		__methodName__ = 'createJsonRequest',
+		contentType = 'application/json'
+	;
+
+	if( strict ){
+		if( !hasValue(options) ){
+			options = {};
+		}
+
+		if( !hasValue(options.headers) ){
+			options.headers = {};
+		}
+
+		options.headers['Accept'] = contentType;
+	}
 
 	return {
 		url,
@@ -307,11 +330,17 @@ export function createJsonRequest(url, options=null, useNative=false){
 
 			createFetchRequest(url, options, useNative).execute()
 				.then(response => {
-					const contentType = (
+					const responseContentType = (
 						response.headers.get('content-type') ?? response.headers.get('Content-Type') ?? ''
 					).split(';')[0].trim();
-					if( contentType !== 'application/json' ){
-						warn(`${MODULE_NAME}:${__methodName__} | content-type "${contentType}" is not valid for JSON, use "application/json"`);
+
+					if( responseContentType !== contentType ){
+						const message = `${MODULE_NAME}:${__methodName__} | content-type "${responseContentType}" is not valid for JSON, expecting "application/json"`;
+						if( strict ){
+							throw new Error(message);
+						} else {
+							warn(message);
+						}
 					}
 
 					return response.json();
@@ -352,6 +381,288 @@ export function createJsonRequest(url, options=null, useNative=false){
 
 			return res;
 		}
+	};
+}
+
+
+
+/**
+ * @namespace Requests:createRestfulJsonClient
+ */
+
+/**
+ * @typedef RestfulJsonClientPathFunction
+ * @type {Function}
+ * @param {String} path - the current path to request from baseUrl
+ * @returns {RestfulJsonClient}
+ */
+
+/**
+ * @typedef RestfulJsonClientOptionsFunction
+ * @type {Function}
+ * @param {?Object} options - options plain object to merge with baseOptions to define current request options (see JsonFetchRequest for details and defaults); if nullish, will reset to baseOptions
+ * @throws error if given options are not a plain object
+ * @returns {RestfulJsonClient}
+ */
+
+/**
+ * @typedef RestfulJsonClientHeaderFunction
+ * @type {Function}
+ * @param {String} key - the header to set for all following requests
+ * @param {?String} value - the header's value; nullish value will remove the header again
+ * @returns {RestfulJsonClient}
+ */
+
+/**
+ * @typedef RestfulJsonClientParamsFunction
+ * @type {Function}
+ * @param {?*} params - query parameters to set on the current URL, this parameter takes all regular definitions for URLSearchParams constructor, as well as flat plain objects, which may also have arrays as values; if nullish, parameters are emptied
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams
+ * @returns {RestfulJsonClient}
+ */
+
+/**
+ * @typedef RestfulJsonClientDataFunction
+ * @type {Function}
+ * @param {?Object} data - data payload to send with the next POST, PUT or PATCH request, this parameter will set a permanent payload, for one-off payloads, use the verb method's parameter; if nullish, data will be emptied
+ * @throws error if given data is not a plain object
+ * @returns {RestfulJsonClient}
+ */
+
+/**
+ * @typedef RestfulJsonClientGetFunction
+ * @type {Function}
+ * @returns {Deferred<JsonFetchResponse>}
+ */
+
+/**
+ * @typedef RestfulJsonClientPostFunction
+ * @type {Function}
+ * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
+ * @returns {Deferred<JsonFetchResponse>}
+ */
+
+/**
+ * @typedef RestfulJsonClientPutFunction
+ * @type {Function}
+ * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
+ * @returns {Deferred<JsonFetchResponse>}
+ */
+
+/**
+ * @typedef RestfulJsonClientPatchFunction
+ * @type {Function}
+ * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
+ * @returns {Deferred<JsonFetchResponse>}
+ */
+
+/**
+ * @typedef RestfulJsonClientDeleteFunction
+ * @type {Function}
+ * @returns {Deferred<JsonFetchResponse>}
+ */
+
+/**
+ * @typedef RestfulJsonClient
+ * @type {Object}
+ * @property {Object} config - the current configuration state of the client
+ * @property {URL} config.url=baseUrl - the current, complete URL to query (baseUrl + path)
+ * @property {Object} config.options - the current request options (see JsonFetchRequest for details and defaults)
+ * @property {URLSearchParams} config.params - the current searchParams of config.url, with which to query the URL
+ * @property {Object} config.data={} - the current data payload object to send with POST, PUT and PATCH (this will persist between requests, set one-off data via verb methods)
+ * @property {RestfulJsonClientPathFunction} path - sets the current request path, which will be concatenated after baseUrl
+ * @property {RestfulJsonClientOptionsFunction} options - sets the current request options, which will be merged with baseOptions to constitute current request options
+ * @property {RestfulJsonClientHeaderFunction} header - sets a header for all subsequent requests
+ * @property {RestfulJsonClientParamsFunction} params - sets query parameters to be added to the request URL
+ * @property {RestfulJsonClientDataFunction} data - sets data payload for POST, PUT and PATCH requests
+ * @property {RestfulJsonClientGetFunction} get - queries the current URL via GET
+ * @property {RestfulJsonClientPostFunction} post - queries the current URL via POST using defined data
+ * @property {RestfulJsonClientPutFunction} put - queries the current URL via PUT using defined data
+ * @property {RestfulJsonClientPatchFunction} patch - queries the current URL via PATCH using defined data
+ * @property {RestfulJsonClientDeleteFunction} delete - queries the current URL via DELETE
+ */
+
+/**
+ * This method creates a dedicated client for restful operations against an API via JSON payloads and responses.
+ *
+ * Internally this implementation uses createJsonRequest to actually request stuff, while the return value of this
+ * method is a wrapper, providing central configuration, such as a base URL and options like credentials, as well as
+ * standard methods for HTTP verbs and setup things like setting headers.
+ *
+ * @param {String} baseUrl - the base URL for all queries, based on which final request URLs will be built, adding the paths
+ * @param {?Object} [baseOptions=null] - the base request options, can be expanded later via options() (see: createFetchRequests for details)
+ * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
+ * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
+ * @throws error in strict mode if response content type is not "application/json"
+ * @returns {RestfulJsonClient}
+ *
+ * @memberof Requests:createRestfulJsonClient
+ * @alias createRestfulJsonClient
+ * @see createJsonRequest
+ * @example
+ * const client = createRestfulJsonClient('https://jsonplaceholder.typicode.com', {credentials : 'include'});
+ * const postJson = await client
+ *   .path('/posts')
+ * 	 .params({
+ * 	   ids : [1, 2],
+ * 	   q : 'lorem'
+ * 	 })
+ * 	 .data({
+ * 	   title : 'foo',
+ * 	   body : 'bar',
+ * 	   userId : 1,
+ * 	 })
+ * 	 .post()
+ * ;
+ */
+export function createRestfulJsonClient(baseUrl, baseOptions=null, useNative=false, strict=true){
+	const
+		__methodName__ = 'createRestfulJsonClient',
+		implementation = createJsonRequest,
+		contentTypeHeader = 'Content-Type',
+		contentType = 'application/json',
+		dataValidationMessage = 'data must be plain object',
+		optionsValidationMessage = 'options must be plain object'
+	;
+
+
+	function flatEntries(obj){
+		const
+			entries = Object.entries(obj),
+			flattenedEntries = []
+		;
+
+		for(const entryIndex in entries ){
+			const
+				entryKey = entries[entryIndex][0],
+				entryVal = entries[entryIndex][1],
+				entryValType = getType(entryVal)
+			;
+
+			if( ['array', 'set'].includes(entryValType) ){
+				Array.from(entryVal).forEach(val => {
+					flattenedEntries.push([entryKey, `${val}`]);
+				});
+			} else {
+				flattenedEntries.push([entryKey, `${entryVal}`]);
+			}
+		}
+
+		return flattenedEntries;
+	}
+
+
+	function request(client, method){
+		method = method.toUpperCase();
+		assert(['GET', 'DELETE'].includes(method), `${MODULE_NAME}:${__methodName__} | invalid request method "${method}"`);
+
+		client.config.options.method = method;
+		return implementation(client.config.url, client.config.options, useNative, strict)
+			.execute()
+			.finally(() => {
+				delete client.config.options.method;
+			})
+		;
+	}
+
+
+	function requestWithPayload(client, method, data=null){
+		method = method.toUpperCase();
+		assert(['POST', 'PUT', 'PATCH'].includes(method), `${MODULE_NAME}:${__methodName__} | invalid request method "${method}"`);
+
+		if( hasValue(data) ){
+			assert(isPlainObject(data), `${MODULE_NAME}:${__methodName__} | ${dataValidationMessage}`);
+		}
+
+		client.config.options.method = method;
+		client.config.options.body = JSON.stringify(data ?? client.config.data);
+		client.header(contentTypeHeader, `${contentType}; charset=UTF-8`);
+
+		return implementation(client.config.url, client.config.options, useNative, strict)
+			.execute()
+			.finally(() => {
+				delete client.config.options.method;
+				delete client.config.options.body;
+				client.header(contentTypeHeader, null);
+			})
+		;
+	}
+
+
+	return {
+		config : {
+			url : new URL('/', baseUrl),
+			options : isPlainObject(baseOptions) ? baseOptions : {},
+			params : new URLSearchParams(),
+			data : {},
+		},
+
+		path(path){
+			this.config.url = new URL(path, baseUrl);
+			return this;
+		},
+
+		options(options){
+			if( hasValue(options) ){
+				assert(isPlainObject(options), `${MODULE_NAME}:${__methodName__} | ${optionsValidationMessage}`);
+				this.config.options = merge(baseOptions, options);
+			} else {
+				this.config.options = baseOptions;
+			}
+			return this;
+		},
+
+		header(key, value){
+			if( !hasValue(this.config.options.headers) ){
+				this.config.options.headers = {};
+			}
+			if( hasValue(value) ){
+				this.config.options.headers[`${key}`] = `${value}`;
+			} else {
+				delete this.config.options.headers[`${key}`];
+			}
+			return this;
+		},
+
+		params(params){
+			if( hasValue(params) ){
+				this.config.params = new URLSearchParams(isPlainObject(params) ? flatEntries(params) : params);
+			} else {
+				this.config.params = new URLSearchParams();
+			}
+			this.config.url.search = this.config.params.toString();
+			return this;
+		},
+
+		data(data){
+			if( hasValue(data) ){
+				assert(isPlainObject(data), `${MODULE_NAME}:${__methodName__} | `);
+				this.config.data = data;
+			} else {
+				this.config.data = {};
+			}
+			return this;
+		},
+
+		get(){
+			return request(this, 'GET');
+		},
+
+		post(data=null){
+			return requestWithPayload(this, 'POST', data);
+		},
+
+		put(data=null){
+			return requestWithPayload(this, 'PUT', data);
+		},
+
+		patch(data=null){
+			return requestWithPayload(this, 'PATCH', data);
+		},
+
+		delete(){
+			return request(this, 'DELETE');
+		},
 	};
 }
 
@@ -414,6 +725,8 @@ export function createJsonRequest(url, options=null, useNative=false){
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options (see: createFetchRequests for details)
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
+ * @param {?Boolean} [strict=true] - if true, enforces "application/javascript" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
+ * @throws error in strict mode if response content type is not "application/javascript"
  * @returns {JsFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createJsRequest
@@ -437,8 +750,23 @@ export function createJsonRequest(url, options=null, useNative=false){
  *         .then(jsElement => { alert(`has been injected: "${jsElement.getAttribute('data-id')}"`); })
  * ;
  */
-export function createJsRequest(url, options=null, useNative=false){
-	const __methodName__ = 'createJsRequest';
+export function createJsRequest(url, options=null, useNative=false, strict=true){
+	const
+		__methodName__ = 'createJsRequest',
+		contentType = 'application/javascript'
+	;
+
+	if( strict ){
+		if( !hasValue(options) ){
+			options = {};
+		}
+
+		if( !hasValue(options.headers) ){
+			options.headers = {};
+		}
+
+		options.headers['Accept'] = contentType;
+	}
 
 	return {
 		url,
@@ -484,11 +812,17 @@ export function createJsRequest(url, options=null, useNative=false){
 			} else {
 				createFetchRequest(url, options, useNative).execute()
 					.then(response => {
-						const contentType = (
+						const responseContentType = (
 							response.headers.get('content-type') ?? response.headers.get('Content-Type') ?? ''
 						).split(';')[0].trim();
-						if( contentType !== 'application/javascript' ){
-							warn(`${MODULE_NAME}:${__methodName__} | content-type "${contentType}" is not valid for JavaScript, use "application/javascript"`);
+
+						if( responseContentType !== contentType ){
+							const message = `${MODULE_NAME}:${__methodName__} | content-type "${responseContentType}" is not valid for JavaScript, expecting "application/javascript"`;
+							if( strict ){
+								throw new Error(message);
+							} else {
+								warn(message);
+							}
 						}
 
 						return response.text();
@@ -564,6 +898,8 @@ export function createJsRequest(url, options=null, useNative=false){
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options (see: createFetchRequests for details)
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
+ * @param {?Boolean} [strict=true] - if true, enforces "text/css" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
+ * @throws error in strict mode if response content type is not "text/css"
  * @returns {CssFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createCssRequest
@@ -587,8 +923,24 @@ export function createJsRequest(url, options=null, useNative=false){
  *         .then(cssElement => { alert(`has been injected: "${cssElement.getAttribute('data-id')+}"`); })
  * ;
  */
-export function createCssRequest(url, options=null, useNative=false){
-	const __methodName__ = 'createCssRequest';
+export function createCssRequest(url, options=null, useNative=false, strict=true){
+	const
+		__methodName__ = 'createCssRequest',
+		contentType = 'text/css'
+	;
+
+
+	if( strict ){
+		if( !hasValue(options) ){
+			options = {};
+		}
+
+		if( !hasValue(options.headers) ){
+			options.headers = {};
+		}
+
+		options.headers['Accept'] = contentType;
+	}
 
 	return {
 		url,
@@ -638,11 +990,17 @@ export function createCssRequest(url, options=null, useNative=false){
 			} else {
 				createFetchRequest(url, options, useNative).execute()
 					.then(response => {
-						const contentType = (
+						const responseContentType = (
 							response.headers.get('content-type') ?? response.headers.get('Content-Type') ?? ''
 						).split(';')[0].trim();
-						if( contentType !== 'text/css' ){
-							warn(`${MODULE_NAME}:${__methodName__} | content-type "${contentType}" is not valid for CSS, use "text/css"`);
+
+						if( responseContentType !== contentType ){
+							const message = `${MODULE_NAME}:${__methodName__} | content-type "${responseContentType}" is not valid for CSS, expecting "text/css"`;
+							if( strict ){
+								throw new Error(message);
+							} else {
+								warn(message);
+							}
 						}
 
 						return response.text();
@@ -717,6 +1075,8 @@ export function createCssRequest(url, options=null, useNative=false){
  * @param {String} url - the complete URL to query
  * @param {?Object} [options=null] - the request options (see: createFetchRequests for details)
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
+ * @param {?Boolean} [strict=true] - if true, enforces "text/html" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
+ * @throws error in strict mode if response content type is not "text/html"
  * @returns {HtmlFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createHtmlRequest
@@ -744,8 +1104,23 @@ export function createCssRequest(url, options=null, useNative=false){
  *         .then(htmlElements => { alert(`has been injected: "${htmlElements.map(e => e.outerHTML).join('')}"`); })
  * ;
  */
-export function createHtmlRequest(url, options=null, useNative=false){
-	const __methodName__ = 'createHtmlRequest';
+export function createHtmlRequest(url, options=null, useNative=false, strict=true){
+	const
+		__methodName__ = 'createHtmlRequest',
+		contentType = 'text/html'
+	;
+
+	if( strict ){
+		if( !hasValue(options) ){
+			options = {};
+		}
+
+		if( !hasValue(options.headers) ){
+			options.headers = {};
+		}
+
+		options.headers['Accept'] = contentType;
+	}
 
 	return {
 		url,
@@ -789,11 +1164,16 @@ export function createHtmlRequest(url, options=null, useNative=false){
 
 			createFetchRequest(url, options, useNative).execute()
 				.then(response => {
-					const contentType = (
+					const responseContentType = (
 						response.headers.get('content-type') ?? response.headers.get('Content-Type') ?? ''
 					).split(';')[0].trim();
-					if( contentType !== 'text/html' ){
-						warn(`${MODULE_NAME}:${__methodName__} | content-type "${contentType}" is not valid for HTML, use "text/html"`);
+					if( responseContentType !== contentType ){
+						const message = `${MODULE_NAME}:${__methodName__} | content-type "${responseContentType}" is not valid for HTML, expecting "text/html"`;
+						if( strict ){
+							throw new Error(message);
+						} else {
+							warn(message);
+						}
 					}
 
 					return response.text();

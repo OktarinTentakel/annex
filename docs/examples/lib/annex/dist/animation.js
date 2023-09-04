@@ -1,5 +1,5 @@
 /*!
- * @oktarintentakel/annex v0.1.5-beta
+ * @oktarintentakel/annex v0.1.6-beta
  */
 /*!
  * Module Animation

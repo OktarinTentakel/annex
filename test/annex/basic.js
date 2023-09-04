@@ -19,11 +19,32 @@ const {
 	orDefault,
 	getType,
 	isA,
+	isBoolean,
+	isNumber,
+	isBigInt,
 	isInt,
 	isFloat,
-	isPlainObject,
 	isNaN,
+	isString,
+	isSymbol,
+	isFunction,
+	isObject,
+	isPlainObject,
+	isArray,
+	isDate,
+	isError,
+	isGenerator,
+	isIterator,
+	isRegExp,
+	isSet,
+	isWeakSet,
+	isMap,
+	isWeakMap,
+	isDocument,
 	isElement,
+	isCollection,
+	isNodeList,
+	isWindow,
 	isEventTarget,
 	isSelector,
 	isPotentialId,
@@ -287,16 +308,66 @@ test('isA', assert => {
 
 
 
+test('isBoolean', assert => {
+	const
+		foo = true,
+		bar = false,
+		foobar = 'true',
+		boofar = 5
+	;
+
+	assert.true(isBoolean(foo));
+	assert.true(isBoolean(bar));
+	assert.false(isBoolean(foobar));
+	assert.false(isBoolean(boofar));
+});
+
+
+
+test('isNumber', assert => {
+	const
+		foo = 42,
+		bar = 42.42,
+		foobar = '13',
+		boofar = true
+	;
+
+	assert.true(isNumber(foo));
+	assert.true(isNumber(bar));
+	assert.false(isNumber(foobar));
+	assert.false(isNumber(boofar));
+});
+
+
+
+test('isBigInt', assert => {
+	const
+		foo = BigInt('9007199254740991'),
+		bar = BigInt('0x1fffffffffffff'),
+		foobar = 9007199254740991,
+		boofar = 0
+	;
+
+	assert.true(isBigInt(foo));
+	assert.true(isBigInt(bar));
+	assert.false(isBigInt(foobar));
+	assert.false(isBigInt(boofar));
+});
+
+
+
 test('isInt', assert => {
 	const
 		foo = 42,
 		bar = 42.42,
-		foobar = '42'
+		foobar = '42',
+		boofar = true
 	;
 
 	assert.true(isInt(foo));
 	assert.false(isInt(bar));
 	assert.false(isInt(foobar));
+	assert.false(isInt(boofar));
 });
 
 
@@ -305,29 +376,14 @@ test('isFloat', assert => {
 	const
 		foo = 42.42,
 		bar = 42,
-		foobar = '42.42'
+		foobar = '42.42',
+		boofar = true
 	;
 
 	assert.true(isFloat(foo));
 	assert.true(isFloat(bar));
 	assert.false(isFloat(foobar));
-});
-
-
-
-test('isPlainObject', assert => {
-	assert.true(isPlainObject({}));
-	assert.true(isPlainObject({a : 1, b : new Date()}));
-	assert.true(isPlainObject(new Object()));
-	assert.false(isPlainObject(document.createElement('div')));
-	assert.false(isPlainObject(null));
-	assert.false(isPlainObject(Object.create(null)));
-	assert.false(isPlainObject(Object.create(null)));
-	assert.false(isPlainObject(new (function Foo(){})()));
-	assert.false(isPlainObject(42));
-	assert.false(isPlainObject('42'));
-	assert.false(isPlainObject(new Number(42)));
-	assert.false(isPlainObject(Math));
+	assert.false(isFloat(boofar));
 });
 
 
@@ -352,6 +408,311 @@ test('isNaN', assert => {
 
 
 
+test('isString', assert => {
+	const
+		foo = 'foo',
+		bar = Symbol('bar').toString(),
+		foobar = Symbol('foobar'),
+		boofar = 0
+	;
+
+	assert.true(isString(foo));
+	assert.true(isString(bar));
+	assert.false(isString(foobar));
+	assert.false(isString(boofar));
+});
+
+
+
+test('isSymbol', assert => {
+	const
+		foo = Symbol('foo'),
+		bar = Symbol(42),
+		foobar = Symbol('foobar').description,
+		boofar = 0
+	;
+
+	assert.true(isSymbol(foo));
+	assert.true(isSymbol(bar));
+	assert.false(isSymbol(foobar));
+	assert.false(isSymbol(boofar));
+});
+
+
+
+test('isFunction', assert => {
+	function foo(){
+		return true;
+	}
+
+	const
+		bar = () => false,
+		foobar = Symbol().toString,
+		boofar = 'function(){}'
+	;
+
+	assert.true(isFunction(foo));
+	assert.true(isFunction(bar));
+	assert.true(isFunction(foobar));
+	assert.false(isFunction(boofar));
+});
+
+
+
+test('isObject', assert => {
+	const
+		foo = {},
+		bar = new Object(42),
+		foobar = new Date(),
+		boofar = 42
+	;
+
+	assert.true(isObject(foo));
+	assert.true(isObject(bar));
+	assert.false(isObject(foobar));
+	assert.false(isObject(boofar));
+});
+
+
+
+test('isPlainObject', assert => {
+	assert.true(isPlainObject({}));
+	assert.true(isPlainObject({a : 1, b : new Date()}));
+	assert.true(isPlainObject(new Object()));
+	assert.false(isPlainObject(document.createElement('div')));
+	assert.false(isPlainObject(null));
+	assert.false(isPlainObject(Object.create(null)));
+	assert.false(isPlainObject(Object.create(null)));
+	assert.false(isPlainObject(new (function Foo(){})()));
+	assert.false(isPlainObject(42));
+	assert.false(isPlainObject('42'));
+	assert.false(isPlainObject(new Number(42)));
+	assert.false(isPlainObject(Math));
+});
+
+
+
+test('isArray', assert => {
+	const
+		foo = [1, 2, {}, []],
+		bar = Array.from(new Set([1, 2, 3, {}, []])),
+		foobar = new Set([1, 2, 3, {}, []]),
+		boofar = new Set([1, 2, 3, {}, []]).values()
+	;
+
+	assert.true(isArray(foo));
+	assert.true(isArray(bar));
+	assert.false(isArray(foobar));
+	assert.false(isArray(boofar));
+});
+
+
+
+test('isDate', assert => {
+	const
+		foo = new Date(),
+		bar = new Date('1983-03-16'),
+		foobar = Date.now(),
+		boofar = '1983-03-16'
+	;
+
+	assert.true(isDate(foo));
+	assert.true(isDate(bar));
+	assert.false(isDate(foobar));
+	assert.false(isDate(boofar));
+});
+
+
+
+test('isError', assert => {
+	class FooError extends Error {
+		constructor(props){
+			super(props);
+
+		}
+	}
+
+	let foobar;
+	try {
+		throw 'foobar';
+	} catch(ex){
+		foobar = ex;
+	}
+
+	const
+		foo = new Error(),
+		bar = new FooError('foo'),
+		boofar = 'error'
+	;
+
+	assert.true(isError(foo));
+	assert.true(isError(bar));
+	assert.false(isError(foobar));
+	assert.false(isError(boofar));
+});
+
+
+
+test('isGenerator', assert => {
+	function* finiteGen(){
+		yield 1;
+		yield 2;
+		yield 3;
+	}
+
+	const infiniteGen = function*(){
+		let i = 0;
+
+		while(true){
+			yield i++;
+		}
+	}
+
+	const
+		foo = finiteGen(),
+		bar = infiniteGen(),
+		foobar = finiteGen().return(finiteGen().next().value),
+		boofar = infiniteGen().next()
+	;
+
+	assert.true(isGenerator(foo));
+	assert.true(isGenerator(bar));
+	assert.false(isGenerator(foobar));
+	assert.false(isGenerator(boofar));
+});
+
+
+
+test('isIterator', assert => {
+	function* finiteGen(){
+		yield 1;
+		yield 2;
+		yield 3;
+	}
+
+	const
+		foo = Array.from(finiteGen()).values(),
+		bar = 'bar'.matchAll(/bar/g),
+		foobar = new Set([1, 2, 3, {}, []]),
+		boofar = 'boofar'
+	;
+
+	assert.true(isIterator(foo));
+	assert.true(isIterator(bar));
+	assert.false(isIterator(foobar));
+	assert.false(isIterator(boofar));
+});
+
+
+
+test('isRegExp', assert => {
+	const
+		foo = /^foo$/,
+		bar = new RegExp('^bar$'),
+		foobar = '^foobar$',
+		boofar = 42
+	;
+
+	assert.true(isRegExp(foo));
+	assert.true(isRegExp(bar));
+	assert.false(isRegExp(foobar));
+	assert.false(isRegExp(boofar));
+});
+
+
+
+test('isSet', assert => {
+	const
+		foo = new Set([1, 2, 3, {}, []]),
+		bar = new Set(Array.from(new Set([1, 2, 3, {}, []]))),
+		foobar = [1, 2, 3, {}, []],
+		boofar = new WeakSet()
+	;
+
+	boofar.add(new Date())
+
+	assert.true(isSet(foo));
+	assert.true(isSet(bar));
+	assert.false(isSet(foobar));
+	assert.false(isSet(boofar));
+});
+
+
+
+test('isWeakSet', assert => {
+	const
+		foo = new WeakSet([{}, [], new Date()]),
+		bar = new WeakSet(Array.from(new Set([{}, [], new Date()]))),
+		foobar = [1, 2, 3, {}, []],
+		boofar = new Set([1, 2, 3, {}, []])
+	;
+
+	assert.true(isWeakSet(foo));
+	assert.true(isWeakSet(bar));
+	assert.false(isWeakSet(foobar));
+	assert.false(isWeakSet(boofar));
+});
+
+
+
+test('isMap', assert => {
+	const
+		foo = new Map(Object.entries({a : 'a', b : 'b', c : 'c'})),
+		bar = new Map(),
+		foobar = {a : 'a', b : 'b', c : 'c'},
+		boofar = new WeakMap()
+	;
+
+	boofar.set({}, 'boofar');
+
+	bar.set(Symbol('bar'), 'bar');
+
+	assert.true(isMap(foo));
+	assert.true(isMap(bar));
+	assert.false(isMap(foobar));
+	assert.false(isMap(boofar));
+});
+
+
+
+test('isWeakMap', assert => {
+	const
+		foo = new WeakMap(),
+		bar = new WeakMap(),
+		foobar = {a : 'a', b : 'b', c : 'c'},
+		boofar = new Map(Object.entries({a : 'a', b : 'b', c : 'c'}))
+	;
+
+	foo.set({}, 'a');
+	foo.set([], 'b');
+	foo.set(new Date(), 'c');
+
+	bar.set({}, 'bar');
+
+	assert.true(isWeakMap(foo));
+	assert.true(isWeakMap(bar));
+	assert.false(isWeakMap(foobar));
+	assert.false(isWeakMap(boofar));
+});
+
+
+
+test('isDocument', assert => {
+	const
+		foo = window.document,
+		bar = window.parent.document,
+		foobar = window,
+		boofar = document.body
+	;
+
+	assert.true(isDocument(foo));
+	assert.true(isDocument(bar));
+	assert.false(isDocument(foobar));
+	assert.false(isDocument(boofar));
+});
+
+
+
 test('isElement', assert => {
 	const
 		foo = document,
@@ -368,6 +729,54 @@ test('isElement', assert => {
 	assert.true(isElement(boo));
 	assert.false(isElement(far));
 	assert.false(isElement(boofar));
+});
+
+
+
+test('isCollection', assert => {
+	const
+		foo = document.body.children,
+		bar = document.body.appendChild(document.createElement('div')).parentNode.children,
+		foobar = document.body.childNodes,
+		boofar = [document.body]
+	;
+
+	assert.true(isCollection(foo));
+	assert.true(isCollection(bar));
+	assert.false(isCollection(foobar));
+	assert.false(isCollection(boofar));
+});
+
+
+
+test('isNodeList', assert => {
+	const
+		foo = document.body.childNodes,
+		bar = document.body.appendChild(document.createElement('div')).parentNode.childNodes,
+		foobar = document.body.children,
+		boofar = [document.body]
+	;
+
+	assert.true(isNodeList(foo));
+	assert.true(isNodeList(bar));
+	assert.false(isNodeList(foobar));
+	assert.false(isNodeList(boofar));
+});
+
+
+
+test('isWindow', assert => {
+	const
+		foo = window,
+		bar = window.parent,
+		foobar = document,
+		boofar = document.body
+	;
+
+	assert.true(isWindow(foo));
+	assert.true(isWindow(bar));
+	assert.false(isWindow(foobar));
+	assert.false(isWindow(boofar));
 });
 
 

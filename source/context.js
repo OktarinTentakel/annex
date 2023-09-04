@@ -12,7 +12,7 @@ const MODULE_NAME = 'Context';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {hasValue, isA, orDefault, Observable} from './basic.js';
+import {hasValue, isFunction, isArray, orDefault, Observable} from './basic.js';
 import {throttle} from './functions.js';
 import {reschedule} from './timers.js';
 
@@ -71,8 +71,8 @@ export let CURRENT_INTERACTION_TYPE;
  */
 export function browserSupportsHistoryManipulation(){
 	return hasValue(window.history)
-		&& isA(window.history.pushState, 'function')
-		&& isA(window.history.replaceState, 'function')
+		&& isFunction(window.history.pushState)
+		&& isFunction(window.history.replaceState)
 	;
 }
 
@@ -285,7 +285,7 @@ export function detectAppleDevice(additionalTest=null){
 			break;
 		}
 
-		if( isA(additionalTest, 'function') ){
+		if( isFunction(additionalTest) ){
 			deviceType = additionalTest(deviceType);
 		}
 	}
@@ -320,7 +320,7 @@ export function getBrowserLanguage(fallbackLanguage=null){
 
 	if( hasValue(window.navigator.languages) ){
 		const browserLanguages = Array.from(window.navigator.languages);
-		if( isA(browserLanguages, 'array') && (browserLanguages.length > 0) ){
+		if( isArray(browserLanguages) && (browserLanguages.length > 0) ){
 			language = `${browserLanguages[0]}`;
 		}
 	}
@@ -394,7 +394,7 @@ export function getLocale(element=null, fallbackLanguage=null){
 		isFallback : false
 	};
 
-	let langAttr = isA(element.getAttribute, 'function') ?  element.getAttribute('lang') : null;
+	let langAttr = isFunction(element.getAttribute) ?  element.getAttribute('lang') : null;
 	if( !hasValue(langAttr) && hasValue(fallbackLanguage) ){
 		langAttr = `${fallbackLanguage}`;
 		locale.isFallback = true;

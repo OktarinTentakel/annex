@@ -12,7 +12,7 @@ const MODULE_NAME = 'Strings';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {isA, orDefault, isNaN, hasValue, isPlainObject} from './basic.js';
+import {isFunction, isArray, orDefault, isNaN, hasValue, isPlainObject} from './basic.js';
 
 
 
@@ -118,7 +118,7 @@ export function replace(subject, search, replace){
 	search.forEach((searchTerm, index) => {
 		tmp = (replace.length > 1) ? ((replace[index] !== undefined) ? replace[index] : '') : replace[0];
 
-		if( isA(String.prototype.replaceAll, 'function') ){
+		if( isFunction(String.prototype.replaceAll) ){
 			subject = subject.replaceAll(`${searchTerm}`, `${tmp}`);
 		} else {
 			subject = subject.split(`${searchTerm}`).join(`${tmp}`);
@@ -188,7 +188,7 @@ export function truncate(subject, maxLength=30, suffix='...'){
 export function concat(glue='', ...strings){
 	glue = orDefault(glue, '', 'str');
 
-	if( (strings.length > 0) && isA(strings[0], 'array') ){
+	if( (strings.length > 0) && isArray(strings[0]) ){
 		return strings[0].join(glue);
 	} else {
 		return strings.join(glue);
@@ -241,7 +241,7 @@ export function format(template, ...replacements){
 	const fResolve = function(object, key){
 		const value = object[key];
 
-		if( isA(value, 'function') ){
+		if( isFunction(value) ){
 			return value.call(object);
 		} else {
 			return value;

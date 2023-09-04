@@ -12,7 +12,7 @@ const MODULE_NAME = 'Arrays';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, isPlainObject, orDefault} from './basic.js';
+import {assert, isArray, isNumber, isString, isMap, isSet, isPlainObject, orDefault} from './basic.js';
 
 
 
@@ -75,9 +75,9 @@ import {assert, isA, isPlainObject, orDefault} from './basic.js';
  * => [1]
  */
 export function removeFrom(target, from, to=null){
-	assert(isA(target, 'array'), `${MODULE_NAME}:remove | target is no array`);
+	assert(isArray(target), `${MODULE_NAME}:remove | target is no array`);
 
-	if( isA(from, 'number') && (to !== true) ){
+	if( isNumber(from) && (to !== true) ){
 		from = parseInt(from, 10);
 		to = orDefault(to, null, 'int');
 
@@ -86,7 +86,7 @@ export function removeFrom(target, from, to=null){
 		target.length = (from < 0) ? (target.length + from) : from;
 
 		return target.concat(rest);
-	} else if( isA(from, 'string') ){
+	} else if( isString(from) ){
 		return target.reduce((reducedArray, item) => {
 			if( `${item}` !== from ){
 				reducedArray.push(item);
@@ -97,9 +97,9 @@ export function removeFrom(target, from, to=null){
 		let fromList;
 		if( isPlainObject(from) ){
 			fromList = Object.values(from);
-		} else if( isA(from, 'map') ){
+		} else if( isMap(from) ){
 			fromList = Array.from(from.values());
-		} else if( isA(from, 'set') ){
+		} else if( isSet(from) ){
 			fromList = Array.from(from.values());
 		} else {
 			fromList = Array.from(from);

@@ -12,7 +12,7 @@ const MODULE_NAME = 'Polyfills';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, hasValue, isA, orDefault} from './basic.js';
+import {assert, hasValue, isFunction, orDefault} from './basic.js';
 import {createFetchRequest} from './requests.js';
 
 
@@ -42,7 +42,7 @@ import {createFetchRequest} from './requests.js';
 export function polyfillFetch(force=false){
 	force = orDefault(force, false, 'bool');
 
-	if( force || !isA(window.fetch, 'function') ){
+	if( force || !isFunction(window.fetch) ){
 		window.fetch = function(url, options=null){
 			return createFetchRequest(url, options).execute();
 		};
@@ -99,7 +99,7 @@ export function polyfillElementMatches(){
  * => makes "window.CustomEvent" and "new CustomEvent()" available, if not already present
  */
 export function polyfillCustomEvent(){
-	if( isA(window.CustomEvent, 'function') ) return false;
+	if( isFunction(window.CustomEvent) ) return false;
 
 	const CustomEvent = function(event, params){
 		params = params ?? {bubbles : false, cancelable : false, detail : undefined};
@@ -131,7 +131,7 @@ export function polyfillCustomEvent(){
  * => adds Array.prototype.at if not already defined
  */
 export function polyfillArrayAt(){
-	if( isA(Array.prototype.at, 'function') ) return false;
+	if( isFunction(Array.prototype.at) ) return false;
 
 	Object.defineProperty(Array.prototype, 'at', {
 		value : function(n){

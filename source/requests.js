@@ -489,7 +489,7 @@ export function createJsonRequest(url, options=null, useNative=false, strict=tru
  * method is a wrapper, providing central configuration, such as a base URL and options like credentials, as well as
  * standard methods for HTTP verbs and setup things like setting headers.
  *
- * @param {String} baseUrl - the base URL for all queries, based on which final request URLs will be built, adding the paths
+ * @param {?String} [baseUrl=window.location.origin] - the base URL for all queries, based on which final request URLs will be built, adding the paths, may be absolute or relative to current origin
  * @param {?Object} [baseOptions=null] - the base request options, can be expanded later via options() (see: createFetchRequests for details)
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
@@ -515,7 +515,12 @@ export function createJsonRequest(url, options=null, useNative=false, strict=tru
  * 	 .post()
  * ;
  */
-export function createRestfulJsonClient(baseUrl, baseOptions=null, useNative=false, strict=true){
+export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNative=false, strict=true){
+	baseUrl = orDefault(baseUrl, window.location.origin, 'str');
+	if( !baseUrl.startsWith('//') && baseUrl.startsWith('/') ){
+		baseUrl = `${window.location.origin}${baseUrl}`;
+	}
+
 	const
 		__methodName__ = 'createRestfulJsonClient',
 		implementation = createJsonRequest,

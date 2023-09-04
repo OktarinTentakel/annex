@@ -70,7 +70,7 @@ export function assert(condition, message){
  * if( !attempt(function(){ foobar(); }) ){ console.log('foobar cannot be executed!'); }
  */
 export function attempt(closure){
-	assert(isA(closure, 'function'), `${MODULE_NAME}:attempt | closure is no function`);
+	assert(isFunction(closure), `${MODULE_NAME}:attempt | closure is no function`);
 
 	try {
 		closure();
@@ -158,7 +158,7 @@ export function hasValue(){
  * => null
  */
 export function size(target, countStringCharacters=true){
-	if( isA(target?.values, 'function') ) return Array.from(target.values()).length;
+	if( isFunction(target?.values) ) return Array.from(target.values()).length;
 
 	let res;
 	switch( getType(target) ){
@@ -224,14 +224,14 @@ export function isEmpty(){
 	;
 
 	Array.from(arguments).forEach(obj => {
-		if( isA(obj?.__additionalEmptyValues__, 'array') ){
+		if( isArray(obj?.__additionalEmptyValues__) ){
 			emptyValues = emptyValues.concat(obj.__additionalEmptyValues__);
 		}
 	});
 	emptyValues = Array.from(new Set(emptyValues));
 
 	Array.from(arguments).forEach(obj => {
-		if( res && !isA(obj?.__additionalEmptyValues__, 'array') ){
+		if( res && !isArray(obj?.__additionalEmptyValues__) ){
 			res = emptyValues.includes(obj);
 
 			if( !res ){
@@ -318,7 +318,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
 
 	if( hasValue(caster) ){
 		if(
-			!isA(caster, 'function')
+			!isFunction(caster)
 			&& ([
 				'str', 'string',
 				'int', 'integer',
@@ -340,7 +340,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
 			} else if( ['arr', 'array'].includes(caster) ){
 				caster = function(value){ return [].concat(value); };
 			}
-		} else if( !isA(caster, 'function') ){
+		} else if( !isFunction(caster) ){
 			caster = function(value){ return value; };
 		}
 	} else {
@@ -363,7 +363,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
 /**
  * Prod-ready type detection for values, expanding on flawed typeof functionality, roughly following
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof, but expanding on
- * useful frontend types like "htmldocument", "htmlelement" and "nodelist"
+ * useful frontend types like "htmldocument", "htmlelement", "htmlcollection" and "nodelist"
  *
  * Types:
  * - "undefined"
@@ -387,6 +387,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  * - "weakmap"
  * - "htmldocument"
  * - "htmlelement"
+ * - "htmlcollection"
  * - "nodelist"
  * - "window"
  *
@@ -411,7 +412,7 @@ export function getType(value) {
 	if( /^html.*element$/.test(deepType) ) return 'htmlelement';
 	if( /^.*iterator$/.test(deepType) ) return 'iterator';
 
-	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|nodelist|window)$/)
+	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|htmlcollection|nodelist|window)$/)
 		? deepType
 		: ((typeof value === 'object') || (typeof value === 'function')) ? 'object' : typeof value
 	;
@@ -461,6 +462,7 @@ export function isA(value, type){
 			'weakmap',
 			'htmldocument',
 			'htmlelement',
+			'htmlcollection',
 			'nodelist',
 			'window'
 		].includes(`${type}`.toLowerCase())
@@ -470,6 +472,80 @@ export function isA(value, type){
 		warn(`${MODULE_NAME}:isA | "${type}" is not a recognized type`);
 		return false;
 	}
+}
+
+
+
+/**
+ * @namespace Basic:isBoolean
+ */
+
+/**
+ * Returns if a value is a boolean value.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a boolean
+ *
+ * @memberof Basic:isBoolean
+ * @alias isBoolean
+ * @example
+ * if( isBoolean(val) ){
+ *   console.log('val must be either true or false');
+ * }
+ */
+export function isBoolean(value){
+	return isA(value, 'boolean');
+}
+
+
+
+/**
+ * @namespace Basic:isNumber
+ */
+
+/**
+ * Returns if a value is a number.
+ *
+ * Hint: to check numbers in more detail, use isInt, isFloat and isNaN
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a number
+ *
+ * @memberof Basic:isNumber
+ * @alias isNumber
+ * @see isInt
+ * @see isFloat
+ * @see isNaN
+ * @example
+ * if( isNumber(val) ){
+ *   result = val * 5;
+ * }
+ */
+export function isNumber(value){
+	return isA(value, 'number');
+}
+
+
+
+/**
+ * @namespace Basic:isBigInt
+ */
+
+/**
+ * Returns if a value is a BigInt value.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a BigInt
+ *
+ * @memberof Basic:isBigInt
+ * @alias isBigInt
+ * @example
+ * if( isBigInt(val) ){
+ *   console.log('this is a really huge number!');
+ * }
+ */
+export function isBigInt(value){
+	return isA(value, 'bigint');
 }
 
 
@@ -526,39 +602,6 @@ export function isFloat(floatVal){
 
 
 /**
- * @namespace Basic:isPlainObject
- */
-
-/**
- * Returns if a value is an object literal, so so-called "plain object.
- * A plain object is something like "{hello : 'world'}".
- *
- * This might especially be helpful when dealing with JSON configs, so quickly check if
- * something might even be parsed JSON (which in most cases is a plain object in js).
- *
- * Be aware that this function cannot differentiate between constructor-based simple objects and
- * plain objects declared inline. So, if someone took on the work to instantiate a base object and assign
- * properties either in a function or a constructor, we accept that as a plain object.
- *
- * @param {*} value - the value to check
- * @returns {Boolean} true if value seems to be a plain object
- *
- * @memberof Basic:isPlainObject
- * @alias isPlainObject
- * @example
- * const isParameterConfigObject = isPlainObject(param);
- */
-export function isPlainObject(value){
-	return isA(value, 'object')
-		&& hasValue(value)
-		&& (value.constructor === Object)
-		&& Object.prototype.toString.call(value) === '[object Object]'
-	;
-}
-
-
-
-/**
  * @namespace Basic:isNaN
  */
 
@@ -594,6 +637,394 @@ export function isNaN(expression, checkForIdentity=true){
 
 
 /**
+ * @namespace Basic:isString
+ */
+
+/**
+ * Returns if a value is a string.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a string
+ *
+ * @memberof Basic:isString
+ * @alias isString
+ * @example
+ * if( isString(val) ){
+ *   return prefix+val;
+ * }
+ */
+export function isString(value){
+	return isA(value, 'string');
+}
+
+
+
+/**
+ * @namespace Basic:isSymbol
+ */
+
+/**
+ * Returns if a value is a symbol.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a symbol
+ *
+ * @memberof Basic:isSymbol
+ * @alias isSymbol
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
+ * @example
+ * if( isSymbol(val) ){
+ *   return val.description;
+ * }
+ */
+export function isSymbol(value){
+	return isA(value, 'symbol');
+}
+
+
+
+/**
+ * @namespace Basic:isFunction
+ */
+
+/**
+ * Returns if a value is a function.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a function
+ *
+ * @memberof Basic:isFunction
+ * @alias isFunction
+ * @example
+ * if( isFunction(val) ){
+ *   val();
+ * }
+ */
+export function isFunction(value){
+	return isA(value, 'function');
+}
+
+
+
+/**
+ * @namespace Basic:isObject
+ */
+
+/**
+ * Returns if a value is an object.
+ *
+ * Hint: if you explicitly want to check for a plain object, use isPlainObject
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is an object
+ *
+ * @memberof Basic:isObject
+ * @alias isObject
+ * @see isPlainObject
+ * @example
+ * if( isObject(val) ){
+ *   val.newProperty = 'foobar';
+ * }
+ */
+export function isObject(value){
+	return isA(value, 'object');
+}
+
+
+
+/**
+ * @namespace Basic:isPlainObject
+ */
+
+/**
+ * Returns if a value is an object literal, so so-called "plain object.
+ * A plain object is something like "{hello : 'world'}".
+ *
+ * This might especially be helpful when dealing with JSON configs, so quickly check if
+ * something might even be parsed JSON (which in most cases is a plain object in js).
+ *
+ * Be aware that this function cannot differentiate between constructor-based simple objects and
+ * plain objects declared inline. So, if someone took on the work to instantiate a base object and assign
+ * properties either in a function or a constructor, we accept that as a plain object.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value seems to be a plain object
+ *
+ * @memberof Basic:isPlainObject
+ * @alias isPlainObject
+ * @example
+ * const isParameterConfigObject = isPlainObject(param);
+ */
+export function isPlainObject(value){
+	return isObject(value)
+		&& hasValue(value)
+		&& (value.constructor === Object)
+		&& Object.prototype.toString.call(value) === '[object Object]'
+	;
+}
+
+
+
+/**
+ * @namespace Basic:isArray
+ */
+
+/**
+ * Returns if a value is an array.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is an array
+ *
+ * @memberof Basic:isArray
+ * @alias isArray
+ * @example
+ * if( isArray(val) ){
+ *   val.push('foobar');
+ * }
+ */
+export function isArray(value){
+	return isA(value, 'array');
+}
+
+
+
+/**
+ * @namespace Basic:isDate
+ */
+
+/**
+ * Returns if a value is a date.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a date
+ *
+ * @memberof Basic:isDate
+ * @alias isDate
+ * @example
+ * if( isDate(val) ){
+ *   return val.toISOString();
+ * }
+ */
+export function isDate(value){
+	return isA(value, 'date');
+}
+
+
+
+/**
+ * @namespace Basic:isError
+ */
+
+/**
+ * Returns if a value is an error.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is an error
+ *
+ * @memberof Basic:isError
+ * @alias isError
+ * @example
+ * if( isError(val) ){
+ *   return val.message;
+ * }
+ */
+export function isError(value){
+	return isA(value, 'error');
+}
+
+
+
+/**
+ * @namespace Basic:isGenerator
+ */
+
+/**
+ * Returns if a value is a generator.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a generator
+ *
+ * @memberof Basic:isGenerator
+ * @alias isGenerator
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
+ * @example
+ * if( isGenerator(val) ){
+ *   return val.return(val.next().value);
+ * }
+ */
+export function isGenerator(value){
+	return isA(value, 'generator');
+}
+
+
+
+/**
+ * @namespace Basic:isIterator
+ */
+
+/**
+ * Returns if a value is an iterator.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is an iterator
+ *
+ * @memberof Basic:isIterator
+ * @alias isIterator
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator
+ * @example
+ * if( isIterator(val) ){
+ *   return val.next().value;
+ * }
+ */
+export function isIterator(value){
+	return isA(value, 'iterator');
+}
+
+
+
+/**
+ * @namespace Basic:isRegExp
+ */
+
+/**
+ * Returns if a value is a regular expression.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a regular expression
+ *
+ * @memberof Basic:isRegExp
+ * @alias isRegExp
+ * @example
+ * if( isRegExp(val) ){
+ *   return val.test('foobar');
+ * }
+ */
+export function isRegExp(value){
+	return isA(value, 'regexp');
+}
+
+
+
+/**
+ * @namespace Basic:isSet
+ */
+
+/**
+ * Returns if a value is a set.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a set
+ *
+ * @memberof Basic:isSet
+ * @alias isSet
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+ * @example
+ * if( isSet(val) ){
+ *   return val.has('foobar');
+ * }
+ */
+export function isSet(value){
+	return isA(value, 'set');
+}
+
+
+
+/**
+ * @namespace Basic:isWeakSet
+ */
+
+/**
+ * Returns if a value is a weak set.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a weak set
+ *
+ * @memberof Basic:isWeakSet
+ * @alias isWeakSet
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
+ * @example
+ * if( isWeakSet(val) ){
+ *   return val.has(someSymbol);
+ * }
+ */
+export function isWeakSet(value){
+	return isA(value, 'weakset');
+}
+
+
+
+/**
+ * @namespace Basic:isMap
+ */
+
+/**
+ * Returns if a value is a map.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a map
+ *
+ * @memberof Basic:isMap
+ * @alias isMap
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+ * @example
+ * if( isMap(val) ){
+ *   return val.get('foobar');
+ * }
+ */
+export function isMap(value){
+	return isA(value, 'map');
+}
+
+
+
+/**
+ * @namespace Basic:isWeakMap
+ */
+
+/**
+ * Returns if a value is a weak map.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a weak map
+ *
+ * @memberof Basic:isWeakMap
+ * @alias isWeakMap
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
+ * @example
+ * if( isWeakMap(val) ){
+ *   return val.get('foobar');
+ * }
+ */
+export function isWeakMap(value){
+	return isA(value, 'weakmap');
+}
+
+
+
+/**
+ * @namespace Basic:isDocument
+ */
+
+/**
+ * Returns if a value is an HTML document.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is an HTML document
+ *
+ * @memberof Basic:isDocument
+ * @alias isDocument
+ * @example
+ * if( isDocument(val) ){
+ *   return val.body;
+ * }
+ */
+export function isDocument(value){
+	return isA(value, 'htmldocument');
+}
+
+
+
+/**
  * @namespace Basic:isElement
  */
 
@@ -614,6 +1045,77 @@ export function isNaN(expression, checkForIdentity=true){
  */
 export function isElement(value){
 	return isA(value, 'htmlelement');
+}
+
+
+
+/**
+ * @namespace Basic:isCollection
+ */
+
+/**
+ * Returns if a value is a collection of html elements.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a collection of html elements
+ *
+ * @memberof Basic:isCollection
+ * @alias isCollection
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection
+ * @example
+ * if( isCollection(val) ){
+ *   return val.item(0);
+ * }
+ */
+export function isCollection(value){
+	return isA(value, 'htmlcollection');
+}
+
+
+
+/**
+ * @namespace Basic:isNodeList
+ */
+
+/**
+ * Returns if a value is a node list.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a node list
+ *
+ * @memberof Basic:isNodeList
+ * @alias isNodeList
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/NodeList
+ * @example
+ * if( isNodeList(val) ){
+ *   return val.item(0);
+ * }
+ */
+export function isNodeList(value){
+	return isA(value, 'nodelist');
+}
+
+
+
+/**
+ * @namespace Basic:isWindow
+ */
+
+/**
+ * Returns if a value is a window.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a window
+ *
+ * @memberof Basic:isWindow
+ * @alias isWindow
+ * @example
+ * if( isWindow(val) ){
+ *   return val.location.origin;
+ * }
+ */
+export function isWindow(value){
+	return isA(value, 'window');
 }
 
 
@@ -641,9 +1143,9 @@ export function isElement(value){
  */
 export function isEventTarget(value){
 	return hasValue(value)
-		&& isA(value.addEventListener, 'function')
-		&& isA(value.removeEventListener, 'function')
-		&& isA(value.dispatchEvent, 'function')
+		&& isFunction(value.addEventListener)
+		&& isFunction(value.removeEventListener)
+		&& isFunction(value.dispatchEvent)
 	;
 }
 
@@ -909,7 +1411,7 @@ export class Observable {
 
 	subscribe(subscription){
 		const __methodName__ = 'subscribe';
-		assert(isA(subscription, 'function'), `${MODULE_NAME}:${this.__className__}.${__methodName__} | subscription must be function`);
+		assert(isFunction(subscription), `${MODULE_NAME}:${this.__className__}.${__methodName__} | subscription must be function`);
 		if( this._subscriptions.indexOf(subscription) < 0 ){
 			this._subscriptions = [...this._subscriptions, subscription];
 		}

@@ -13,7 +13,7 @@ const MODULE_NAME = 'Navigation';
 //###[ IMPORTS ]########################################################################################################
 
 import {warn} from './logging.js';
-import {hasValue, orDefault, isPlainObject, isEmpty, isA, assert} from './basic.js';
+import {hasValue, orDefault, isPlainObject, isEmpty, isArray, isWindow, isFunction, assert} from './basic.js';
 import {createNode} from './elements.js';
 import {browserSupportsHistoryManipulation} from './context.js';
 
@@ -173,7 +173,7 @@ export function redirect(url, params=null, anchor=null, target=null, postParams=
 
 		const redirectForm = createNode('form', formAttributes);
 		for( let paramName in postParams ){
-			if( isA(postParams[paramName], 'array') ){
+			if( isArray(postParams[paramName]) ){
 				postParams[paramName].forEach(val => {
 					redirectForm.appendChild(createNode(
 						'input',
@@ -283,7 +283,7 @@ export function openTab(url, params=null, anchor=null, postParams=null){
 export function openWindow(url, options=null, parentWindow=null, tryAsPopup=false){
 	url = `${url}`;
 	options = isPlainObject(options) ? options : null;
-	parentWindow = isA(parentWindow, 'window') ? parentWindow : window;
+	parentWindow = isWindow(parentWindow) ? parentWindow : window;
 	tryAsPopup = orDefault(tryAsPopup, false, 'bool');
 
 	let	windowName = '';
@@ -439,7 +439,7 @@ export function onHistoryChange(callback, clearOld=false, usePreviousState=false
 	clearOld = orDefault(clearOld, false, 'bool');
 	usePreviousState = orDefault(usePreviousState, false, 'bool');
 
-	assert(isA(callback, 'function'), `${MODULE_NAME}:${__methodName__} | callback is no function`);
+	assert(isFunction(callback), `${MODULE_NAME}:${__methodName__} | callback is no function`);
 
 	if ( browserSupportsHistoryManipulation() ) {
 		if( clearOld ){
@@ -496,7 +496,7 @@ export function offHistoryChange(callback=null){
 	const __methodName__ = 'offHistoryChange';
 
 	if( hasValue(callback) ){
-		assert(isA(callback, 'function'), `${MODULE_NAME}:${__methodName__} | callback is not a function`);
+		assert(isFunction(callback), `${MODULE_NAME}:${__methodName__} | callback is not a function`);
 
 		const oldCallbackCount = HISTORY.popState.callbacks.length;
 		HISTORY.popState.callbacks = HISTORY.popState.callbacks.reduce((cbs, cb) => {

@@ -12,7 +12,18 @@ const MODULE_NAME = 'Elements';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, isSelector, isElement, hasValue, assert, size, Deferred} from './basic.js';
+import {
+	orDefault,
+	isString,
+	isFunction,
+	isPlainObject,
+	isSelector,
+	isElement,
+	hasValue,
+	assert,
+	size,
+	Deferred
+} from './basic.js';
 import {randomUuid} from './random.js';
 import {clone} from './objects.js';
 import {onDomReady} from './events.js';
@@ -408,7 +419,7 @@ export function getTextContent(target, onlyFirstLevel=false){
 
 	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
 
-	if( isA(target, 'string') ){
+	if( isString(target) ){
 		target = createNode(target);
 	}
 
@@ -454,7 +465,7 @@ export function isInDom(node){
 
 	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
 
-	return isA(document.contains, 'function') ? document.contains(node) : document.body.contains(node);
+	return isFunction(document.contains) ? document.contains(node) : document.body.contains(node);
 }
 
 
@@ -611,7 +622,7 @@ export function setData(node, dataSet, singleValue=null){
 	const appliedValues = {};
 
 	Object.entries(dataSet).forEach(([property, value]) => {
-		if( isA(value, 'function') ){
+		if( isFunction(value) ){
 			value = value();
 		}
 
@@ -857,7 +868,7 @@ export function findOne(node, selector='*'){
 export function findTextNodes(node, filter=null, onlyFirstLevel=false){
 	const __methodName__ = 'findTextNodes';
 
-	filter = isA(filter, 'function') ? filter : () => true;
+	filter = isFunction(filter) ? filter : () => true;
 	onlyFirstLevel = orDefault(onlyFirstLevel, false, 'bool');
 
 	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
@@ -939,7 +950,7 @@ export function prime(node, init, classChanges=null, markerAttributesName='prime
 	markerAttributesName = orDefault(markerAttributesName, 'primed', 'str');
 
 	assert(isElement(node), `${MODULE_NAME}:${__methodName__} | ${NOT_AN_HTMLELEMENT_ERROR}`);
-	assert(isA(init, 'function'), `${MODULE_NAME}:${__methodName__} | init is not a function`);
+	assert(isFunction(init), `${MODULE_NAME}:${__methodName__} | init is not a function`);
 
 	const deferred = new Deferred();
 
@@ -951,8 +962,8 @@ export function prime(node, init, classChanges=null, markerAttributesName='prime
 
 			if(
 				hasValue(initResult)
-				&& isA(initResult.then, 'function')
-				&& isA(initResult.catch, 'function')
+				&& isFunction(initResult.then)
+				&& isFunction(initResult.catch)
 			){
 				initResult
 					.then(resolution => { deferred.resolve(resolution); })

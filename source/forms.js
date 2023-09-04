@@ -12,7 +12,7 @@ const MODULE_NAME = 'Forms';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {isA, isPlainObject, hasValue} from './basic.js';
+import {isFunction, isPlainObject, hasValue} from './basic.js';
 
 
 
@@ -74,9 +74,9 @@ export function formDataToObject(formDataOrForm){
 
 	// let's do duck-typing to allow polyfills
 	if(
-		isA(formDataOrForm.append, 'function')
-		&& isA(formDataOrForm.getAll, 'function')
-		&& isA(formDataOrForm.entries, 'function')
+		isFunction(formDataOrForm.append)
+		&& isFunction(formDataOrForm.getAll)
+		&& isFunction(formDataOrForm.entries)
 	){
 		formData = formDataOrForm;
 	} else {

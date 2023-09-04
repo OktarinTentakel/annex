@@ -12,7 +12,7 @@ const MODULE_NAME = 'Cookies';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, orDefault, hasValue} from './basic.js';
+import {assert, isDate, orDefault, hasValue} from './basic.js';
 import {warn} from './logging.js';
 
 
@@ -96,7 +96,7 @@ function normalizeCookieOptions(options){
 	options = normalizedOptions;
 
 	if( hasValue(options.expires) ){
-		if( !isA(options.expires, 'date') ){
+		if( !isDate(options.expires) ){
 			options.expires = new Date(Date.now() + (Math.round(parseFloat(options.expires)) * 24 * 60 * 60 * 1000));
 		}
 		options.expires = options.expires.toUTCString();

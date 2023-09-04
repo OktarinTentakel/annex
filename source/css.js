@@ -12,7 +12,7 @@ const MODULE_NAME = 'CSS';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, orDefault, isPlainObject, isElement, hasValue, isNaN} from './basic.js';
+import {assert, isNumber, orDefault, isPlainObject, isElement, hasValue, isNaN} from './basic.js';
 import {maskForRegEx} from './strings.js';
 
 
@@ -82,7 +82,7 @@ export function applyStyles(element, styles, crossBrowser=false, returnCssStyleD
 	}
 
 	Object.entries({...styles}).forEach(([cssKey, cssValue]) => {
-		if( isA(cssValue, 'number') && (cssValue !== 0) ){
+		if( isNumber(cssValue) && (cssValue !== 0) ){
 			styles[cssKey] = `${cssValue}px`;
 			element.style.setProperty(cssKey, styles[cssKey]);
 		} else if( !hasValue(cssValue) ){

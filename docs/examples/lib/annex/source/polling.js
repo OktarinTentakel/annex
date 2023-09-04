@@ -12,7 +12,7 @@ const MODULE_NAME = 'Polling';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, assert, hasValue} from './basic.js';
+import {orDefault, isFunction, isObject, assert, hasValue} from './basic.js';
 import {loop, countermand} from './timers.js';
 
 
@@ -68,13 +68,13 @@ const POLL_DEFAULT_LOOP_MS = 250;
  */
 export function poll(name, fCondition, fAction, fElseAction=null, newLoopMs=POLL_DEFAULT_LOOP_MS, useOwnTimer=false){
 	name = orDefault(name, '', 'str').trim();
-	fElseAction = isA(fElseAction, 'function') ? fElseAction : () => {};
+	fElseAction = isFunction(fElseAction) ? fElseAction : () => {};
 	newLoopMs = orDefault(newLoopMs, POLL_DEFAULT_LOOP_MS, 'int');
 	useOwnTimer = orDefault(useOwnTimer, false, 'bool');
 
 	assert(name !== '', `${MODULE_NAME}:poll | name is missing`);
-	assert(isA(fCondition, 'function'), `${MODULE_NAME}:poll | fCondition is not a function`);
-	assert(isA(fAction, 'function'), `${MODULE_NAME}:poll | fAction is not a function`);
+	assert(isFunction(fCondition), `${MODULE_NAME}:poll | fCondition is not a function`);
+	assert(isFunction(fAction), `${MODULE_NAME}:poll | fAction is not a function`);
 
 	const newPoll = {
 		name,
@@ -168,7 +168,7 @@ export function poll(name, fCondition, fAction, fElseAction=null, newLoopMs=POLL
  * unpoll(pollBodyHeightAndStopIfHighEnough);
  */
 export function unpoll(poll){
-	const name = (isA(poll, 'object') && hasValue(poll.name)) ? `${poll.name}` : `${poll}`.trim();
+	const name = (isObject(poll) && hasValue(poll.name)) ? `${poll.name}` : `${poll}`.trim();
 	if( name === '' ) return false;
 
 	poll = POLLS.activePolls[name];

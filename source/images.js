@@ -12,7 +12,7 @@ const MODULE_NAME = 'Images';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, assert, isEmpty, isElement, hasValue, Deferred} from './basic.js';
+import {orDefault, isArray, isPlainObject, assert, isEmpty, isElement, hasValue, Deferred} from './basic.js';
 import {waitForRepaint} from './timers.js';
 
 
@@ -58,7 +58,7 @@ export function preload(images){
 	;
 	let newImages;
 
-	if( !isPlainObject(images) && !isA(images, 'array') ){
+	if( !isPlainObject(images) && !isArray(images) ){
 		images = `${images}`;
 
 		if( hasValue(PRELOADED_IMAGES.named[images]) ){
@@ -83,7 +83,7 @@ export function preload(images){
 		});
 
 		PRELOADED_IMAGES.named = {...PRELOADED_IMAGES.named, ...newImages};
-	} else if( isA(images, 'array') ){
+	} else if( isArray(images) ){
 		newImages = [];
 
 		images.forEach(value => {
@@ -96,7 +96,7 @@ export function preload(images){
 		PRELOADED_IMAGES.unnamed = Array.from(new Set(PRELOADED_IMAGES.unnamed.concat(newImages)));
 	}
 
-	deferred.provision = (isA(newImages, 'array') && (newImages.length === 1)) ? newImages[0] : newImages;
+	deferred.provision = (isArray(newImages) && (newImages.length === 1)) ? newImages[0] : newImages;
 	loaded(preloadedImages)
 		.then(deferred.resolve)
 		.catch(deferred.reject)

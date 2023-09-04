@@ -12,7 +12,22 @@ const MODULE_NAME = 'Events';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, isEventTarget, isPlainObject, isElement, orDefault, hasValue, isEmpty, isSelector} from './basic.js';
+import {
+	assert,
+	isFunction,
+	isString,
+	isArray,
+	isBoolean,
+	isObject,
+	isWindow,
+	isEventTarget,
+	isPlainObject,
+	isElement,
+	orDefault,
+	hasValue,
+	isEmpty,
+	isSelector
+} from './basic.js';
 import {slugify} from './strings.js';
 import {removeFrom} from './arrays.js';
 import {detectInteractionType} from './context.js';
@@ -85,7 +100,7 @@ function prepareEventMethodBaseParams(methodName, targets, events, handler, hand
 	events = orDefault(events, [], 'arr');
 	assert(events.length > 0, `${MODULE_NAME}:${methodName} | no events provided`);
 	if( !handlerIsOptional || hasValue(handler) ){
-		assert(isA(handler, 'function'), `${MODULE_NAME}:${methodName} | handler is not a function`);
+		assert(isFunction(handler), `${MODULE_NAME}:${methodName} | handler is not a function`);
 	}
 
 	let
@@ -94,7 +109,7 @@ function prepareEventMethodBaseParams(methodName, targets, events, handler, hand
 	;
 
 	targets.forEach((target, targetIndex) => {
-		if( isA(target, 'string') ){
+		if( isString(target) ){
 			const ancestor = (targetIndex > 0) ? targets[targetIndex - 1] : null;
 			delegatedTargetsAreSelectorsAndHaveAncestor &&= isSelector(target) && isEventTarget(ancestor);
 		} else {
@@ -301,7 +316,7 @@ function createDelegatedHandler(delegation, handler){
 				: (
 					isEventTarget(e.syntheticTarget)
 					|| (
-						isA(e.syntheticTarget, 'array')
+						isArray(e.syntheticTarget)
 						&& isSelector(e.syntheticTarget[1])
 					)
 					? (
@@ -546,8 +561,8 @@ function createPauseAwareAction(managedHandler, nonPauseAwareAction){
  * @private
  */
 function compileEventListenerOptions(options){
-	if( isA(options, 'boolean') ) return options;
-	if( !isA(options, 'object') ) return null;
+	if( isBoolean(options) ) return options;
+	if( !isObject(options) ) return null;
 
 	const supportedOptions = {};
 
@@ -589,7 +604,7 @@ function createSyntheticEvent(
 	eventOptions = isPlainObject(eventOptions) ? eventOptions : {};
 
 	let e;
-	if( isA(EventConstructor, 'function') ){
+	if( isFunction(EventConstructor) ){
 		if( isPlainObject(payload) ){
 			console.warn(`${MODULE_NAME}:${__methodName__} | can't add payload to event "${EventConstructor.name}", skipping`);
 		}
@@ -610,7 +625,7 @@ function createSyntheticEvent(
 		e.syntheticTarget = syntheticTarget;
 		e.syntheticTargetElements = [syntheticTarget]
 	} else if(
-		isA(syntheticTarget, 'array')
+		isArray(syntheticTarget)
 		&& isEventTarget(syntheticTarget[0])
 		&& isSelector(syntheticTarget[1])
 	){
@@ -651,10 +666,10 @@ function updateSwipeTouch(e){
  * @private
  */
 function resolvePostMessageTarget(target, method){
-	target = isA(target, 'window')
+	target = isWindow(target)
 		? target
 		: (
-			isA(target?.contentWindow, 'window')
+			isWindow(target?.contentWindow)
 			? target.contentWindow
 			: null
 		)
@@ -1599,7 +1614,7 @@ export function onPostMessage(target, origin, messageType, handler){
 	origin = orDefault(origin, '*', 'str');
 	messageType = `${messageType}`;
 
-	assert(isA(handler, 'function'), `${MODULE_NAME}:${__methodName__} | handler is not a function`);
+	assert(isFunction(handler), `${MODULE_NAME}:${__methodName__} | handler is not a function`);
 
 	if( !hasValue(POST_MESSAGE_MAP.get(target)) ){
 		POST_MESSAGE_MAP.set(target, {});
@@ -1666,7 +1681,7 @@ export function offPostMessage(target, origin=null, messageType=null, handler=nu
 	tryNativeRemoval = orDefault(tryNativeRemoval, true, 'bool');
 
 	if( hasValue(handler) ){
-		assert(isA(handler, 'function'), `${MODULE_NAME}:${__methodName__} | handler is not a function`);
+		assert(isFunction(handler), `${MODULE_NAME}:${__methodName__} | handler is not a function`);
 	}
 
 	let removedCount = 0;

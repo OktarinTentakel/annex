@@ -12,7 +12,7 @@ const MODULE_NAME = 'Interaction';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {assert, isA, isElement, orDefault, hasValue, Deferred} from './basic.js';
+import {assert, isFunction, isElement, orDefault, hasValue, Deferred} from './basic.js';
 import {findTextNodes} from './elements.js';
 import {applyStyles} from './css.js';
 
@@ -74,7 +74,7 @@ export function createSelection(node, startOffset=0, endOffset=0){
 		node.selectionStart = startOffset;
 		node.selectionEnd = rangeText.length - endOffset;
 		selectionText = rangeText.substring(node.selectionStart, node.selectionEnd);
-	} else if( isA(window.getSelection, 'function') ){
+	} else if( isFunction(window.getSelection) ){
 		range = document.createRange();
 		range.selectNodeContents(node);
 
@@ -136,7 +136,7 @@ export function createSelection(node, startOffset=0, endOffset=0){
 		selection.removeAllRanges();
 		selection.addRange(range);
 		selectionText = range.toString();
-	} else if( isA(document.body.createTextRange, 'function') ){
+	} else if( isFunction(document.body.createTextRange) ){
 		range = document.body.createTextRange();
 		range.moveToElementText(node);
 
@@ -173,9 +173,9 @@ export function createSelection(node, startOffset=0, endOffset=0){
  * removeSelections();
  */
 export function removeSelections(){
-	if( isA(window.getSelection, 'function') ){
+	if( isFunction(window.getSelection) ){
 		window.getSelection().removeAllRanges();
-	} else if( isA(document.getSelection, 'function') ){
+	} else if( isFunction(document.getSelection) ){
 		document.getSelection().removeAllRanges();
 	}
 

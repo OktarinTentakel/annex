@@ -12,7 +12,7 @@ const MODULE_NAME = 'Timers';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, assert, hasValue, hasMembers} from './basic.js';
+import {orDefault, isFunction, assert, hasValue, hasMembers} from './basic.js';
 
 
 
@@ -44,7 +44,7 @@ export function schedule(ms, callback, oldTimer=null){
 	ms = orDefault(ms, 1, 'int');
 
 	assert(ms >= 0, `${MODULE_NAME}:schedule | ms must be positive`);
-	assert(isA(callback, 'function'), `${MODULE_NAME}:schedule | callback must be a function`);
+	assert(isFunction(callback), `${MODULE_NAME}:schedule | callback must be a function`);
 
 	if( hasValue(oldTimer) ){
 		countermand(oldTimer);
@@ -87,7 +87,7 @@ export function pschedule(ms, callback, oldTimer=null){
 	ms = orDefault(ms, 1, 'int');
 
 	assert(ms >= 0, `${MODULE_NAME}:pschedule | ms must be positive`);
-	assert(isA(callback, 'function'), `${MODULE_NAME}:pschedule | callback must be a function`);
+	assert(isFunction(callback), `${MODULE_NAME}:pschedule | callback must be a function`);
 
 	if(
 		hasValue(oldTimer)
@@ -141,7 +141,7 @@ export function reschedule(timer, ms, callback){
 	ms = orDefault(ms, 1, 'int');
 
 	assert(ms >= 0, `${MODULE_NAME}:reschedule | ms must be positive`);
-	assert(isA(callback, 'function'), `${MODULE_NAME}:reschedule | callback must be a function`);
+	assert(isFunction(callback), `${MODULE_NAME}:reschedule | callback must be a function`);
 
 	if( hasValue(timer) && hasValue(timer.precise) && !!timer.precise ){
 		return pschedule(ms, callback, timer);
@@ -178,7 +178,7 @@ export function loop(ms, callback, oldLoop=null){
 	ms = orDefault(ms, 1, 'int');
 
 	assert(ms >= 0, `${MODULE_NAME}:loop | ms must be positive`);
-	assert(isA(callback, 'function'), `${MODULE_NAME}:loop | callback must be a function`);
+	assert(isFunction(callback), `${MODULE_NAME}:loop | callback must be a function`);
 
 	if( hasValue(oldLoop) ){
 		countermand(oldLoop, true);
@@ -224,7 +224,7 @@ export function ploop(ms, callback, oldLoop=null){
 	ms = orDefault(ms, 1, 'int');
 
 	assert(ms >= 0, `${MODULE_NAME}:ploop | ms must be positive`);
-	assert(isA(callback, 'function'), `${MODULE_NAME}:ploop | callback must be a function`);
+	assert(isFunction(callback), `${MODULE_NAME}:ploop | callback must be a function`);
 
 	if(
 		hasValue(oldLoop)
@@ -323,7 +323,7 @@ export function countermand(timer, isInterval=false){
  * const requestId = requestAnimationFrame(function(){ window.body.style.opacity = 0; });
  */
 export function requestAnimationFrame(callback){
-	assert(isA(callback, 'function'), `${MODULE_NAME}:requestAnimationFrame | callback is no function`);
+	assert(isFunction(callback), `${MODULE_NAME}:requestAnimationFrame | callback is no function`);
 
 	const raf = window.requestAnimationFrame
 		?? window.webkitRequestAnimationFrame
@@ -402,7 +402,7 @@ export function cancelAnimationFrame(id){
  * waitForRepaint(function(){ alert(`the new dimensions after class change are: ${element.offsetWidth}x${element.offsetHeight}`); });
  */
 export function waitForRepaint(callback){
-	assert(isA(callback, 'function'), `${MODULE_NAME}:waitForRepaint | callback is no function`);
+	assert(isFunction(callback), `${MODULE_NAME}:waitForRepaint | callback is no function`);
 
 	const ids = {};
 

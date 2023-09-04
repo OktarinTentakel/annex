@@ -12,7 +12,7 @@ const MODULE_NAME = 'Objects';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {getType, isA, orDefault} from './basic.js';
+import {getType, isFunction, isObject, orDefault} from './basic.js';
 
 
 
@@ -60,7 +60,7 @@ import {getType, isA, orDefault} from './basic.js';
 export function clone(target, deep=true){
 	deep = orDefault(deep, true, 'bool');
 
-	if( isA(target?.clone, 'function') ){
+	if( isFunction(target?.clone) ){
 		return target.clone(deep);
 	}
 
@@ -219,7 +219,7 @@ export function merge(base, ...extensions){
 			if( extension.hasOwnProperty(prop) ){
 				if(
 					base.hasOwnProperty(prop)
-					&& (isA(base[prop], 'object') && isA(extension[prop], 'object'))
+					&& (isObject(base[prop]) && isObject(extension[prop]))
 					&& (Object.keys(extension[prop]).length > 0)
 				){
 					base[prop] = merge(base[prop], extension[prop]);

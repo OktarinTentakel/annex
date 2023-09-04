@@ -12,7 +12,7 @@ const MODULE_NAME = 'Functions';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, isA, isPlainObject, assert, hasValue} from './basic.js';
+import {orDefault, isFunction, isPlainObject, assert, hasValue} from './basic.js';
 import {schedule, reschedule} from './timers.js';
 
 
@@ -52,7 +52,7 @@ export function throttle(ms, func, hasLeadingExecution=false, hasTrailingExecuti
 	hasTrailingExecution = orDefault(hasTrailingExecution, false, 'bool');
 
 	assert(ms > 0, `${MODULE_NAME}:throttle | ms must be > 0`);
-	assert(isA(func, 'function'), `${MODULE_NAME}:throttle | no function given`);
+	assert(isFunction(func), `${MODULE_NAME}:throttle | no function given`);
 
 	let
 		frameHasStarted = false,
@@ -114,7 +114,7 @@ export function debounce(ms, func){
 	ms = orDefault(ms, 0, 'int');
 
 	assert(ms > 0, `${MODULE_NAME}:debounce | ms must be > 0`);
-	assert(isA(func, 'function'), `${MODULE_NAME}:debounce | no function given`);
+	assert(isFunction(func), `${MODULE_NAME}:debounce | no function given`);
 
 	let	debounceTimer;
 
@@ -147,7 +147,7 @@ export function debounce(ms, func){
 export function defer(func, delay=1){
 	delay = orDefault(delay, 1, 'int');
 
-	assert(isA(func, 'function'), `${MODULE_NAME}:defer | no function given`);
+	assert(isFunction(func), `${MODULE_NAME}:defer | no function given`);
 	assert(delay > 0, `${MODULE_NAME}:defer | delay must be > 0`);
 
 	return function(){
@@ -200,7 +200,7 @@ export function defer(func, delay=1){
 export function kwargs(func, defaults=null){
 	defaults = isPlainObject(defaults) ? defaults : {};
 
-	assert(isA(func, 'function'), `${MODULE_NAME}:kwargs | no function given`);
+	assert(isFunction(func), `${MODULE_NAME}:kwargs | no function given`);
 
 	const
 		argNamesString = func.toString().match(/\(([^)]+)/)[1],

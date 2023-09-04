@@ -12,7 +12,7 @@ const MODULE_NAME = 'Random';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {orDefault, assert, hasValue, isA} from './basic.js';
+import {orDefault, assert, hasValue, isFunction} from './basic.js';
 
 
 
@@ -105,13 +105,13 @@ export function randomUuid(withDashes=true){
 		// explicitly from either window.crypto or window.msCrypto, since invoking it from another
 		// context will trigger an "illegal invocation" of the method :(
 		if(
-			isA(window.crypto?.getRandomValues, 'function')
-			|| isA(window.msCrypto?.getRandomValues, 'function')
+			isFunction(window.crypto?.getRandomValues)
+			|| isFunction(window.msCrypto?.getRandomValues)
 		){
 			uuid = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (
 				c
 				^ (
-					isA(window.crypto?.getRandomValues, 'function')
+					isFunction(window.crypto?.getRandomValues)
 					? window.crypto.getRandomValues(new Uint8Array(1))
 					: window.msCrypto?.getRandomValues(new Uint8Array(1))
 				)[0]

@@ -48,7 +48,10 @@ const {
 	isEventTarget,
 	isSelector,
 	isPotentialId,
+	min,
+	max,
 	minMax,
+	round,
 	Deferred,
 	Observable
 } = pkg;
@@ -841,6 +844,46 @@ test('isPotentialId', assert => {
 
 
 
+test('min', assert => {
+	const
+		foo = min(1, 5),
+		bar = min(42.42, 666.66),
+		foobar = min('a', 'b'),
+		far = min(-150.5, -200),
+		boofar = min(13, 13),
+		brafoo = min(-42.42, 666)
+	;
+
+	assert.is(foo, 5);
+	assert.is(bar, 666.66);
+	assert.is(foobar, 'b');
+	assert.is(far, -150.5);
+	assert.is(boofar, 13);
+	assert.is(brafoo, 666);
+});
+
+
+
+test('max', assert => {
+	const
+		foo = max(10, 5),
+		bar = max(100000000000, 666.66),
+		foobar = max('zzz', 'b'),
+		far = max(-150.5, -3),
+		boofar = max(13, 13),
+		brafoo = max(666, -42.42)
+	;
+
+	assert.is(foo, 5);
+	assert.is(bar, 666.66);
+	assert.is(foobar, 'b');
+	assert.is(far, -150.5);
+	assert.is(boofar, 13);
+	assert.is(brafoo, -42.42);
+});
+
+
+
 test('minMax', assert => {
 	const
 		foo = minMax(1, 5, 10),
@@ -859,6 +902,26 @@ test('minMax', assert => {
 	assert.is(far, -150.5);
 	assert.is(boofar, 13);
 	assert.is(brafoo, -42.42);
+});
+
+
+
+test('round', assert => {
+	const
+		foo = round(0.55555, 3),
+		bar = round(42.42, 2),
+		foobar = round(-42.42, 1),
+		far = round(-666.66),
+		boofar = round(0.55555, 10),
+		brafoo = round(0.1)
+	;
+
+	assert.is(foo, 0.556);
+	assert.is(bar, 42.42);
+	assert.is(foobar, -42.4);
+	assert.is(far, -667);
+	assert.is(boofar, 0.55555);
+	assert.is(brafoo, 0);
 });
 
 

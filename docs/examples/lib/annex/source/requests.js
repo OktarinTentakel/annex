@@ -29,6 +29,7 @@ import {schedule, countermand} from './timers.js';
 /**
  * @typedef FetchResponse
  * @type {Object}
+ *
  * @property {Boolean} ok - returns true if the request received a status in the OK range (200-299)
  * @property {Number} status - contains the status code of the response, e.g. 404 for a not found resource, 200 for a success
  * @property {String} statusText - a message related to the status attribute, e.g. OK for a status 200
@@ -41,17 +42,23 @@ import {schedule, countermand} from './timers.js';
  * @property {Function} headers.entries - returns an Iterable containing the [key, value] pairs for every header in the response, transform to array with Array.from
  * @property {Function} headers.get - returns the value associated with the given key
  * @property {Function} headers.has - returns a boolean asserting the existence of a value for the given key among the response headers
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef FetchRequestExecuteFunction
  * @type {Function}
- * @returns {Deferred<FetchResponse>}
+ *
+ * @returns {Basic.Deferred<Requests.FetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef FetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -59,7 +66,9 @@ import {schedule, countermand} from './timers.js';
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {FetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.FetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -87,7 +96,7 @@ import {schedule, countermand} from './timers.js';
  * @param {?String} [options.credentials] - accepts an "include" string, which will allow both CORS and same origin requests to work with cookies; the method won't send or receive cookies otherwise; the "same-origin" value is not supported
  * @param {?Object|String} [options.body] - the content to be transmitted in request's body; common content types include FormData, JSON, Blob, ArrayBuffer or plain text
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
- * @returns {FetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.FetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createFetchRequest
  * @alias createFetchRequest
@@ -243,23 +252,29 @@ export function createFetchRequest(url, options=null, useNative=false){
 /**
  * @typedef JsonFetchResponse
  * @type {Object|HTMLElement|String}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef JsonFetchRequestExecuteFunction
  * @type {Function}
+ *
  * @param {?String} [resolveTo='object'] - defines what the response should resolve to, may either be "object", "element" or "raw"
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a script tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
  * @param {?String} [insertTarget.position] - defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
+ * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  * @see insertNode
- * @returns {Deferred<JsonFetchResponse>}
  */
 
 /**
  * @typedef JsonFetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -267,7 +282,9 @@ export function createFetchRequest(url, options=null, useNative=false){
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {JsonFetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.JsonFetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -286,7 +303,7 @@ export function createFetchRequest(url, options=null, useNative=false){
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "application/json"
- * @returns {JsonFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.JsonFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createJsonRequest
  * @alias createJsonRequest
@@ -393,93 +410,126 @@ export function createJsonRequest(url, options=null, useNative=false, strict=tru
 /**
  * @typedef RestfulJsonClientPathFunction
  * @type {Function}
+ *
  * @param {String} path - the current path to request from baseUrl
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientOptionsFunction
  * @type {Function}
+ *
  * @param {?Object} options - options plain object to merge with baseOptions to define current request options (see JsonFetchRequest for details and defaults); if nullish, will reset to baseOptions
  * @throws error if given options are not a plain object
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientHeaderFunction
  * @type {Function}
+ *
  * @param {String} key - the header to set for all following requests
  * @param {?String} value - the header's value; nullish value will remove the header again
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientParamsFunction
  * @type {Function}
+ *
  * @param {?*} params - query parameters to set on the current URL, this parameter takes all regular definitions for URLSearchParams constructor, as well as flat plain objects, which may also have arrays as values; if nullish, parameters are emptied
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  * @see https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams
- * @returns {RestfulJsonClient}
  */
 
 /**
  * @typedef RestfulJsonClientDataFunction
  * @type {Function}
+ *
  * @param {?Object} data - data payload to send with the next POST, PUT or PATCH request, this parameter will set a permanent payload, for one-off payloads, use the verb method's parameter; if nullish, data will be emptied
  * @throws error if given data is not a plain object
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientGetFunction
  * @type {Function}
- * @returns {Deferred<JsonFetchResponse>}
+ *
+ * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientPostFunction
  * @type {Function}
+ *
  * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Deferred<JsonFetchResponse>}
+ * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientPutFunction
  * @type {Function}
+ *
  * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Deferred<JsonFetchResponse>}
+ * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientPatchFunction
  * @type {Function}
+ *
  * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Deferred<JsonFetchResponse>}
+ * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientDeleteFunction
  * @type {Function}
- * @returns {Deferred<JsonFetchResponse>}
+ *
+ * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClient
  * @type {Object}
+ *
  * @property {Object} config - the current configuration state of the client
  * @property {URL} config.url=baseUrl - the current, complete URL to query (baseUrl + path)
  * @property {Object} config.options - the current request options (see JsonFetchRequest for details and defaults)
  * @property {URLSearchParams} config.params - the current searchParams of config.url, with which to query the URL
  * @property {Object} config.data={} - the current data payload object to send with POST, PUT and PATCH (this will persist between requests, set one-off data via verb methods)
- * @property {RestfulJsonClientPathFunction} path - sets the current request path, which will be concatenated after baseUrl
- * @property {RestfulJsonClientOptionsFunction} options - sets the current request options, which will be merged with baseOptions to constitute current request options
- * @property {RestfulJsonClientHeaderFunction} header - sets a header for all subsequent requests
- * @property {RestfulJsonClientParamsFunction} params - sets query parameters to be added to the request URL
- * @property {RestfulJsonClientDataFunction} data - sets data payload for POST, PUT and PATCH requests
- * @property {RestfulJsonClientGetFunction} get - queries the current URL via GET
- * @property {RestfulJsonClientPostFunction} post - queries the current URL via POST using defined data
- * @property {RestfulJsonClientPutFunction} put - queries the current URL via PUT using defined data
- * @property {RestfulJsonClientPatchFunction} patch - queries the current URL via PATCH using defined data
- * @property {RestfulJsonClientDeleteFunction} delete - queries the current URL via DELETE
+ * @property {Requests.RestfulJsonClientPathFunction} path - sets the current request path, which will be concatenated after baseUrl
+ * @property {Requests.RestfulJsonClientOptionsFunction} options - sets the current request options, which will be merged with baseOptions to constitute current request options
+ * @property {Requests.RestfulJsonClientHeaderFunction} header - sets a header for all subsequent requests
+ * @property {Requests.RestfulJsonClientParamsFunction} params - sets query parameters to be added to the request URL
+ * @property {Requests.RestfulJsonClientDataFunction} data - sets data payload for POST, PUT and PATCH requests
+ * @property {Requests.RestfulJsonClientGetFunction} get - queries the current URL via GET
+ * @property {Requests.RestfulJsonClientPostFunction} post - queries the current URL via POST using defined data
+ * @property {Requests.RestfulJsonClientPutFunction} put - queries the current URL via PUT using defined data
+ * @property {Requests.RestfulJsonClientPatchFunction} patch - queries the current URL via PATCH using defined data
+ * @property {Requests.RestfulJsonClientDeleteFunction} delete - queries the current URL via DELETE
+ *
+ * @memberof Requests
  */
 
 /**
@@ -494,7 +544,7 @@ export function createJsonRequest(url, options=null, useNative=false, strict=tru
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "application/json"
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
  *
  * @memberof Requests:createRestfulJsonClient
  * @alias createRestfulJsonClient
@@ -680,24 +730,30 @@ export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNativ
 /**
  * @typedef JsFetchResponse
  * @type {HTMLElement|String}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef JsFetchRequestExecuteFunction
  * @type {Function}
+ *
  * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a script with a src instead of doing a real request)
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a script tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
  * @param {?String} [insertTarget.position] - defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
  * @param {?Boolean} [resolveSourcedOnInsert=false] - normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in immediate resolution after insertion
+ * @returns {Basic.Deferred<Requests.JsFetchResponse>}
+ *
+ * @memberof Requests
  * @see insertNode
- * @returns {Deferred<JsFetchResponse>}
  */
 
 /**
  * @typedef JsFetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -705,7 +761,9 @@ export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNativ
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {JsFetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.JsFetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -732,7 +790,7 @@ export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNativ
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "application/javascript" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "application/javascript"
- * @returns {JsFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.JsFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createJsRequest
  * @alias createJsRequest
@@ -855,11 +913,14 @@ export function createJsRequest(url, options=null, useNative=false, strict=true)
 /**
  * @typedef CssFetchResponse
  * @type {HTMLElement|String}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef CssFetchRequestExecuteFunction
  * @type {Function}
+ *
  * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a link with a href instead of doing a real request)
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a style/link tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
@@ -867,13 +928,16 @@ export function createJsRequest(url, options=null, useNative=false, strict=true)
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
  * @param {?String} [media='all'] - define the style's media attribute here to target the output device(s), could be "screen" or "print" for example
  * @param {?Boolean} [resolveSourcedOnInsert=false] - normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in immediate resolution after insertion
+ * @returns {Basic.Deferred<Requests.CssFetchResponse>}
+ *
+ * @memberof Requests
  * @see insertNode
- * @returns {Deferred<CssFetchResponse>}
  */
 
 /**
  * @typedef CssFetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -881,7 +945,9 @@ export function createJsRequest(url, options=null, useNative=false, strict=true)
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {CssFetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.CssFetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -905,7 +971,7 @@ export function createJsRequest(url, options=null, useNative=false, strict=true)
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "text/css" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "text/css"
- * @returns {CssFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.CssFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createCssRequest
  * @alias createCssRequest
@@ -1033,11 +1099,14 @@ export function createCssRequest(url, options=null, useNative=false, strict=true
 /**
  * @typedef HtmlFetchResponse
  * @type {HTMLElement|Array<HTMLElement>|String}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef HtmlFetchRequestExecuteFunction
  * @type {Function}
+ *
  * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element" or "raw"
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as (a) node(s), otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
@@ -1045,13 +1114,16 @@ export function createCssRequest(url, options=null, useNative=false, strict=true
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node(s)
  * @param {?String} [selector=null] - if you'd like to preselect something from the result, you may define a regular query selector to find matching elements in the result
  * @param {?Boolean} [selectAll=false] - usually, if a selector is defined, we select a single element, if you need to select a list, set this to true
+ * @returns {Basic.Deferred<Requests.HtmlFetchResponse>}
+ *
+ * @memberof Requests
  * @see insertNode
- * @returns {Deferred<HtmlFetchResponse>}
  */
 
 /**
  * @typedef HtmlFetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -1059,7 +1131,9 @@ export function createCssRequest(url, options=null, useNative=false, strict=true
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {HtmlFetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.HtmlFetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -1082,7 +1156,7 @@ export function createCssRequest(url, options=null, useNative=false, strict=true
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "text/html" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "text/html"
- * @returns {HtmlFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.HtmlFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createHtmlRequest
  * @alias createHtmlRequest
@@ -1270,7 +1344,7 @@ export function createHtmlRequest(url, options=null, useNative=false, strict=tru
  * @param {?Number} [timeout=5000] - the timeout in ms to wait for completion of the request, before rejecting the promise
  * @param {?String} [tokenValue=null] - if the URL needs to include a token, you can provide this token here, which will replace the placeholder defined in "tokenPlaceholder"
  * @param {?String} [tokenPlaceholder='token'] = the placeholder in the url to replace with the tokenValue, must be surrounded with curly braces in the url ("{token}")
- * @returns {Deferred} resolves on load of URL (with the final URL as resolution value), rejects on timeout (with a "timeout" error)
+ * @returns {Basic.Deferred} resolves on load of URL (with the final URL as resolution value), rejects on timeout (with a "timeout" error)
  *
  * @memberof Requests:visitUrl
  * @alias visitUrl

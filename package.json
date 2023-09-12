@@ -1,6 +1,6 @@
 {
 	"name" : "@oktarintentakel/annex",
-	"version" : "0.1.6-beta",
+	"version" : "0.1.7-beta",
 	"author" : "Sebastian Schlapkohl",
 	"description" : "Unit-tested and semantically packaged standard solutions for everyday frontend tasks and syntax streamlining for those ugly darks corners of JS.",
 	"license" : "MIT",
@@ -57,7 +57,7 @@
 		"gulp-shell" : "^0.8.0",
 		"gulp-sourcemaps" : "^3.0.0",
 		"gulp-terser" : "^2.1.0",
-		"jsdoc" : "^3.6.11",
+		"jsdoc" : "^4.0.2",
 		"natives" : "^1.1.6",
 		"rollup" : "^3.8.1",
 		"@rollup/plugin-babel" : "^6.0.3",

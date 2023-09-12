@@ -191,6 +191,6 @@ gulp.task('build', gulp.series(
 	copyExamplesLibs
 ));
 
-gulp.task('examples', gulp.series('build', serveExamples, 'watch'));
+gulp.task('examples', gulp.series('build', 'documentation', serveExamples, 'watch'));
 
 gulp.task('default', gulp.series('build'));

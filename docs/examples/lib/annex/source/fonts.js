@@ -34,7 +34,7 @@ import {loop, countermand} from  './timers.js';
  * @param {String|String[]} fonts - the CSS-names of the fonts to wait for
  * @param {?String} [fallbackFontName=sans-serif] - the system font which the page falls back on if the webfont is not loaded
  * @param {?Number} [timeout=5000] - timeout in ms after which the call fails and the return value rejects
- * @returns {Deferred<Array<String>|String>} a Deferred, that resolves once all webfonts are available and rejects when the timeout is reached
+ * @returns {Basic.Deferred<Array<String>|String>} a Deferred, that resolves once all webfonts are available and rejects when the timeout is reached
  *
  * @memberof Fonts:waitForWebfonts
  * @alias waitForWebfonts

@@ -934,7 +934,7 @@ export function findTextNodes(node, filter=null, onlyFirstLevel=false){
  * @param {?String} [markerAttributesName='primed'] - this function uses data-attributes to mark priming status, this is the name used to construct these attributes (default: data-primed*="...")
  * @throws error if node is not a usable HTML element
  * @throws error if init is not a function
- * @returns {Deferred} resolves to the return value of init function or to `undefined` if element was already primed
+ * @returns {Basic.Deferred} resolves to the return value of init function or to `undefined` if element was already primed
  *
  * @memberof Elements:prime
  * @alias prime

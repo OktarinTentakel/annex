@@ -1232,6 +1232,56 @@ export function isPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix='',
 
 
 /**
+ * @namespace Basic:min
+ */
+
+/**
+ * Checks if a value is larger than a minimum and returns
+ * the value or the lower bound respectively.
+ *
+ * Accepts all values comparable with >.
+ *
+ * @param {*} value - the value to check
+ * @param {*} minValue - the lower bound
+ * @returns {*} value or minValue
+ *
+ * @memberof Basic:min
+ * @alias min
+ * @example
+ * let croppedVal = min(value, 0);
+ */
+export function min(value, minValue){
+	return (value < minValue) ? minValue : value;
+}
+
+
+
+/**
+ * @namespace Basic:max
+ */
+
+/**
+ * Checks if a value is smaller than a maximum and returns
+ * the value or the upper bound respectively.
+ *
+ * Accepts all values comparable with <.
+ *
+ * @param {*} value - the value to check
+ * @param {*} maxValue - the upper bound
+ * @returns {*} value or maxValue
+ *
+ * @memberof Basic:max
+ * @alias max
+ * @example
+ * let croppedVal = max(value, 100);
+ */
+export function max(value, maxValue){
+	return (value > maxValue) ? maxValue : value;
+}
+
+
+
+/**
  * @namespace Basic:minMax
  */
 
@@ -1241,28 +1291,55 @@ export function isPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix='',
  *
  * Accepts all values comparable with > and <.
  *
- * @param {*} min - the lower bound
+ * @param {*} minValue - the lower bound
  * @param {*} value - the value to check
- * @param {*} max - the upper bound
- * @throws error if min is not smaller than max
- * @returns {*} value, min or max
+ * @param {*} maxValue - the upper bound
+ * @throws error if minValue is not smaller than maxValue
+ * @returns {*} value, minValue or maxValue
  *
  * @memberof Basic:minMax
  * @alias minMax
  * @example
  * let croppedVal = minMax(-100, value, 100);
  */
-export function minMax(min, value, max){
-	assert(min <= max, `${MODULE_NAME}:minMax | min can not be larger than max`);
+export function minMax(minValue, value, maxValue){
+	const __methodName__ = 'minMax';
 
-	return (value < min)
-		? min
-		: (
-			(value > max)
-				? max
-				: value
-		)
-	;
+	assert(minValue <= maxValue, `${MODULE_NAME}:${__methodName__} | minValue can not be larger than maxValue`);
+
+	return min(max(value, maxValue), minValue);
+}
+
+
+
+/**
+ * @namespace Basic:round
+ */
+
+/**
+ * Rounds a number to a defined precision.
+ *
+ * Precision 0 rounds to full number.
+ *
+ * @param {Number} number - the number to round
+ * @param {?Number} [precision=0] - the number of digits after the floating point to round to
+ * @returns {Number} rounded number
+ *
+ * @memberof Basic:round
+ * @alias round
+ * @example
+ * let roundedValue = round(666.66);
+ * => 667
+ * let roundedValue = round(0.5555555, 3);
+ * => 0.556
+ */
+export function round(number, precision=0){
+	number = parseFloat(number);
+	precision = min(orDefault(precision, 0, 'int'), 0);
+
+	const power = Math.pow(10, precision);
+
+	return Math.round(parseFloat(number) * power) / power;
 }
 
 
@@ -1274,6 +1351,7 @@ export function minMax(min, value, max){
 /**
  * @typedef Deferred
  * @type {Object}
+ *
  * @property {Promise} promise - the wrapped promise
  * @property {Function} resolve - resolves the wrapped promise with given value
  * @property {Function} reject - rejects the wrapped promise with given error
@@ -1283,6 +1361,8 @@ export function minMax(min, value, max){
  * @property {String} status - holds the current resolution status, can either be "pending", "fulfilled" or "rejected"
  * @property {Function} isSettled - returns true, if the Deferred is either "fulfilled" or "rejected"
  * @property {?*} [provision=null] - may contain (a) provisional value(s) to use for a newly instantiated Deferred, before it has resolved to the actual value(s)
+ *
+ * @memberof Basic
  */
 
 /**
@@ -1303,15 +1383,18 @@ export function minMax(min, value, max){
  *
  * Keep in mind, that Promises might need a polyfill such as core-js.
  *
+ * For details, see class documentation below.
+ *
  * @memberof Basic:Deferred
  * @name Deferred
+ * @see Basic.Deferred
  * @example
  * const doStuff = new Deferred();
  * doStuff.provision = 'provisional value';
  * doStuff
  *   .then(value => { alert(`yeah, ready with "${value}"!`); })
  *   .catch(error => { console.error(error); })
- *   .finally(() => { console.info('has been settled); })
+ *   .finally(() => { console.info('has been settled'); })
  * ;
  * if( foobar === 42 ){
  *   doStuff.resolve(42);
@@ -1321,6 +1404,7 @@ export function minMax(min, value, max){
  * console.info(doStuff.status);
  */
 export class Deferred {
+
 	constructor(){
 		const
 			STATUS_PENDING = 'pending',
@@ -1355,6 +1439,7 @@ export class Deferred {
 	finally(f){
 		return this.promise.finally(f);
 	}
+
 }
 
 
@@ -1366,10 +1451,13 @@ export class Deferred {
 /**
  * @typedef Observable
  * @type {Object}
+ *
  * @property {Function} getValue - returns the current value
  * @property {Function} setValue - sets a new value, which will subsequently trigger all subscriptions
  * @property {Function} subscribe - register a given function to be executed on any value change, the subscription receives the new and the old value on each execution, returns the subscription value, which can later be used to unsubscribe again
  * @property {Function} unsubscribe - removes a given subscription again, use subscription value returned by subscribe here
+ *
+ * @memberof Basic
  */
 
 /**
@@ -1377,8 +1465,11 @@ export class Deferred {
  * No automatic magic going on here, this simply follows a basic subscription pattern, where each subscription is
  * a function, being called with a newly set value. This closely resembles the kind of observables knockout is using.
  *
+ * For details, see class documentation below.
+ *
  * @memberof Basic:Observable
  * @name Observable
+ * @see Basic.Observable
  * @example
  * const status = new Observable('ok');
  * const subscription = status.subscribe(s => {
@@ -1388,41 +1479,46 @@ export class Deferred {
  * status.unsubscribe(subscription);
  */
 export class Observable {
+
+	#__className__ = 'Observable';
+	#value;
+	#subscriptions;
+
 	constructor(initialValue){
-		this.__className__ = 'Observable';
-		this._value = initialValue;
-		this._subscriptions = [];
+		this.#value = initialValue;
+		this.#subscriptions = [];
 	}
 
 	getValue(){
-		return this._value;
+		return this.#value;
 	}
 
 	setValue(newValue, force=false){
 		const
-			oldValue = this._value,
+			oldValue = this.#value,
 			isNewValue = oldValue !== newValue
 		;
-		this._value = newValue;
+		this.#value = newValue;
 		if( isNewValue || force ){
-			this._subscriptions.forEach(s => s(newValue, oldValue));
+			this.#subscriptions.forEach(s => s(newValue, oldValue));
 		}
 	}
 
 	subscribe(subscription){
 		const __methodName__ = 'subscribe';
-		assert(isFunction(subscription), `${MODULE_NAME}:${this.__className__}.${__methodName__} | subscription must be function`);
-		if( this._subscriptions.indexOf(subscription) < 0 ){
-			this._subscriptions = [...this._subscriptions, subscription];
+		assert(isFunction(subscription), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | subscription must be function`);
+		if( this.#subscriptions.indexOf(subscription) < 0 ){
+			this.#subscriptions = [...this.#subscriptions, subscription];
 		}
 		return subscription;
 	}
 
 	unsubscribe(subscription){
-		this._subscriptions = this._subscriptions.filter(s => s !== subscription);
+		this.#subscriptions = this.#subscriptions.filter(s => s !== subscription);
 	}
 
 	toString(){
-		return `${this._value}`;
+		return `${this.#value}`;
 	}
+
 }

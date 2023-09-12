@@ -24,11 +24,13 @@
 
 
 			#in-viewport-info {
+				overflow: auto;
 				opacity: 0.5;
 
 				position: fixed;
 				top: 8rem;
 				right: 4rem;
+				bottom: 2rem;
 
 				width: 20rem;
 
@@ -38,12 +40,19 @@
 				box-shadow: 1px 1px 20px 0 rgba(0, 0, 0, 0.5);
 			}
 
+			#in-viewport-info pre {
+				margin-top: -1rem;
+
+				font-size: 0.66rem;
+			}
+
 
 
 			#scroll-to-elements {
 				background: rgba(0, 0, 0, 0.1);
 
 				margin-top: 40px;
+				margin-bottom: 100vh;
 
 				color: white;
 				font-size: 5rem;
@@ -86,14 +95,25 @@
 			}
 
 			#scroll-to-elements .element-4 {
-				width: 20rem;
-				height: 20rem;
+				position: relative;
+
+				width: 100%;
+				height: 300vh;
 
 				margin-top: 5rem;
 
+				background: rgba(0, 0, 0, 0.05);
+			}
+
+			#scroll-to-elements .element-4-content {
+				display: block;
+
+				width: 20rem;
+				height: 20rem;
+
 				background: yellow;
 			}
-			#scroll-to-elements .element-4:before {
+			#scroll-to-elements .element-4-content:before {
 				content: '4';
 			}
 
@@ -101,7 +121,7 @@
 				width: 20rem;
 				height: 20rem;
 
-				margin-top: 300vh;
+				margin-top: 5rem;
 
 				background: teal;
 			}
@@ -118,24 +138,70 @@
 
 		<script defer src="./lib/handle-version-switching.js"></script>
 		<script>
-			function setup(loop, isInViewport, scrollTo){
-				loop(250, function(){
+			function setup(polyfillCustomEvent, isInViewport, scrollTo, VisibilityObserver){
+				polyfillCustomEvent();
+
+				var
+					element1 = document.querySelector('#scroll-to-elements .element-1'),
+					element2 = document.querySelector('#scroll-to-elements .element-2'),
+					element3 = document.querySelector('#scroll-to-elements .element-3'),
+					element4 = document.querySelector('#scroll-to-elements .element-4'),
+					element4content = document.querySelector('#scroll-to-elements .element-4 .element-4-content'),
+					element5 = document.querySelector('#scroll-to-elements .element-5'),
+					visibilityObserver = new VisibilityObserver(1),
+					viewportInfoObservable = visibilityObserver.getViewportObservable()
+				;
+
+				function updatePanel(){
 					document.querySelector('#in-viewport-info').innerHTML = ''
-						+'<p><b>Element 1</b><br/>in viewport: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-1'))+'</i>, fully: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-1'), true)+'</i></p>'
-						+'<p><b>Element 2</b><br/>in viewport: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-2'))+'</i>, fully: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-2'), true)+'</i></p>'
-						+'<p><b>Element 3</b><br/>in viewport: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-3'))+'</i>, fully: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-3'), true)+'</i></p>'
-						+'<p><b>Element 4</b><br/>in viewport: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-4'))+'</i>, fully: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-4'), true)+'</i></p>'
-						+'<p><b>Element 5</b><br/>in viewport: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-5'))+'</i>, fully: <i>'+isInViewport(document.querySelector('#scroll-to-elements .element-5'), true)+'</i></p>'
+						+'<p>'
+							+'<b>Element 1</b><br/>'
+							+'in viewport: <i>'+isInViewport(element1)+'</i>, fully: <i>'+isInViewport(element1, true)+'</i><br/>'
+							+'visibility state:'
+						+'</p>'
+						+'<pre>'+JSON.stringify(visibilityObserver.getState(element1).toJson(), null, 2)+'</pre>'
+						+'<p>'
+							+'<b>Element 2</b><br/>'
+							+'in viewport: <i>'+isInViewport(element2)+'</i>, fully: <i>'+isInViewport(element2, true)+'</i><br/>'
+							+'visibility state:'
+						+'</p>'
+						+'<pre>'+JSON.stringify(visibilityObserver.getState(element2).toJson(), null, 2)+'</pre>'
+						+'<p>'
+							+'<b>Element 3</b><br/>'
+							+'in viewport: <i>'+isInViewport(element3)+'</i>, fully: <i>'+isInViewport(element3, true)+'</i><br/>'
+							+'visibility state:'
+						+'</p>'
+						+'<pre>'+JSON.stringify(visibilityObserver.getState(element3), null, 2)+'</pre>'
+						+'<p>'
+							+'<b>Element 4</b><br/>'
+							+'in viewport: <i>'+isInViewport(element4)+'</i>, fully: <i>'+isInViewport(element4, true)+'</i><br/>'
+							+'visibility state:'
+						+'</p>'
+						+'<pre>'+JSON.stringify(visibilityObserver.getState(element4).toJson(), null, 2)+'</pre>'
+						+'<p>'
+							+'<b>Element 5</b><br/>'
+							+'in viewport: <i>'+isInViewport(element5)+'</i>, fully: <i>'+isInViewport(element5, true)+'</i><br/>'
+							+'visibility state:'
+						+'</p>'
+						+'<pre>'+JSON.stringify(visibilityObserver.getState(element5), null, 2)+'</pre>'
 					;
+				}
+
+				viewportInfoObservable.subscribe(function(){
+					updatePanel();
+				});
+
+				document.body.addEventListener('updated.visibilityobserver', function(){
+					updatePanel();
 				});
 
 				document.querySelector('#scroll-to-1').addEventListener('click', function(e){
 					e.preventDefault();
 
 					scrollTo(
-						document.querySelector('#scroll-to-elements .element-1'),
+						element1,
 						1000,
-						document.querySelector('#scroll-to-elements .element-1').offsetHeight / 2,
+						element1.offsetHeight / 2,
 						null,
 						true,
 						false
@@ -146,7 +212,7 @@
 					e.preventDefault();
 
 					scrollTo(
-						document.querySelector('#scroll-to-elements .element-2'),
+						element2,
 						2000,
 						window.innerHeight / 2,
 						'easeInOutQuint',
@@ -159,9 +225,9 @@
 					e.preventDefault();
 
 					scrollTo(
-						document.querySelector('#scroll-to-elements .element-3'),
+						element3,
 						1500,
-						document.querySelector('#scroll-to-elements .element-3').offsetHeight / 2,
+						element3.offsetHeight / 2,
 						'easeOutQuad',
 						false,
 						true
@@ -172,9 +238,9 @@
 					e.preventDefault();
 
 					scrollTo(
-						document.querySelector('#scroll-to-elements .element-4'),
+						element4,
 						500,
-						-(window.innerHeight / 2 - document.querySelector('#scroll-to-elements .element-4').offsetHeight),
+						-(window.innerHeight / 2 - element4.offsetHeight),
 						null,
 						false,
 						true
@@ -185,7 +251,7 @@
 					e.preventDefault();
 
 					scrollTo(
-						document.querySelector('#scroll-to-elements .element-5'),
+						element5,
 						5000,
 						-250,
 						'linear',
@@ -209,15 +275,71 @@
 						true
 					);
 				});
+
+				visibilityObserver
+					.disconnect()
+					.connect(100, 30)
+					.observe(element1, false, true)
+					.observe(element2, true, true)
+					.observe(element4, true, true)
+					.observe(element5)
+					.unobserve(element5)
+					.observe(document.createElement('div'))
+				;
+				document.body.addEventListener('initialized.visibilityobserver', function(){
+					updatePanel();
+				});
+
+				element1.addEventListener('visiblepercent.visibilitystate', function(e){
+					element1.style.opacity = e.detail / 100;
+				});
+
+				element2.addEventListener('visiblepixels.visibilitystate', function(e){
+					var state = visibilityObserver.getState(element2);
+					if( e.detail > 250 ){
+						element2.style.backgroundColor = 'rgb('+(e.detail - 100)+','+(e.detail - 150)+','+(e.detail - 20)+')';
+						element2.textContent = ' '+state.visiblePixels()+'px';
+					} else {
+						element2.style.backgroundColor = 'red';
+						element2.textContent = '';
+					}
+				});
+
+				element2.addEventListener('scrolledpercent.visibilitystate', function(e){
+					element2.style.opacity = e.detail / 100;
+				});
+
+				var element4UpdateHandler = function(){
+					var state = visibilityObserver.getState(element4);
+					if( state.inViewport() ){
+						if(
+							((!state.upperBoundInViewport() && !state.lowerBoundInViewport()))
+							|| (state.lowerBoundInViewport() && (state.visiblePixels() > element4content.scrollHeight))
+						){
+							element4content.style.position = 'fixed';
+							element4content.style.top = '0';
+							element4content.style.bottom = '';
+						} else if( (state.lowerBoundInViewport() && (state.visiblePixels() <= element4content.scrollHeight)) ){
+							element4content.style.position = 'absolute';
+							element4content.style.top = '';
+							element4content.style.bottom = '0';
+						} else  {
+							element4content.style.position = 'static';
+						}
+					} else  {
+						element4content.style.position = 'static';
+					}
+				};
+				element4.addEventListener('changed.visibilitystate', element4UpdateHandler);
 			}
 		</script>
 		<script type="module">
 			if( window.__ANNEX_VERSION__ !== 'es5' ){
 				(async () => {
-					const {loop} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/timers.js`);
-					const {isInViewport, scrollTo} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/viewport.js`);
+					const {polyfillCustomEvent} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/polyfills.js`);
+					const {isInViewport, scrollTo, VisibilityObserver} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/viewport.js`);
 
-					setup(loop, isInViewport, scrollTo);
+					setup(polyfillCustomEvent, isInViewport, scrollTo, VisibilityObserver);
 				})().catch(error => {
 					console.error(error);
 				});
@@ -232,9 +354,10 @@
 
 						if( window.__ANNEX_VERSION__ === 'es5' ){
 							setup(
-								window.annex.timers.loop,
+								window.annex.polyfills.polyfillCustomEvent,
 								window.annex.viewport.isInViewport,
-								window.annex.viewport.scrollTo
+								window.annex.viewport.scrollTo,
+								window.annex.viewport.VisibilityObserver
 							);
 						}
 					}
@@ -258,6 +381,21 @@
 				<div id="in-viewport-info"></div>
 			</section>
 
+			<h3>VisibilityObserver</h3>
+			<section>
+				<p>
+					If the boolean information of isInViewport() is not enough for your purposes and you need precise,
+					scrolling- and thereby visibility-based information, you could use a VisibilityObserver to track
+					element's visibility states on the page. Using this you could implement lazy loading, enter-effects
+					and all kinds of scrolly-telling.
+				</p>
+				<p>
+					If you have a look at the panel, you can see precise information for all elements, that have been
+					added to the observer and if you have a close look at the elements while scrolling, you can also
+					spot some events and effects taking place, which are based on information provided by the observer.
+				</p>
+			</section>
+
 			<h3>scrollTo</h3>
 			<section>
 				<p>
@@ -278,7 +416,7 @@
 					<p class="element-1"></p>
 					<p class="element-2"></p>
 					<p class="element-3"></p>
-					<p class="element-4"></p>
+					<p class="element-4"><span class="element-4-content"></span></p>
 					<p class="element-5"></p>
 				</div>
 			</section>

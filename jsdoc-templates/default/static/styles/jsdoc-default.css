@@ -127,6 +127,16 @@ nav li {
 }
 
 /* MOD */
+nav h3,
+nav ul {
+	display: none;
+}
+
+nav ul ~ h3,
+nav ul ~ ul {
+	display: block;
+}
+
 nav li.namespace-member {
     opacity: 0.5;
 }

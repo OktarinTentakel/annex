@@ -28,6 +28,10 @@ import {schedule, reschedule} from './timers.js';
  * This is especially helpful to react to events, that might come in avalanches in an orderly and performant way,
  * let's say changing layout due to a resizing or scrolling event.
  *
+ * If you are trying to react to events, that occur a lot, in a synchronous fashion, meaning, that you rely on values
+ * and data having been updated after the event, so there is a clear time arrow of things happening in order, you might
+ * need to set hasLeadingExecution and/or hasTrailingExecution to true to better cover those cases.
+ *
  * Be aware that the precision of this method relies in part on the client's cpu, so this is implementation might
  * not be right if you need a razor sharp exact amount of calls in a given time every time, this is a more simple
  * and fuzzy implementation for basic purposes, which should cover 90% of your needs.

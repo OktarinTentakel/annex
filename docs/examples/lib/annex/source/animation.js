@@ -121,7 +121,7 @@ export const EasingFunctions = {
  * @param {?Object} [classChanges=null] - plain object containing class changes to apply, add classes via the "add" key, remove them via the "remove" key (add has precedence over remove); values may be standard CSS class string notation or an array of standard CSS class notations
  * @param {?Object} [styleChanges=null] - plain object containing style changes to apply (via applyStyles)
  * @param {?Boolean} [rejectOnInterruption=false] - if a new transition is applied using this function while a previous transition is still running the Deferred would normally be resolved before continuing, set this to true to let the Deferred reject in that case (the rejection message is "interrupted", access the element using "element)
- * @return {Deferred} resolves on transition completion or repeated call on the same element, with the resolution value being the element, rejects on repeated call on same element if rejectOnInterruption is true (the rejection message is "interrupted", access the element using "element")
+ * @return {Basic.Deferred} resolves on transition completion or repeated call on the same element, with the resolution value being the element, rejects on repeated call on same element if rejectOnInterruption is true (the rejection message is "interrupted", access the element using "element")
  *
  * @memberof Animation:transition
  * @alias transition

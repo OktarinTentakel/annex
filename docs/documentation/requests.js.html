@@ -57,6 +57,7 @@ import {schedule, countermand} from './timers.js';
 /**
  * @typedef FetchResponse
  * @type {Object}
+ *
  * @property {Boolean} ok - returns true if the request received a status in the OK range (200-299)
  * @property {Number} status - contains the status code of the response, e.g. 404 for a not found resource, 200 for a success
  * @property {String} statusText - a message related to the status attribute, e.g. OK for a status 200
@@ -69,17 +70,23 @@ import {schedule, countermand} from './timers.js';
  * @property {Function} headers.entries - returns an Iterable containing the [key, value] pairs for every header in the response, transform to array with Array.from
  * @property {Function} headers.get - returns the value associated with the given key
  * @property {Function} headers.has - returns a boolean asserting the existence of a value for the given key among the response headers
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef FetchRequestExecuteFunction
  * @type {Function}
- * @returns {Deferred&lt;FetchResponse>}
+ *
+ * @returns {Basic.Deferred&lt;Requests.FetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef FetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -87,7 +94,9 @@ import {schedule, countermand} from './timers.js';
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {FetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.FetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -115,7 +124,7 @@ import {schedule, countermand} from './timers.js';
  * @param {?String} [options.credentials] - accepts an "include" string, which will allow both CORS and same origin requests to work with cookies; the method won't send or receive cookies otherwise; the "same-origin" value is not supported
  * @param {?Object|String} [options.body] - the content to be transmitted in request's body; common content types include FormData, JSON, Blob, ArrayBuffer or plain text
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
- * @returns {FetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.FetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createFetchRequest
  * @alias createFetchRequest
@@ -271,23 +280,29 @@ export function createFetchRequest(url, options=null, useNative=false){
 /**
  * @typedef JsonFetchResponse
  * @type {Object|HTMLElement|String}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef JsonFetchRequestExecuteFunction
  * @type {Function}
+ *
  * @param {?String} [resolveTo='object'] - defines what the response should resolve to, may either be "object", "element" or "raw"
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a script tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
  * @param {?String} [insertTarget.position] - defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
+ * @returns {Basic.Deferred&lt;Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  * @see insertNode
- * @returns {Deferred&lt;JsonFetchResponse>}
  */
 
 /**
  * @typedef JsonFetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -295,7 +310,9 @@ export function createFetchRequest(url, options=null, useNative=false){
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {JsonFetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.JsonFetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -314,7 +331,7 @@ export function createFetchRequest(url, options=null, useNative=false){
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "application/json"
- * @returns {JsonFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.JsonFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createJsonRequest
  * @alias createJsonRequest
@@ -421,93 +438,126 @@ export function createJsonRequest(url, options=null, useNative=false, strict=tru
 /**
  * @typedef RestfulJsonClientPathFunction
  * @type {Function}
+ *
  * @param {String} path - the current path to request from baseUrl
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientOptionsFunction
  * @type {Function}
+ *
  * @param {?Object} options - options plain object to merge with baseOptions to define current request options (see JsonFetchRequest for details and defaults); if nullish, will reset to baseOptions
  * @throws error if given options are not a plain object
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientHeaderFunction
  * @type {Function}
+ *
  * @param {String} key - the header to set for all following requests
  * @param {?String} value - the header's value; nullish value will remove the header again
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientParamsFunction
  * @type {Function}
+ *
  * @param {?*} params - query parameters to set on the current URL, this parameter takes all regular definitions for URLSearchParams constructor, as well as flat plain objects, which may also have arrays as values; if nullish, parameters are emptied
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  * @see https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams
- * @returns {RestfulJsonClient}
  */
 
 /**
  * @typedef RestfulJsonClientDataFunction
  * @type {Function}
+ *
  * @param {?Object} data - data payload to send with the next POST, PUT or PATCH request, this parameter will set a permanent payload, for one-off payloads, use the verb method's parameter; if nullish, data will be emptied
  * @throws error if given data is not a plain object
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientGetFunction
  * @type {Function}
- * @returns {Deferred&lt;JsonFetchResponse>}
+ *
+ * @returns {Basic.Deferred&lt;Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientPostFunction
  * @type {Function}
+ *
  * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Deferred&lt;JsonFetchResponse>}
+ * @returns {Basic.Deferred&lt;Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientPutFunction
  * @type {Function}
+ *
  * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Deferred&lt;JsonFetchResponse>}
+ * @returns {Basic.Deferred&lt;Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientPatchFunction
  * @type {Function}
+ *
  * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Deferred&lt;JsonFetchResponse>}
+ * @returns {Basic.Deferred&lt;Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClientDeleteFunction
  * @type {Function}
- * @returns {Deferred&lt;JsonFetchResponse>}
+ *
+ * @returns {Basic.Deferred&lt;Requests.JsonFetchResponse>}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef RestfulJsonClient
  * @type {Object}
+ *
  * @property {Object} config - the current configuration state of the client
  * @property {URL} config.url=baseUrl - the current, complete URL to query (baseUrl + path)
  * @property {Object} config.options - the current request options (see JsonFetchRequest for details and defaults)
  * @property {URLSearchParams} config.params - the current searchParams of config.url, with which to query the URL
  * @property {Object} config.data={} - the current data payload object to send with POST, PUT and PATCH (this will persist between requests, set one-off data via verb methods)
- * @property {RestfulJsonClientPathFunction} path - sets the current request path, which will be concatenated after baseUrl
- * @property {RestfulJsonClientOptionsFunction} options - sets the current request options, which will be merged with baseOptions to constitute current request options
- * @property {RestfulJsonClientHeaderFunction} header - sets a header for all subsequent requests
- * @property {RestfulJsonClientParamsFunction} params - sets query parameters to be added to the request URL
- * @property {RestfulJsonClientDataFunction} data - sets data payload for POST, PUT and PATCH requests
- * @property {RestfulJsonClientGetFunction} get - queries the current URL via GET
- * @property {RestfulJsonClientPostFunction} post - queries the current URL via POST using defined data
- * @property {RestfulJsonClientPutFunction} put - queries the current URL via PUT using defined data
- * @property {RestfulJsonClientPatchFunction} patch - queries the current URL via PATCH using defined data
- * @property {RestfulJsonClientDeleteFunction} delete - queries the current URL via DELETE
+ * @property {Requests.RestfulJsonClientPathFunction} path - sets the current request path, which will be concatenated after baseUrl
+ * @property {Requests.RestfulJsonClientOptionsFunction} options - sets the current request options, which will be merged with baseOptions to constitute current request options
+ * @property {Requests.RestfulJsonClientHeaderFunction} header - sets a header for all subsequent requests
+ * @property {Requests.RestfulJsonClientParamsFunction} params - sets query parameters to be added to the request URL
+ * @property {Requests.RestfulJsonClientDataFunction} data - sets data payload for POST, PUT and PATCH requests
+ * @property {Requests.RestfulJsonClientGetFunction} get - queries the current URL via GET
+ * @property {Requests.RestfulJsonClientPostFunction} post - queries the current URL via POST using defined data
+ * @property {Requests.RestfulJsonClientPutFunction} put - queries the current URL via PUT using defined data
+ * @property {Requests.RestfulJsonClientPatchFunction} patch - queries the current URL via PATCH using defined data
+ * @property {Requests.RestfulJsonClientDeleteFunction} delete - queries the current URL via DELETE
+ *
+ * @memberof Requests
  */
 
 /**
@@ -522,7 +572,7 @@ export function createJsonRequest(url, options=null, useNative=false, strict=tru
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "application/json"
- * @returns {RestfulJsonClient}
+ * @returns {Requests.RestfulJsonClient}
  *
  * @memberof Requests:createRestfulJsonClient
  * @alias createRestfulJsonClient
@@ -708,24 +758,30 @@ export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNativ
 /**
  * @typedef JsFetchResponse
  * @type {HTMLElement|String}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef JsFetchRequestExecuteFunction
  * @type {Function}
+ *
  * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a script with a src instead of doing a real request)
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a script tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
  * @param {?String} [insertTarget.position] - defines where, in relation to the target element, the resolved value will be inserted, see insertNode for more details
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
  * @param {?Boolean} [resolveSourcedOnInsert=false] - normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in immediate resolution after insertion
+ * @returns {Basic.Deferred&lt;Requests.JsFetchResponse>}
+ *
+ * @memberof Requests
  * @see insertNode
- * @returns {Deferred&lt;JsFetchResponse>}
  */
 
 /**
  * @typedef JsFetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -733,7 +789,9 @@ export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNativ
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {JsFetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.JsFetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -760,7 +818,7 @@ export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNativ
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "application/javascript" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "application/javascript"
- * @returns {JsFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.JsFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createJsRequest
  * @alias createJsRequest
@@ -883,11 +941,14 @@ export function createJsRequest(url, options=null, useNative=false, strict=true)
 /**
  * @typedef CssFetchResponse
  * @type {HTMLElement|String}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef CssFetchRequestExecuteFunction
  * @type {Function}
+ *
  * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element", "raw" or "sourced-element" (which is the special case to insert a link with a href instead of doing a real request)
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as a style/link tag, otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
@@ -895,13 +956,16 @@ export function createJsRequest(url, options=null, useNative=false, strict=true)
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node
  * @param {?String} [media='all'] - define the style's media attribute here to target the output device(s), could be "screen" or "print" for example
  * @param {?Boolean} [resolveSourcedOnInsert=false] - normally sourced elements resolve on load to work with the request as far as possible, but if you want to ignore the request after insertion, you may set this parameter to "true", resulting in immediate resolution after insertion
+ * @returns {Basic.Deferred&lt;Requests.CssFetchResponse>}
+ *
+ * @memberof Requests
  * @see insertNode
- * @returns {Deferred&lt;CssFetchResponse>}
  */
 
 /**
  * @typedef CssFetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -909,7 +973,9 @@ export function createJsRequest(url, options=null, useNative=false, strict=true)
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {CssFetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.CssFetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -933,7 +999,7 @@ export function createJsRequest(url, options=null, useNative=false, strict=true)
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "text/css" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "text/css"
- * @returns {CssFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.CssFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createCssRequest
  * @alias createCssRequest
@@ -1061,11 +1127,14 @@ export function createCssRequest(url, options=null, useNative=false, strict=true
 /**
  * @typedef HtmlFetchResponse
  * @type {HTMLElement|Array&lt;HTMLElement>|String}
+ *
+ * @memberof Requests
  */
 
 /**
  * @typedef HtmlFetchRequestExecuteFunction
  * @type {Function}
+ *
  * @param {?String} [resolveTo='element'] - defines what the response should resolve to, may either be "element" or "raw"
  * @param {?HTMLElement|Object} [insertTarget=null] - defines if the retrieved value should be inserted as a dom element and if so where; if this is an element, the value gets appended into that as (a) node(s), otherwise the properties below apply
  * @param {?HTMLElement} [insertTarget.element] - target element in relation to which the resolved value should be inserted into the dom
@@ -1073,13 +1142,16 @@ export function createCssRequest(url, options=null, useNative=false, strict=true
  * @param {?String} [dataId=null] - if you need an identifier, to find inserted elements again after they are inserted into dom, you can define an id here, which will be set as the "data-id" attribute on the created node(s)
  * @param {?String} [selector=null] - if you'd like to preselect something from the result, you may define a regular query selector to find matching elements in the result
  * @param {?Boolean} [selectAll=false] - usually, if a selector is defined, we select a single element, if you need to select a list, set this to true
+ * @returns {Basic.Deferred&lt;Requests.HtmlFetchResponse>}
+ *
+ * @memberof Requests
  * @see insertNode
- * @returns {Deferred&lt;HtmlFetchResponse>}
  */
 
 /**
  * @typedef HtmlFetchRequest
  * @type {Object}
+ *
  * @property {String} url - the request URL
  * @property {Object} options - the options with which the request has been created
  * @property {String} options.method - the request method
@@ -1087,7 +1159,9 @@ export function createCssRequest(url, options=null, useNative=false, strict=true
  * @property {?String} options.credentials - the credentials setting for the request
  * @property {?String} options.body - the provided request body of the request
  * @property {?Number} [options.timeout=10000] - milliseconds until the request fails due to a timeout
- * @property {HtmlFetchRequestExecuteFunction} execute - call this to execute the request
+ * @property {Requests.HtmlFetchRequestExecuteFunction} execute - call this to execute the request
+ *
+ * @memberof Requests
  */
 
 /**
@@ -1110,7 +1184,7 @@ export function createCssRequest(url, options=null, useNative=false, strict=true
  * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
  * @param {?Boolean} [strict=true] - if true, enforces "text/html" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
  * @throws error in strict mode if response content type is not "text/html"
- * @returns {HtmlFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
+ * @returns {Requests.HtmlFetchRequest} use this via the "execute" method, which resolves to a FetchResponse or rejects with error in case of a technical request error (request is not completable)
  *
  * @memberof Requests:createHtmlRequest
  * @alias createHtmlRequest
@@ -1298,7 +1372,7 @@ export function createHtmlRequest(url, options=null, useNative=false, strict=tru
  * @param {?Number} [timeout=5000] - the timeout in ms to wait for completion of the request, before rejecting the promise
  * @param {?String} [tokenValue=null] - if the URL needs to include a token, you can provide this token here, which will replace the placeholder defined in "tokenPlaceholder"
  * @param {?String} [tokenPlaceholder='token'] = the placeholder in the url to replace with the tokenValue, must be surrounded with curly braces in the url ("{token}")
- * @returns {Deferred} resolves on load of URL (with the final URL as resolution value), rejects on timeout (with a "timeout" error)
+ * @returns {Basic.Deferred} resolves on load of URL (with the final URL as resolution value), rejects on timeout (with a "timeout" error)
  *
  * @memberof Requests:visitUrl
  * @alias visitUrl
@@ -1374,13 +1448,13 @@ export function visitUrl(url, timeout=5000, tokenValue=null, tokenPlaceholder='t
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace"><a href="Animation_transition.html">Animation:transition</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isArray.html">Basic:isArray</a></li><li class="namespace"><a href="Basic_isBigInt.html">Basic:isBigInt</a></li><li class="namespace"><a href="Basic_isBoolean.html">Basic:isBoolean</a></li><li class="namespace"><a href="Basic_isCollection.html">Basic:isCollection</a></li><li class="namespace"><a href="Basic_isDate.html">Basic:isDate</a></li><li class="namespace"><a href="Basic_isDocument.html">Basic:isDocument</a></li><li class="namespace"><a href="Basic_isElement.html">Basic:isElement</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isError.html">Basic:isError</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isFunction.html">Basic:isFunction</a></li><li class="namespace"><a href="Basic_isGenerator.html">Basic:isGenerator</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isIterator.html">Basic:isIterator</a></li><li class="namespace"><a href="Basic_isMap.html">Basic:isMap</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isNodeList.html">Basic:isNodeList</a></li><li class="namespace"><a href="Basic_isNumber.html">Basic:isNumber</a></li><li class="namespace"><a href="Basic_isObject.html">Basic:isObject</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isRegExp.html">Basic:isRegExp</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_isSet.html">Basic:isSet</a></li><li class="namespace"><a href="Basic_isString.html">Basic:isString</a></li><li class="namespace"><a href="Basic_isSymbol.html">Basic:isSymbol</a></li><li class="namespace"><a href="Basic_isWeakMap.html">Basic:isWeakMap</a></li><li class="namespace"><a href="Basic_isWeakSet.html">Basic:isWeakSet</a></li><li class="namespace"><a href="Basic_isWindow.html">Basic:isWindow</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace"><a href="Context_getBrowserLanguage.html">Context:getBrowserLanguage</a></li><li class="namespace"><a href="Context_getBrowserLocale.html">Context:getBrowserLocale</a></li><li class="namespace"><a href="Context_getBrowserScrollbarWidth.html">Context:getBrowserScrollbarWidth</a></li><li class="namespace"><a href="Context_getLocale.html">Context:getLocale</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_defineNode.html">Elements:defineNode</a></li><li class="namespace"><a href="Elements_find.html">Elements:find</a></li><li class="namespace"><a href="Elements_findOne.html">Elements:findOne</a></li><li class="namespace"><a href="Elements_findTextNodes.html">Elements:findTextNodes</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_measureHiddenDimensions.html">Elements:measureHiddenDimensions</a></li><li class="namespace"><a href="Elements_prime.html">Elements:prime</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_emitPostMessage.html">Events:emitPostMessage</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_offPostMessage.html">Events:offPostMessage</a></li><li class="namespace"><a href="Events_offSwipe.html">Events:offSwipe</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_onDomReady.html">Events:onDomReady</a></li><li class="namespace"><a href="Events_onPostMessage.html">Events:onPostMessage</a></li><li class="namespace"><a href="Events_onSwipe.html">Events:onSwipe</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Forms.html">Forms</a></li><li class="namespace"><a href="Forms_formDataToObject.html">Forms:formDataToObject</a></li><li class="namespace"><a href="Forms_objectToFormData.html">Forms:objectToFormData</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Interaction.html">Interaction</a></li><li class="namespace"><a href="Interaction_createSelection.html">Interaction:createSelection</a></li><li class="namespace"><a href="Interaction_disableSelection.html">Interaction:disableSelection</a></li><li class="namespace"><a href="Interaction_enableSelection.html">Interaction:enableSelection</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateMailToLink.html">Interaction:obfuscatePrivateMailToLink</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateTelLink.html">Interaction:obfuscatePrivateTelLink</a></li><li class="namespace"><a href="Interaction_removeSelections.html">Interaction:removeSelections</a></li><li class="namespace"><a href="Interaction_setTappedState.html">Interaction:setTappedState</a></li><li class="namespace"><a href="Interaction_setupAutoTappedStates.html">Interaction:setupAutoTappedStates</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace"><a href="Objects_merge.html">Objects:merge</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillArrayAt.html">Polyfills:polyfillArrayAt</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace"><a href="Requests_createRestfulJsonClient.html">Requests:createRestfulJsonClient</a></li><li class="namespace"><a href="Requests_visitUrl.html">Requests:visitUrl</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_addCacheBuster.html">Urls:addCacheBuster</a></li><li class="namespace"><a href="Urls_addNextParameter.html">Urls:addNextParameter</a></li><li class="namespace"><a href="Urls_evaluateBaseDomain.html">Urls:evaluateBaseDomain</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li class=""><a href="SimplePollingObserver.html">SimplePollingObserver</a></li><li class=""><a href="VisibilityObserver.html">VisibilityObserver</a></li><li class=""><a href="VisibilityState.html">VisibilityState</a></li></ul><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace"><a href="Animation_transition.html">Animation:transition</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isArray.html">Basic:isArray</a></li><li class="namespace"><a href="Basic_isBigInt.html">Basic:isBigInt</a></li><li class="namespace"><a href="Basic_isBoolean.html">Basic:isBoolean</a></li><li class="namespace"><a href="Basic_isCollection.html">Basic:isCollection</a></li><li class="namespace"><a href="Basic_isDate.html">Basic:isDate</a></li><li class="namespace"><a href="Basic_isDocument.html">Basic:isDocument</a></li><li class="namespace"><a href="Basic_isElement.html">Basic:isElement</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isError.html">Basic:isError</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isFunction.html">Basic:isFunction</a></li><li class="namespace"><a href="Basic_isGenerator.html">Basic:isGenerator</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isIterator.html">Basic:isIterator</a></li><li class="namespace"><a href="Basic_isMap.html">Basic:isMap</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isNodeList.html">Basic:isNodeList</a></li><li class="namespace"><a href="Basic_isNumber.html">Basic:isNumber</a></li><li class="namespace"><a href="Basic_isObject.html">Basic:isObject</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isRegExp.html">Basic:isRegExp</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_isSet.html">Basic:isSet</a></li><li class="namespace"><a href="Basic_isString.html">Basic:isString</a></li><li class="namespace"><a href="Basic_isSymbol.html">Basic:isSymbol</a></li><li class="namespace"><a href="Basic_isWeakMap.html">Basic:isWeakMap</a></li><li class="namespace"><a href="Basic_isWeakSet.html">Basic:isWeakSet</a></li><li class="namespace"><a href="Basic_isWindow.html">Basic:isWindow</a></li><li class="namespace"><a href="Basic_max.html">Basic:max</a></li><li class="namespace"><a href="Basic_min.html">Basic:min</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_round.html">Basic:round</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace"><a href="Context_getBrowserLanguage.html">Context:getBrowserLanguage</a></li><li class="namespace"><a href="Context_getBrowserLocale.html">Context:getBrowserLocale</a></li><li class="namespace"><a href="Context_getBrowserScrollbarWidth.html">Context:getBrowserScrollbarWidth</a></li><li class="namespace"><a href="Context_getLocale.html">Context:getLocale</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_defineNode.html">Elements:defineNode</a></li><li class="namespace"><a href="Elements_find.html">Elements:find</a></li><li class="namespace"><a href="Elements_findOne.html">Elements:findOne</a></li><li class="namespace"><a href="Elements_findTextNodes.html">Elements:findTextNodes</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_measureHiddenDimensions.html">Elements:measureHiddenDimensions</a></li><li class="namespace"><a href="Elements_prime.html">Elements:prime</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_emitPostMessage.html">Events:emitPostMessage</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_offPostMessage.html">Events:offPostMessage</a></li><li class="namespace"><a href="Events_offSwipe.html">Events:offSwipe</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_onDomReady.html">Events:onDomReady</a></li><li class="namespace"><a href="Events_onPostMessage.html">Events:onPostMessage</a></li><li class="namespace"><a href="Events_onSwipe.html">Events:onSwipe</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Forms.html">Forms</a></li><li class="namespace"><a href="Forms_formDataToObject.html">Forms:formDataToObject</a></li><li class="namespace"><a href="Forms_objectToFormData.html">Forms:objectToFormData</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Interaction.html">Interaction</a></li><li class="namespace"><a href="Interaction_createSelection.html">Interaction:createSelection</a></li><li class="namespace"><a href="Interaction_disableSelection.html">Interaction:disableSelection</a></li><li class="namespace"><a href="Interaction_enableSelection.html">Interaction:enableSelection</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateMailToLink.html">Interaction:obfuscatePrivateMailToLink</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateTelLink.html">Interaction:obfuscatePrivateTelLink</a></li><li class="namespace"><a href="Interaction_removeSelections.html">Interaction:removeSelections</a></li><li class="namespace"><a href="Interaction_setTappedState.html">Interaction:setTappedState</a></li><li class="namespace"><a href="Interaction_setupAutoTappedStates.html">Interaction:setupAutoTappedStates</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace"><a href="Objects_merge.html">Objects:merge</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillArrayAt.html">Polyfills:polyfillArrayAt</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_createRestfulJsonClient.html">Requests:createRestfulJsonClient</a></li><li class="namespace"><a href="Requests_visitUrl.html">Requests:visitUrl</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_addCacheBuster.html">Urls:addCacheBuster</a></li><li class="namespace"><a href="Urls_addNextParameter.html">Urls:addNextParameter</a></li><li class="namespace"><a href="Urls_evaluateBaseDomain.html">Urls:evaluateBaseDomain</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_VisibilityObserver.html">Viewport:VisibilityObserver</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Mon Sep 04 2023 12:09:07 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Tue Sep 12 2023 10:29:25 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

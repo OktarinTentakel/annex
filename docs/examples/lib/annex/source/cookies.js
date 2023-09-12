@@ -73,12 +73,15 @@ function decodeCookieName(name){
 /**
  * @typedef CookieOptions
  * @type {Object}
+ *
  * @property {?Date|Number} [expires=null] - expiry time of the cookie, either a Date object or time in days
  * @property {?Number} [max-age=null] - max age of the cookie in seconds
  * @property {?String} [path='/'] - the cookie path, setting this to "auto" or an empty string defines auto-mode, which targets the current site path, which usually is the default, but we use '/' to set a cookie for while site, this being the common use-case
  * @property {?Boolean} [secure=false] - define if the cookie should only be transmitted via https (see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)
  * @property {?Boolean} [httponly=false] - define this, if cookie should only be sent to servers and not be accessible to javascript (see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)
  * @property {?String} [samesite=null] - define if this cookie should be included in cross-site requests, may be either "strict" (will only ever transmit same-site), "lax" (usual browser default, transmits same-site and top-level GET) or "none" (no restrictions, will always be sent)
+ *
+ * @memberof Cookies
  */
 
 /*
@@ -246,7 +249,7 @@ export function getCookies(names){
  *
  * @param {String} name - the name of the cookie to set
  * @param {?String} [value] - the value of the cookie to set
- * @param {?CookieOptions} [options] - the cookie options to apply
+ * @param {?Cookies.CookieOptions} [options] - the cookie options to apply
  * @returns {String|null} returns the set cookie value if available after setting or null if cookie not available (which would also mean, that setting the cookie did not work, or, in case of removal, that the removal worked)
  *
  * @memberof Cookies:setCookie
@@ -299,7 +302,7 @@ export function setCookie(name, value, options){
  * Removes a cookie (if possible) by name.
  *
  * @param {String} name - the name of the cookie to remove
- * @param {?CookieOptions} [options] - the cookie options to apply (needed for different paths/domains for example)
+ * @param {?Cookies.CookieOptions} [options] - the cookie options to apply (needed for different paths/domains for example)
  * @returns {Boolean} true if cookie is not available anymore after removal, if this is false, cookie removal failed or another cookie of the same name is still available
  *
  * @memberof Cookies:removeCookie

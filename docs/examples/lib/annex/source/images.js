@@ -42,7 +42,7 @@ const PRELOADED_IMAGES = {
  * preloading on the provision property before the Deferred resolves.
  *
  * @param {(String|String[]|Object.<String, String>)} images - a URL, an array of URLs or a plain object containing named URLs. In case the string is an already used name, the image object from the named preloaded images cache is returned.
- * @returns {Deferred<Image|Image[]>|Image} either a Deferred, resolving after images are preloaded, or a requested cached image
+ * @returns {Basic.Deferred<Image|Image[]>|Image} either a Deferred, resolving after images are preloaded, or a requested cached image
  *
  * @memberof Images:preload
  * @alias preload
@@ -128,7 +128,7 @@ export function preload(images){
  *
  * @param {Image|Array<Image>} images - an image or an array of images
  * @param {?Boolean} [dimensionsNeeded=false] - tells the check if we expect the loaded image to have readable dimensions
- * @returns {Deferred<Image|Image[]>} a Deferred, resolving after all given images have loaded
+ * @returns {Basic.Deferred<Image|Image[]>} a Deferred, resolving after all given images have loaded
  *
  * @memberof Images:loaded
  * @alias loaded

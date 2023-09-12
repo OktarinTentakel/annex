@@ -454,7 +454,7 @@ export function obfuscatePrivateTelLink(
  * @param {?String} [tappedClass='tapped'] - the CSS class to set on the element to signify the "tapped" state
  * @param {?Number} [tappedDuration=200] - the duration in milliseconds, the "tapped" state should last
  * @throws error if element is not an HTMLElement
- * @return {Deferred} resolves with the element, when the tapped state ends
+ * @return {Basic.Deferred} resolves with the element, when the tapped state ends
  *
  * @memberof Interaction:setTappedState
  * @alias setTappedState

@@ -182,7 +182,7 @@ export function getBrowserScrollbarWidth(){
  * we are able to detect the change to a pointer device.
  *
  * @param {?Boolean} [returnObservable=false] - if set to true, the call returns Context module's CURRENT_INTERACTION_TYPE observable
- * @returns {String|Observable} interaction type string "pointer" or "touch", or the CURRENT_INTERACTION_TYPE observable
+ * @returns {String|Basic.Observable} interaction type string "pointer" or "touch", or the CURRENT_INTERACTION_TYPE observable
  *
  * @memberof Context:detectInteractionType
  * @alias detectInteractionType

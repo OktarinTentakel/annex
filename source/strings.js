@@ -12,7 +12,7 @@ const MODULE_NAME = 'Strings';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {isFunction, isArray, orDefault, isNaN, hasValue, isPlainObject} from './basic.js';
+import {isFunction, isArray, orDefault, isNaN, hasValue, isPlainObject, round} from './basic.js';
 
 
 
@@ -283,9 +283,7 @@ export function format(template, ...replacements){
 					throw new Error(`${MODULE_NAME}:format | float precision arg malformed`);
 				}
 
-				const power = Math.pow(10, precision);
-
-				res = Math.round(parseFloat(value) * power) / power;
+				res = round(value, precision)
 			} else {
 				res = parseFloat(value);
 			}

@@ -45,6 +45,8 @@ const {
 	isCollection,
 	isNodeList,
 	isWindow,
+	isUrl,
+	isUrlSearchParams,
 	isEventTarget,
 	isSelector,
 	isPotentialId,
@@ -246,7 +248,9 @@ test('getType', assert => {
 		far = [1, 2, 3],
 		boofar = /[a-z0-9]/g,
 		lala = new Set([1, 2, 3, 4, 5]),
-		wm = new Map()
+		wm = new Map(),
+		u = new URL('', window.location.origin),
+		usp = new URLSearchParams()
 	;
 
 	wm.set(foobar, 'foobar');
@@ -265,6 +269,8 @@ test('getType', assert => {
 	assert.is(getType(lala), 'set');
 	assert.is(getType(wm), 'map');
 	assert.is(getType(wm.values()), 'iterator');
+	assert.is(getType(u), 'url');
+	assert.is(getType(usp), 'urlsearchparams');
 	assert.is(getType(document.querySelectorAll('.test')), 'nodelist');
 	assert.is(getType(document), 'htmldocument');
 	assert.is(getType(document.createElement('div')), 'htmlelement');
@@ -283,7 +289,9 @@ test('isA', assert => {
 		far = [1, 2, 3],
 		boofar = /[a-z0-9]/g,
 		lala = new Set([1, 2, 3, 4, 5]),
-		wm = new Map()
+		wm = new Map(),
+        u = new URL('', window.location.origin),
+        usp = new URLSearchParams()
 	;
 
 	wm.set(foobar, 'foobar');
@@ -302,6 +310,8 @@ test('isA', assert => {
 	assert.true(isA(lala, 'set'));
 	assert.true(isA(wm, 'map'));
 	assert.true(isA(wm.values(), 'iterator'));
+    assert.true(isA(u, 'url'));
+    assert.true(isA(usp, 'urlsearchparams'));
 	assert.true(isA(document.querySelectorAll('.test'), 'nodelist'));
 	assert.true(isA(document, 'htmldocument'));
 	assert.true(isA(document.createElement('div'), 'htmlelement'));
@@ -780,6 +790,38 @@ test('isWindow', assert => {
 	assert.true(isWindow(bar));
 	assert.false(isWindow(foobar));
 	assert.false(isWindow(boofar));
+});
+
+
+
+test('isUrl', assert => {
+    const
+        foo = new URL('', window.location.origin),
+        bar = new URL('https://google.com'),
+        foobar = 'https://google.com',
+        boofar = window.location.origin
+    ;
+
+    assert.true(isUrl(foo));
+    assert.true(isUrl(bar));
+    assert.false(isUrl(foobar));
+    assert.false(isUrl(boofar));
+});
+
+
+
+test('isUrlSearchParams', assert => {
+    const
+        foo = new URLSearchParams(),
+        bar = new URL('', window.location.origin).searchParams,
+        foobar = '?foo=bar&bar=foo',
+        boofar = {foo : 'bar', bar : 'foo'}
+    ;
+
+    assert.true(isUrlSearchParams(foo));
+    assert.true(isUrlSearchParams(bar));
+    assert.false(isUrlSearchParams(foobar));
+    assert.false(isUrlSearchParams(boofar));
 });
 
 

@@ -12,7 +12,7 @@ const MODULE_NAME = 'Objects';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {getType, isFunction, isObject, orDefault} from './basic.js';
+import {getType, isFunction, isPlainObject, orDefault} from './basic.js';
 
 
 
@@ -130,6 +130,22 @@ export function clone(target, deep=true){
 
 			return mapCopy;
 
+		case 'url':
+			const urlCopy = new URL(target);
+
+            seenReferences.push(target);
+            seenCopies.push(urlCopy);
+
+			return urlCopy;
+
+		case 'urlsearchparams':
+            const urlSearchParamsCopy = new URLSearchParams(target.toString());
+
+            seenReferences.push(target);
+            seenCopies.push(urlSearchParamsCopy);
+
+            return urlSearchParamsCopy;
+
 		case 'object':
 			const objectCopy = Object.create(Object.getPrototypeOf ? Object.getPrototypeOf(target) : target.__proto__);
 
@@ -219,7 +235,7 @@ export function merge(base, ...extensions){
 			if( extension.hasOwnProperty(prop) ){
 				if(
 					base.hasOwnProperty(prop)
-					&& (isObject(base[prop]) && isObject(extension[prop]))
+					&& (isPlainObject(base[prop]) && isPlainObject(extension[prop]))
 					&& (Object.keys(extension[prop]).length > 0)
 				){
 					base[prop] = merge(base[prop], extension[prop]);

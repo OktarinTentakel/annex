@@ -34,7 +34,7 @@ class Foobar {
 test('clone', assert => {
 	const
 		foo = [1, true, new Set([new Date('2021-03-09'), new RegExp('^foobar$')]), {a : 'b', c : {d : 5.5}}, [1, 2, 3], 4],
-		bar = {foo : 'bar', bar : [new Foobar(1, 2, 3), [false]]},
+		bar = {foo : 'bar', bar : [new Foobar(1, 2, 3), [false]], uwu : {u : new URL('https://google.com'), usp : new URLSearchParams('foo=bar&bar=foo')}},
 		foobar = new Map(),
 		main = document.createElement('main'),
 		barfoo = document.createElement('div'),
@@ -71,6 +71,9 @@ test('clone', assert => {
 	assert.is(clonedBar.bar[0].b.a, bar.bar[0].b.a);
 	assert.not(clonedBar.bar[0].b.c, bar.bar[0].b.c);
 	assert.is(clonedBar.foo, bar.foo);
+	assert.is(clonedBar.uwu.u.origin, 'https://google.com');
+	assert.is(clonedBar.uwu.u.username, '');
+	assert.is(clonedBar.uwu.usp.get('bar'), 'foo');
 	const clonedFoobar = clone(foobar);
 	assert.deepEqual(clonedFoobar, foobar);
 	assert.is(clonedFoobar.size, foobar.size);
@@ -108,6 +111,8 @@ test('clone', assert => {
 	assert.is(shallowClonedBar.bar[0].b.a, bar.bar[0].b.a);
 	assert.is(shallowClonedBar.bar[0].b.c, bar.bar[0].b.c);
 	assert.is(shallowClonedBar.foo, bar.foo);
+	assert.is(shallowClonedBar.uwu.u, bar.uwu.u);
+	assert.is(shallowClonedBar.uwu.usp, bar.uwu.usp);
 	const shallowClonedFoobar = clone(foobar, false);
 	assert.deepEqual(shallowClonedFoobar, foobar);
 	assert.is(shallowClonedFoobar.size, foobar.size);

@@ -404,153 +404,39 @@ export function createJsonRequest(url, options=null, useNative=false, strict=tru
 
 
 /**
- * @namespace Requests:createRestfulJsonClient
+ * @namespace Requests:RestfulJsonClient
  */
 
 /**
- * @typedef RestfulJsonClientPathFunction
- * @type {Function}
- *
- * @param {String} path - the current path to request from baseUrl
- * @returns {Requests.RestfulJsonClient}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClientOptionsFunction
- * @type {Function}
- *
- * @param {?Object} options - options plain object to merge with baseOptions to define current request options (see JsonFetchRequest for details and defaults); if nullish, will reset to baseOptions
- * @throws error if given options are not a plain object
- * @returns {Requests.RestfulJsonClient}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClientHeaderFunction
- * @type {Function}
- *
- * @param {String} key - the header to set for all following requests
- * @param {?String} value - the header's value; nullish value will remove the header again
- * @returns {Requests.RestfulJsonClient}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClientParamsFunction
- * @type {Function}
- *
- * @param {?*} params - query parameters to set on the current URL, this parameter takes all regular definitions for URLSearchParams constructor, as well as flat plain objects, which may also have arrays as values; if nullish, parameters are emptied
- * @returns {Requests.RestfulJsonClient}
- *
- * @memberof Requests
- * @see https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams
- */
-
-/**
- * @typedef RestfulJsonClientDataFunction
- * @type {Function}
- *
- * @param {?Object} data - data payload to send with the next POST, PUT or PATCH request, this parameter will set a permanent payload, for one-off payloads, use the verb method's parameter; if nullish, data will be emptied
- * @throws error if given data is not a plain object
- * @returns {Requests.RestfulJsonClient}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClientGetFunction
- * @type {Function}
- *
- * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClientPostFunction
- * @type {Function}
- *
- * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClientPutFunction
- * @type {Function}
- *
- * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClientPatchFunction
- * @type {Function}
- *
- * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
- * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClientDeleteFunction
- * @type {Function}
- *
- * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
- *
- * @memberof Requests
- */
-
-/**
- * @typedef RestfulJsonClient
+ * @typedef RestfulJsonClientConfig
  * @type {Object}
  *
- * @property {Object} config - the current configuration state of the client
- * @property {URL} config.url=baseUrl - the current, complete URL to query (baseUrl + path)
- * @property {Object} config.options - the current request options (see JsonFetchRequest for details and defaults)
- * @property {URLSearchParams} config.params - the current searchParams of config.url, with which to query the URL
- * @property {Object} config.data={} - the current data payload object to send with POST, PUT and PATCH (this will persist between requests, set one-off data via verb methods)
- * @property {Requests.RestfulJsonClientPathFunction} path - sets the current request path, which will be concatenated after baseUrl
- * @property {Requests.RestfulJsonClientOptionsFunction} options - sets the current request options, which will be merged with baseOptions to constitute current request options
- * @property {Requests.RestfulJsonClientHeaderFunction} header - sets a header for all subsequent requests
- * @property {Requests.RestfulJsonClientParamsFunction} params - sets query parameters to be added to the request URL
- * @property {Requests.RestfulJsonClientDataFunction} data - sets data payload for POST, PUT and PATCH requests
- * @property {Requests.RestfulJsonClientGetFunction} get - queries the current URL via GET
- * @property {Requests.RestfulJsonClientPostFunction} post - queries the current URL via POST using defined data
- * @property {Requests.RestfulJsonClientPutFunction} put - queries the current URL via PUT using defined data
- * @property {Requests.RestfulJsonClientPatchFunction} patch - queries the current URL via PATCH using defined data
- * @property {Requests.RestfulJsonClientDeleteFunction} delete - queries the current URL via DELETE
+ * @property {URL} url - the current request URL, build from baseUrl and path
+ * @property {Object} options - the current options with which requests are been created, build from baseOptions and options, see createFetchRequest for details
+ * @property {URLSearchParams} params - the current URL params
+ * @property {Object} data - the current payload to be sent with requests like POST and PUT
  *
  * @memberof Requests
+ * @see createFetchRequest
  */
 
 /**
- * This method creates a dedicated client for restful operations against an API via JSON payloads and responses.
+ * This class provides a dedicated client for restful operations against an API via JSON payloads and responses.
  *
- * Internally this implementation uses createJsonRequest to actually request stuff, while the return value of this
- * method is a wrapper, providing central configuration, such as a base URL and options like credentials, as well as
- * standard methods for HTTP verbs and setup things like setting headers.
+ * Internally this implementation uses createJsonRequest to actually request stuff, while this class
+ * is a wrapper, providing central configuration, such as a base URL and options like credentials,
+ * as well as standard methods for HTTP verbs and setup things like setting headers.
  *
- * @param {?String} [baseUrl=window.location.origin] - the base URL for all queries, based on which final request URLs will be built, adding the paths, may be absolute or relative to current origin
- * @param {?Object} [baseOptions=null] - the base request options, can be expanded later via options() (see: createFetchRequests for details)
- * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
- * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
- * @throws error in strict mode if response content type is not "application/json"
- * @returns {Requests.RestfulJsonClient}
+ * See class documentation below for details.
  *
- * @memberof Requests:createRestfulJsonClient
- * @alias createRestfulJsonClient
+ * @memberof Requests:RestfulJsonClient
+ * @name RestfulJsonClient
+ *
+ * @see RestfulJsonClient
  * @see createJsonRequest
+ * @see Requests.FetchRequest
  * @example
- * const client = createRestfulJsonClient('https://jsonplaceholder.typicode.com', {credentials : 'include'});
+ * const client = new RestfulJsonClient('https://jsonplaceholder.typicode.com', {credentials : 'include'});
  * const postJson = await client
  *   .path('/posts')
  * 	 .params({
@@ -565,23 +451,380 @@ export function createJsonRequest(url, options=null, useNative=false, strict=tru
  * 	 .post()
  * ;
  */
-export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNative=false, strict=true){
-	baseUrl = orDefault(baseUrl, window.location.origin, 'str');
-	if( !baseUrl.startsWith('//') && baseUrl.startsWith('/') ){
-		baseUrl = `${window.location.origin}${baseUrl}`;
+class RestfulJsonClient {
+
+	#__className__ = 'RestfulJsonClient';
+	#invalidRequestMethodMessage = 'invalid request method';
+	#dataValidationMessage = 'data must be plain object';
+	#baseUrl = null;
+	#baseOptions = null;
+	#useNative = false;
+	#strict = true;
+	#config = null;
+
+	/**
+	 * Creates a new RestfulJsonClient
+	 *
+	 * @param {?String} [baseUrl=window.location.origin] - the base URL for all queries, based on which final request URLs will be built, adding the paths, may be absolute or relative to current origin
+	 * @param {?Object} [baseOptions=null] - the base request options, can be expanded later via options() (see createFetchRequests for details)
+	 * @param {?Boolean|String} [useNative=false] - determines if the native Fetch implementation of the browser should be used, true forces usage, "auto" uses it only if available
+	 * @param {?Boolean} [strict=true] - if true, enforces "application/json" as accept header as well as response mime type, if false, accept header is not set and different mime type only results in warning
+	 *
+	 * @see createJsonRequest
+     * @see Requests.FetchRequest
+	 */
+	constructor(baseUrl=null, baseOptions=null, useNative=false, strict=true){
+		this.#baseUrl = orDefault(baseUrl, window.location.origin, 'str');
+		this.#baseOptions = isPlainObject(baseOptions) ? baseOptions : {};
+		this.#useNative = orDefault(useNative, false, 'bool');
+		this.#strict = orDefault(strict, true, 'bool');
+
+		if( !this.#baseUrl.startsWith('//') && this.#baseUrl.startsWith('/') ){
+			this.#baseUrl = `${window.location.origin}${this.#baseUrl}`;
+		}
+
+		this.#config = {
+			url : new URL('', this.#baseUrl),
+			options : {},
+			params : new URLSearchParams(),
+			data : {},
+		};
 	}
 
-	const
-		__methodName__ = 'createRestfulJsonClient',
-		implementation = createJsonRequest,
-		contentTypeHeader = 'Content-Type',
-		contentType = 'application/json',
-		dataValidationMessage = 'data must be plain object',
-		optionsValidationMessage = 'options must be plain object'
-	;
 
 
-	function flatEntries(obj){
+	/**
+	 * Sets the current request path, which will be concatenated to baseUrl.
+	 *
+	 * @param {String} path - the current path to request from baseUrl
+	 * @returns {RestfulJsonClient}
+	 *
+	 * @example
+	 * (new RestfulJsonClient('/food')).path('/pizzas').get();
+	 */
+	path(path){
+		path = `${path}`.replaceAll(/^\/+/g, '');
+
+		this.#config.url = new URL(path, this.#baseUrl);
+
+		return this;
+	}
+
+
+	/**
+	 * Sets the current request options, which will be merged with baseOptions.
+	 *
+	 * @param {?Object} options - plain options object to merge with baseOptions to define current request options (see createFetchRequest for details and defaults); if nullish, baseOptions will be used
+	 * @throws error if given options are not a plain object
+	 * @returns {RestfulJsonClient}
+	 *
+	 * @see createJsonRequest
+	 * @see Requests.FetchRequest
+	 * @example
+	 * (new RestfulJsonClient('/run-forrest-run')).options({timeout : 1});
+	 */
+	options(options){
+		const __methodName__ = 'options';
+
+		if( hasValue(options) ){
+			assert(isPlainObject(options), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | options must be plain object`);
+			this.#config.options = options;
+		} else {
+			this.#config.options = {};
+		}
+
+		return this;
+	}
+
+
+	/**
+	 * Sets a header for all subsequent requests.
+	 * Use a nullish value to unset a header.
+	 *
+	 * @param {String} key - the header to set for all following requests
+	 * @param {?String} value - the header's value; a nullish value will remove the header again
+	 * @returns {RestfulJsonClient}
+	 *
+	 * @example
+	 * (new RestfulJsonClient('/run-forrest-run')).header('X-Test', 42).header('X-Test', null);
+	 */
+	header(key, value){
+		key = `${key}`;
+
+		if( !isPlainObject(this.#config.options.headers) ){
+			this.#config.options.headers = {};
+		}
+
+		if( hasValue(value) ){
+			this.#config.options.headers[key] = `${value}`;
+		} else {
+			delete this.#config.options.headers[key];
+		}
+
+		return this;
+	}
+
+
+
+	/**
+	 * Sets query parameters to be added to the request URL.
+	 *
+	 * @param {?*} params - query parameters to set on the current URL, this parameter takes all regular definitions for URLSearchParams constructor, as well as flat plain objects, which may also have arrays as values; if nullish, parameters are emptied
+	 * @returns {RestfulJsonClient}
+	 *
+	 * @see https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams
+	 * @example
+	 * (new RestfulJsonClient('/food/search')).params({q : 'delicious pizza'}).get();
+	 */
+	params(params){
+		if( hasValue(params) ){
+			this.#config.params = new URLSearchParams(isPlainObject(params) ? this.#toFlatEntries(params) : params);
+		} else {
+			this.#config.params = new URLSearchParams();
+		}
+
+		this.#config.url.search = this.#config.params.toString();
+
+		return this;
+	}
+
+
+
+    /**
+     * Sets a query parameter to be added to the request URL.
+     * Use a nullish value to unset a parameter.
+     *
+     * @param {String} key - the parameter name to set
+     * @param {?String} value - the parameter's value; a nullish value will remove the param again
+     * @param {?Boolean} [append=false] - if true, the parameter is appended instead of overwritten
+     * @returns {RestfulJsonClient}
+     *
+     * @example
+     * (new RestfulJsonClient('/food/search')).param('q', 'delicious pizza').get();
+     */
+	param(key, value, append=false){
+        key = `${key}`;
+		append = orDefault(append, false, 'bool');
+
+        if( hasValue(value) ){
+			if( append ){
+                this.#config.params.append(key, `${value}`);
+			} else {
+                this.#config.params.set(key, `${value}`);
+			}
+        } else {
+            delete this.#config.params.delete(key);
+        }
+
+        this.#config.url.search = this.#config.params.toString();
+
+        return this;
+	}
+
+
+
+	/**
+	 * Sets data payload for POST, PUT and PATCH requests.
+	 *
+	 * @param {?Object} data - data payload to send with the next POST, PUT or PATCH request, this parameter will set a permanent payload; for one-off payloads, use the verb method's data parameter; if nullish, data will be emptied
+	 * @throws error if given data is not a plain object
+	 * @returns {RestfulJsonClient}
+	 *
+	 * @example
+	 * (new RestfulJsonClient('/food/order')).data({pizza : 'diavolo'}).post();
+	 */
+	data(data){
+		const __methodName__ = 'data';
+
+		if( hasValue(data) ){
+			assert(isPlainObject(data), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${this.#dataValidationMessage}`);
+			this.#config.data = data;
+		} else {
+			this.#config.data = {};
+		}
+
+		return this;
+	}
+
+
+
+	/**
+	 * Queries the current URL with GET.
+	 *
+	 * @throws error in strict mode if response content type is not "application/json"
+	 * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+	 *
+	 * @example
+	 * (new RestfulJsonClient('/food/')).path('pizza').get();
+	 */
+	get(){
+		return this.#executeRequest('GET');
+	}
+
+
+
+	/**
+	 * Queries the current URL with POST using defined payload/data.
+	 *
+	 * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
+	 * @throws error in strict mode if response content type is not "application/json"
+	 * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+	 *
+	 * @example
+	 * (new RestfulJsonClient('/food/order')).post({pizza : 'diavolo'});
+	 */
+	post(data=null){
+		return this.#executeRequestWithPayload('POST', data);
+	}
+
+
+
+	/**
+	 * Queries the current URL with PUT using defined payload/data.
+	 *
+	 * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
+	 * @throws error in strict mode if response content type is not "application/json"
+	 * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+	 *
+	 * @example
+	 * (new RestfulJsonClient('/food/deliver')).put({pizza : 'diavolo'});
+	 */
+	put(data=null){
+		return this.#executeRequestWithPayload('PUT', data);
+	}
+
+
+
+	/**
+	 * Queries the current URL with PATCH using defined payload/data.
+	 *
+	 * @param {?Object} [data=null] - one-off data to use in this request, will replace any central data defined before and will only be valid for this request
+	 * @throws error in strict mode if response content type is not "application/json"
+	 * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+	 *
+	 * @example
+	 * (new RestfulJsonClient('/software')).data({version : 2}).patch();
+	 */
+	patch(data=null){
+		return this.#executeRequestWithPayload('PATCH', data);
+	}
+
+
+
+	/**
+	 * Queries the current URL with DELETE.
+	 *
+	 * @throws error in strict mode if response content type is not "application/json"
+	 * @returns {Basic.Deferred<Requests.JsonFetchResponse>}
+	 *
+	 * @example
+	 * (new RestfulJsonClient('/')).data({command : 'rm -rf'}).delete();
+	 */
+	delete(){
+		return this.#executeRequest('DELETE');
+	}
+
+
+
+	/**
+	 * Returns the current config.
+	 *
+	 * baseUrl is retrievable from the url property (via origin).
+	 * Options are the merged result of baseOptions and currently set option values.
+	 *
+	 * Changes to this object, will not reflect in the client config directly, use the client's methods to
+	 * alter config values.
+	 *
+	 * @returns {RestfulJsonClientConfig} a clone of the current config
+	 *
+	 * @example
+	 * client.getConfig().url.toString()
+	 * => https://pizza.com
+	 */
+	getConfig(){
+		return merge(this.#config, {options : merge(this.#baseOptions, this.#config.options)});
+	}
+
+
+
+	/**
+	 * Creates and executes an HTTP request without a payload, such as GET and DELETE.
+	 * Uses current config from class to construct request.
+	 *
+	 * @param {String} method - either GET or DELETE
+	 * @throws error in strict mode if response content type is not "application/json"
+	 * @returns Basic.Deferred<Requests.JsonFetchResponse>
+	 *
+	 * @example
+	 * this.#executeRequest('GET');
+	 */
+	#executeRequest(method){
+		const __methodName__ = '#executeRequest';
+
+		method = method.toUpperCase();
+		assert(
+			['GET', 'DELETE'].includes(method),
+			`${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${this.#invalidRequestMethodMessage} "${method}"`
+		);
+
+		const options = merge(this.#baseOptions, this.#config.options, {method});
+		return createJsonRequest(this.#config.url, options, this.#useNative, this.#strict).execute();
+	}
+
+
+
+	/**
+	 * Creates and executes an HTTP request with a payload, such as POST and PUT.
+	 * Uses current config from class to construct request.
+	 *
+	 * @param {String} method - either POST, PUT or PATCH
+	 * @param {?Object} [data=null] - the data to send to the request URL as payload
+	 * @throws error in strict mode if response content type is not "application/json"
+	 * @returns Basic.Deferred<Requests.JsonFetchResponse>
+	 *
+	 * @example
+	 * this.#executeRequestWithPayload('POST', {foo : 'bar'});
+	 */
+	#executeRequestWithPayload(method, data=null){
+		const __methodName__ = '#executeRequestWithPayload';
+
+		method = method.toUpperCase();
+		assert(
+			['POST', 'PUT', 'PATCH'].includes(method),
+			`${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${this.#invalidRequestMethodMessage} "${method}"`
+		);
+		if( hasValue(data) ){
+			assert(isPlainObject(data), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${this.#dataValidationMessage}`);
+		}
+
+		const contentTypeHeader = 'Content-Type';
+		this.header(contentTypeHeader, 'application/json; charset=UTF-8');
+		const
+			body = JSON.stringify(data ?? this.#config.data),
+			options = merge(this.#baseOptions, this.#config.options, {method, body})
+		;
+		return createJsonRequest(this.#config.url, options, this.#useNative, this.#strict)
+			.execute()
+			.finally(() => {
+				this.header(contentTypeHeader, null);
+			})
+		;
+	}
+
+
+
+	/**
+	 * Transforms a dictionary to an entries array, but handles list values, such as arrays and sets, specially, by
+	 * iterating them and creating a new entry for each list value, thereby producing a notation, which is compatible
+	 * to URLSearchParams, based on an object with a readable notation.
+	 *
+	 * @param {Object} obj - the object to transform into a flattened array of entries
+	 * @returns {Array<Array<String, String>>} flat array of entries
+	 *
+	 * @private
+	 * @see https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+	 */
+	#toFlatEntries(obj){
 		const
 			entries = Object.entries(obj),
 			flattenedEntries = []
@@ -606,120 +849,9 @@ export function createRestfulJsonClient(baseUrl=null, baseOptions=null, useNativ
 		return flattenedEntries;
 	}
 
-
-	function request(client, method){
-		method = method.toUpperCase();
-		assert(['GET', 'DELETE'].includes(method), `${MODULE_NAME}:${__methodName__} | invalid request method "${method}"`);
-
-		client.config.options.method = method;
-		return implementation(client.config.url, client.config.options, useNative, strict)
-			.execute()
-			.finally(() => {
-				delete client.config.options.method;
-			})
-		;
-	}
-
-
-	function requestWithPayload(client, method, data=null){
-		method = method.toUpperCase();
-		assert(['POST', 'PUT', 'PATCH'].includes(method), `${MODULE_NAME}:${__methodName__} | invalid request method "${method}"`);
-
-		if( hasValue(data) ){
-			assert(isPlainObject(data), `${MODULE_NAME}:${__methodName__} | ${dataValidationMessage}`);
-		}
-
-		client.config.options.method = method;
-		client.config.options.body = JSON.stringify(data ?? client.config.data);
-		client.header(contentTypeHeader, `${contentType}; charset=UTF-8`);
-
-		return implementation(client.config.url, client.config.options, useNative, strict)
-			.execute()
-			.finally(() => {
-				delete client.config.options.method;
-				delete client.config.options.body;
-				client.header(contentTypeHeader, null);
-			})
-		;
-	}
-
-
-	return {
-		config : {
-			url : new URL('/', baseUrl),
-			options : isPlainObject(baseOptions) ? baseOptions : {},
-			params : new URLSearchParams(),
-			data : {},
-		},
-
-		path(path){
-			this.config.url = new URL(path, baseUrl);
-			return this;
-		},
-
-		options(options){
-			if( hasValue(options) ){
-				assert(isPlainObject(options), `${MODULE_NAME}:${__methodName__} | ${optionsValidationMessage}`);
-				this.config.options = merge(baseOptions, options);
-			} else {
-				this.config.options = baseOptions;
-			}
-			return this;
-		},
-
-		header(key, value){
-			if( !hasValue(this.config.options.headers) ){
-				this.config.options.headers = {};
-			}
-			if( hasValue(value) ){
-				this.config.options.headers[`${key}`] = `${value}`;
-			} else {
-				delete this.config.options.headers[`${key}`];
-			}
-			return this;
-		},
-
-		params(params){
-			if( hasValue(params) ){
-				this.config.params = new URLSearchParams(isPlainObject(params) ? flatEntries(params) : params);
-			} else {
-				this.config.params = new URLSearchParams();
-			}
-			this.config.url.search = this.config.params.toString();
-			return this;
-		},
-
-		data(data){
-			if( hasValue(data) ){
-				assert(isPlainObject(data), `${MODULE_NAME}:${__methodName__} | `);
-				this.config.data = data;
-			} else {
-				this.config.data = {};
-			}
-			return this;
-		},
-
-		get(){
-			return request(this, 'GET');
-		},
-
-		post(data=null){
-			return requestWithPayload(this, 'POST', data);
-		},
-
-		put(data=null){
-			return requestWithPayload(this, 'PUT', data);
-		},
-
-		patch(data=null){
-			return requestWithPayload(this, 'PATCH', data);
-		},
-
-		delete(){
-			return request(this, 'DELETE');
-		},
-	};
 }
+
+export {RestfulJsonClient};
 
 
 

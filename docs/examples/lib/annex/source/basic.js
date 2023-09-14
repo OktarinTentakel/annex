@@ -390,6 +390,8 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  * - "htmlcollection"
  * - "nodelist"
  * - "window"
+ * - "url"
+ * - "urlsearchparams"
  *
  * @param {*} [value] - variable to check the type of
  * @returns {String} the value type in lower case
@@ -412,7 +414,7 @@ export function getType(value) {
 	if( /^html.*element$/.test(deepType) ) return 'htmlelement';
 	if( /^.*iterator$/.test(deepType) ) return 'iterator';
 
-	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|htmlcollection|nodelist|window)$/)
+	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|htmlcollection|nodelist|window|url|urlsearchparams)$/)
 		? deepType
 		: ((typeof value === 'object') || (typeof value === 'function')) ? 'object' : typeof value
 	;
@@ -464,7 +466,9 @@ export function isA(value, type){
 			'htmlelement',
 			'htmlcollection',
 			'nodelist',
-			'window'
+			'window',
+			'url',
+			'urlsearchparams'
 		].includes(`${type}`.toLowerCase())
 	){
 		return getType(value) === `${type}`.toLowerCase();
@@ -1116,6 +1120,52 @@ export function isNodeList(value){
  */
 export function isWindow(value){
 	return isA(value, 'window');
+}
+
+
+
+/**
+ * @namespace Basic:isUrl
+ */
+
+/**
+ * Returns if a value is an URL object.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a URL object
+ *
+ * @memberof Basic:isUrl
+ * @alias isUrl
+ * @example
+ * if( isUrl(val) ){
+ *   return val.path;
+ * }
+ */
+export function isUrl(value){
+    return isA(value, 'url');
+}
+
+
+
+/**
+ * @namespace Basic:isUrlSearchParams
+ */
+
+/**
+ * Returns if a value is an URLSearchParams object.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is a URLSearchParams object
+ *
+ * @memberof Basic:isUrlSearchParams
+ * @alias isUrlSearchParams
+ * @example
+ * if( isUrlSearchParams(val) ){
+ *   val.set('query', 'foobar');
+ * }
+ */
+export function isUrlSearchParams(value){
+    return isA(value, 'urlsearchparams');
 }
 
 

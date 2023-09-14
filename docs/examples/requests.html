@@ -398,7 +398,7 @@
 
 
 
-			function setupRestfulJsonClient(createRestfulJsonClient){
+			function setupRestfulJsonClient(RestfulJsonClient){
 				var	sourceDisplay = document.querySelector('#create-restful-json-client-result .source');
 				hljs.highlightBlock(sourceDisplay);
 
@@ -407,7 +407,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createRestfulJsonClient('https://jsonplaceholder.typicode.com')
+                    (new RestfulJsonClient('https://jsonplaceholder.typicode.com'))
 						.path('/posts/1')
 						.get()
 						.then(function(json){
@@ -422,13 +422,15 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createRestfulJsonClient('https://jsonplaceholder.typicode.com')
+                    (new RestfulJsonClient('https://jsonplaceholder.typicode.com'))
 						.path('/posts')
 						.params({
 							foo : [1, 2, {}],
 							bar : new Date('1990-01-31T12:00:00'),
 							q : 'lorem'
 						})
+                        .param('foo', 4, true)
+                        .param('q', 'ipsum')
 						.data({
 							title : 'foo',
 							body : 'bar',
@@ -447,7 +449,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createRestfulJsonClient('https://jsonplaceholder.typicode.com')
+                    (new RestfulJsonClient('https://jsonplaceholder.typicode.com'))
 						.path('/posts/1')
 						.params({
 							foo : [1, 2, {}],
@@ -474,7 +476,7 @@
 
 					sourceDisplay.innerHTML = '';
 
-					createRestfulJsonClient('https://jsonplaceholder.typicode.com')
+                    (new RestfulJsonClient('https://jsonplaceholder.typicode.com'))
 						.path('/posts/1')
 						.delete()
 						.then(function(json){
@@ -852,7 +854,7 @@
 				polyfillFetch,
 				createFetchRequest,
 				createJsonRequest,
-				createRestfulJsonClient,
+				RestfulJsonClient,
 				createJsRequest,
 				createCssRequest,
 				createHtmlRequest,
@@ -860,7 +862,7 @@
 			){
 				setupFetch(createFetchRequest, polyfillFetch);
 				setupJson(createJsonRequest);
-				setupRestfulJsonClient(createRestfulJsonClient);
+				setupRestfulJsonClient(RestfulJsonClient);
 				setupJs(createJsRequest);
 				setupCss(createCssRequest);
 				setupHtml(createHtmlRequest);
@@ -877,7 +879,7 @@
 					const {
 						createFetchRequest,
 						createJsonRequest,
-						createRestfulJsonClient,
+						RestfulJsonClient,
 						createJsRequest,
 						createCssRequest,
 						createHtmlRequest,
@@ -888,7 +890,7 @@
 						polyfillFetch,
 						createFetchRequest,
 						createJsonRequest,
-						createRestfulJsonClient,
+						RestfulJsonClient,
 						createJsRequest,
 						createCssRequest,
 						createHtmlRequest,
@@ -911,7 +913,7 @@
 								window.annex.polyfills.polyfillFetch,
 								window.annex.requests.createFetchRequest,
 								window.annex.requests.createJsonRequest,
-								window.annex.requests.createRestfulJsonClient,
+								window.annex.requests.RestfulJsonClient,
 								window.annex.requests.createJsRequest,
 								window.annex.requests.createCssRequest,
 								window.annex.requests.createHtmlRequest,
@@ -978,7 +980,7 @@
 				</div>
 			</section>
 
-			<h3>createRestfulJsonClient</h3>
+			<h3>RestfulJsonClient</h3>
 			<section>
 				<p>
 					Trigger a request below, to see the response information.

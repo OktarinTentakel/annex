@@ -1187,7 +1187,7 @@ export function scrollTo(
  *   .unobserve(element5)
  * ;
  * element1.addEventListener(
- *   'visiblePixels.visibilityobserver',
+ *   'visiblepixels.visibilityobserver',
  *   visiblePixels => { console.log(`${visiblePixels} vertical pixels of element1 are visible`); }
  * );
  */
@@ -1377,7 +1377,7 @@ class VisibilityObserver {
 	 *
 	 * This includes dimensions as well as scroll state.
 	 *
-	 * @returns {ViewportInfo|null} the current viewport info or null if observer is not running
+	 * @returns {Viewport.ViewportInfo|null} the current viewport info or null if observer is not running
 	 *
 	 * @example
 	 * visibilityObserver.getViewportInfo().scrollTop;
@@ -1486,7 +1486,7 @@ class VisibilityObserver {
 	 *
 	 * @param {?Boolean} [onlyScroll=false] - if true, only scrolling values are updated, which prevents some reflow-relevant calls; this is primarily used to connect "scroll" event to property updates, that might actually change
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
-	 * @returns {ViewportInfo} the updated viewport information
+	 * @returns {Viewport.ViewportInfo} the updated viewport information
 	 *
 	 * @private
 	 * @example

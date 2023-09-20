@@ -58,7 +58,7 @@ export function waitForWebfonts(fonts, fallbackFontName='sans-serif', timeout=50
 
 	const
 		deferred = new Deferred(),
-		start = (new Date()).getTime(),
+		start = Date.now(),
 		fDimsAreIdentical = (dims1, dims2) => ((dims1.width === dims2.width) && (dims1.height === dims2.height))
 	;
 	let	loadedFonts = 0;
@@ -89,7 +89,7 @@ export function waitForWebfonts(fonts, fallbackFontName='sans-serif', timeout=50
 
 		let fontLoadedCheckTimer = null;
 		const fCheckFont = () => {
-			if( ((new Date()).getTime() - start) >= timeout ){
+			if( (Date.now() - start) >= timeout ){
 				countermand(fontLoadedCheckTimer);
 				if( hasValue(node) ){
 					document.body.removeChild(node);

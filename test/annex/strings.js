@@ -12,6 +12,7 @@ if( global.__AVA_SOURCE__ === 'es5-monolith' ){
 const {
 	replace,
 	truncate,
+	pad,
 	concat,
 	format,
 	slugify,
@@ -51,6 +52,16 @@ test('truncate', assert => {
 	assert.throws(() => { truncate(bar, 1, '---'); });
 	assert.is(truncate(foobar, 6, '.'), 'üäöÜÄ.');
 	assert.is(truncate(foobar, 7), foobar);
+});
+
+
+
+test('pad', assert => {
+	assert.is(pad(1, 0, 2), '01');
+	assert.is(pad(1, '0', 4, 'right'), '1000');
+	assert.is(pad('foo', '---', 10), '-------foo');
+	assert.is(pad('', '##', -5), '');
+	assert.is(pad('', '##', 5, 'right'), '#####');
 });
 
 

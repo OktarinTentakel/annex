@@ -165,6 +165,44 @@ export function truncate(subject, maxLength=30, suffix='...'){
 }
 
 
+/**
+ * @namespace Strings:pad
+ */
+
+/**
+ * Adds characters to strings, which are not yet of a defined expected length.
+ *
+ * A usual use-case for this would be, to add zeroes to a number, to fit a format like ISO dates.
+ *
+ * @param {*} value - the value to pad
+ * @param {String} paddingCharacter - the character to use for padding, only first character is used
+ * @param {Number} expectedLength - the number of characters, the result has to have at least
+ * @param {String} [from='left'] - the number of characters, the result has to have at least
+ * @returns {String} the padded value, will always be cast to a string
+ *
+ * @memberof Strings:pad
+ * @alias pad
+ * @example
+ * pad(1, '0', 4, 'right')
+ * => '1000'
+ */
+export function pad(value, paddingCharacter, expectedLength, from='left'){
+	value = `${value}`;
+	paddingCharacter = `${paddingCharacter}`[0];
+	expectedLength = orDefault(expectedLength, 2, 'int');
+	from = ['left', 'right'].includes(`${from}`) ? `${from}` : 'left';
+
+	const difference = expectedLength - value.length;
+	if( difference > 0 ){
+		for( let i = 0; i < difference; i++ ){
+			value = (from === 'right') ? `${value}${paddingCharacter}` : `${paddingCharacter}${value}`;
+		}
+	}
+
+	return value;
+}
+
+
 
 /**
  * @namespace Strings:concat

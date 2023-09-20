@@ -386,11 +386,11 @@ test.serial('RestfulJsonClient', assert => {
 			config = client.getConfig();
 			assert.is(
 				config.params.toString(),
-				'foo=1&foo=2&foo=%5Bobject+Object%5D&bar=1990-01-31T12%3A00%3A00.000Z&q=ipsum&foo=4'
+				'foo=1&foo=2&foo=%5Bobject+Object%5D&bar=1990-01-31T02%3A30%3A00.000Z&q=ipsum&foo=4'
 			);
 			assert.is(
 				config.url.toString(),
-				'https://jsonplaceholder.typicode.com/posts?foo=1&foo=2&foo=%5Bobject+Object%5D&bar=1990-01-31T12%3A00%3A00.000Z&q=ipsum&foo=4'
+				'https://jsonplaceholder.typicode.com/posts?foo=1&foo=2&foo=%5Bobject+Object%5D&bar=1990-01-31T02%3A30%3A00.000Z&q=ipsum&foo=4'
 			);
 
             client

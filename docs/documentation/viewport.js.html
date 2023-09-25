@@ -44,6 +44,8 @@ import {
 	hasValue,
 	orDefault,
 	isWindow,
+	isPlainObject,
+	isArray,
 	isFunction,
 	isElement,
 	isBoolean,
@@ -65,8 +67,11 @@ import {warn} from './logging.js';
 
 //###[ DATA ]###########################################################################################################
 
-export const VISIBILITY_BASE_FPS = 15;
-const DISTANCE_BASE_FPS = 4;
+const
+	VISIBILITY_BASE_FPS = 15,
+	DISTANCE_BASE_FPS = 4,
+	BREAKPOINT_BASE_FPS = 4
+;
 
 
 
@@ -1077,14 +1082,16 @@ export function scrollTo(
 	scrollEvenIfFullyInViewport=false,
 	cancelOnUserScroll=false
 ){
+	const __methodName__ = 'scrollTo';
+
 	durationMs = orDefault(durationMs, 1000, 'int');
 	offset = orDefault(offset, 0, 'int');
 	easing = orDefault(easing, 'easeInOutCubic', 'str');
 	scrollEvenIfFullyInViewport = orDefault(scrollEvenIfFullyInViewport, false, 'bool');
 	cancelOnUserScroll = orDefault(cancelOnUserScroll, false, 'bool');
 
-	assert(isElement(element) || isWindow(element), `${MODULE_NAME}:scrollTo | element unusable`);
-	assert(durationMs > 0, `${MODULE_NAME}:scrollTo | durationMs must be > 0`);
+	assert(isElement(element) || isWindow(element), `${MODULE_NAME}:${__methodName__} | element unusable`);
+	assert(durationMs > 0, `${MODULE_NAME}:${__methodName__} | durationMs must be > 0`);
 
 	if( !isFunction(EasingFunctions[easing]) ){
 		easing = EasingFunctions.easeInOutCubic;
@@ -1164,6 +1171,8 @@ export function scrollTo(
  * @type Object
  *
  * @property {Number} scrollTop - scroll distance of the window/document in pixels to the upper bound of the viewport
+ * @property {String} scrollDirection - either "down" or "up", depending on the last scroll movement
+ * @property {String} fuzzyScrollDirection - either "down" or "up", depending on the last scroll movement; the user needs to scroll at least a small distance in the opposite direction for this to change, minimal changes will not change this
  * @property {Number} width - inner width of the window/viewport
  * @property {Number} height - inner height of the window/viewport
  * @property {Object} bounds - the viewport bound rectangle
@@ -1232,13 +1241,13 @@ class VisibilityObserver {
 	#throttledHandleScroll;
 	#throttledHandleResize;
 	#throttledHandleMutation;
-	#throttledHandlePoll;
 	#throttledTriggerEvent;
 	#thresholds;
 	#observer;
 	#refreshPoll;
 	#documentMutationObserver;
 	#viewportInfo;
+	#viewportInfoReferenceScrollTop;
 	#viewportInfoHash;
 
 	/**
@@ -1269,6 +1278,7 @@ class VisibilityObserver {
 	 * @param {?Boolean} [forcePollingObserver=false] - set this to true, if you want to skip usage of IntersectionObserver and, instead, just use polling all the time (this is a brute-force method putting stress on the CPU, only do this for a good reason)
 	 * @returns {VisibilityObserver} the observer instance
 	 *
+	 * @see disconnect
 	 * @example
 	 * visibilityObserver.connect(100, 50);
 	 */
@@ -1281,10 +1291,9 @@ class VisibilityObserver {
 		this.#targetFps = minMax(1, orDefault(targetFps, VISIBILITY_BASE_FPS, 'int'), 120);
 
 		const fpsMs = round(1000 / targetFps);
-		this.#throttledHandleScroll = throttle(fpsMs, this.#handleScroll).bind(this);
-		this.#throttledHandleResize = throttle(fpsMs, this.#handleResize).bind(this);
-		this.#throttledHandleMutation = throttle(fpsMs, this.#handleMutation).bind(this);
-		this.#throttledHandlePoll = throttle(fpsMs, this.#handlePoll).bind(this);
+		this.#throttledHandleScroll = throttle(fpsMs, this.#handleScroll, true, true).bind(this);
+		this.#throttledHandleResize = throttle(fpsMs, this.#handleResize, true, true).bind(this);
+		this.#throttledHandleMutation = throttle(fpsMs, this.#handleMutation, true, true).bind(this);
 		this.#throttledTriggerEvent = throttle(fpsMs, this.#triggerEvent, true, true).bind(this);
 
 		let ObserverImplementation;
@@ -1319,6 +1328,7 @@ class VisibilityObserver {
 	 *
 	 * @returns {VisibilityObserver} the observer instance
 	 *
+	 * @see connect
 	 * @example
 	 * visibilityObserver.disconnect();
 	 */
@@ -1348,6 +1358,7 @@ class VisibilityObserver {
 	 * @throws error if element is not an HTML element
 	 * @returns {VisibilityObserver} the observer instance
 	 *
+	 * @see unobserve
 	 * @example
 	 * visibilityObserver.observe(teaserElement);
 	 * visibilityObserver.observe(anotherTeaserElement, true, true);
@@ -1386,6 +1397,7 @@ class VisibilityObserver {
 	 * @param {HTMLElement} element - the element to unobserve
 	 * @returns {VisibilityObserver} the observer instance
 	 *
+	 * @see observe
 	 * @example
 	 * visibilityObserver.unobserve(teaserElement);
 	 */
@@ -1529,6 +1541,8 @@ class VisibilityObserver {
 		if( !hasValue(this.#viewportInfo) ){
 			this.#viewportInfo = {
 				scrollTop : window.scrollY ?? window.pageYOffset,
+				scrollDirection : 'down',
+				fuzzyScrollDirection : 'down',
 				width : viewportWidth,
 				height : viewportHeight,
 				bounds : {
@@ -1540,19 +1554,37 @@ class VisibilityObserver {
 					height : viewportHeight,
 				}
 			};
+			this.#viewportInfoReferenceScrollTop = this.#viewportInfo.scrollTop;
 			this.#viewportInfoHash = new Observable(
 				`${this.#viewportInfo.scrollTop}${this.#viewportInfo.width}${this.#viewportInfo.height}`
 			);
-		} else if( !onlyScroll ){
-			this.#viewportInfo.scrollTop = window.scrollY ?? window.pageYOffset;
-			this.#viewportInfo.width = viewportWidth;
-			this.#viewportInfo.height = viewportHeight;
-			this.#viewportInfo.bounds.right = viewportWidth;
-			this.#viewportInfo.bounds.bottom = viewportHeight;
-			this.#viewportInfo.bounds.width = viewportWidth;
-			this.#viewportInfo.bounds.height = viewportHeight;
 		} else {
-			this.#viewportInfo.scrollTop = window.scrollY ?? window.pageYOffset;
+			const newScrollTop = window.scrollY ?? window.pageYOffset;
+
+			if( newScrollTop > this.#viewportInfo.scrollTop ){
+				this.#viewportInfo.scrollDirection = 'down';
+			} else if( newScrollTop &lt; this.#viewportInfo.scrollTop ){
+				this.#viewportInfo.scrollDirection = 'up';
+			}
+
+			if( newScrollTop > (this.#viewportInfoReferenceScrollTop + 10) ){
+				this.#viewportInfo.fuzzyScrollDirection = 'down';
+				this.#viewportInfoReferenceScrollTop = newScrollTop;
+			} else if( newScrollTop &lt; (this.#viewportInfoReferenceScrollTop - 10) ){
+				this.#viewportInfo.fuzzyScrollDirection = 'up';
+				this.#viewportInfoReferenceScrollTop = newScrollTop;
+			}
+
+			this.#viewportInfo.scrollTop = newScrollTop;
+
+			if( !onlyScroll ){
+				this.#viewportInfo.width = viewportWidth;
+				this.#viewportInfo.height = viewportHeight;
+				this.#viewportInfo.bounds.right = viewportWidth;
+				this.#viewportInfo.bounds.bottom = viewportHeight;
+				this.#viewportInfo.bounds.width = viewportWidth;
+				this.#viewportInfo.bounds.height = viewportHeight;
+			}
 		}
 
 		const viewportInfoHash = `${this.#viewportInfo.scrollTop}${this.#viewportInfo.width}${this.#viewportInfo.height}`;
@@ -1570,6 +1602,7 @@ class VisibilityObserver {
 	 * The event handler for scroll events, updating the viewport information.
 	 *
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
+	 * @returns {VisibilityObserver} the observer instance
 	 *
 	 * @private
 	 * @example
@@ -1577,6 +1610,7 @@ class VisibilityObserver {
 	 */
 	#handleScroll(){
 		this.#refreshViewportInfo(true);
+		return this;
 	}
 
 
@@ -1585,6 +1619,7 @@ class VisibilityObserver {
 	 * The event handler for resize events, updating the viewport information.
 	 *
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
+	 * @returns {VisibilityObserver} the observer instance
 	 *
 	 * @private
 	 * @example
@@ -1592,6 +1627,7 @@ class VisibilityObserver {
 	 */
 	#handleResize(){
 		this.#refreshViewportInfo();
+		return this;
 	}
 
 
@@ -1600,6 +1636,7 @@ class VisibilityObserver {
 	 * The event handler for document mutation events, updating the viewport information.
 	 *
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
+	 * @returns {VisibilityObserver} the observer instance
 	 *
 	 * @private
 	 * @example
@@ -1607,6 +1644,7 @@ class VisibilityObserver {
 	 */
 	#handleMutation(){
 		this.#refreshViewportInfo();
+		return this;
 	}
 
 
@@ -1615,6 +1653,7 @@ class VisibilityObserver {
 	 * The event handler for polling events, updating the viewport information.
 	 *
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
+	 * @returns {VisibilityObserver} the observer instance
 	 *
 	 * @private
 	 * @example
@@ -1622,6 +1661,7 @@ class VisibilityObserver {
 	 */
 	#handlePoll(){
 		this.#refreshViewportInfo();
+		return this;
 	}
 
 
@@ -1708,6 +1748,8 @@ class VisibilityObserver {
 		}
 
 		this.#throttledTriggerEvent('updated');
+
+		return this;
 	}
 
 
@@ -1786,6 +1828,464 @@ class VisibilityObserver {
 }
 
 export {VisibilityObserver};
+
+
+
+/**
+ * @namespace Viewport:BreakpointObserver
+ */
+
+/**
+ * A class observing a defined list of breakpoints, notifying subscribers, if the breakpoint changes for whatever
+ * reason (viewport resizes or device orientation changes mostly).
+ *
+ * See class documentation below for details.
+ *
+ * @memberof Viewport:BreakpointObserver
+ * @name BreakpointObserver
+ *
+ * @see BreakpointObserver
+ * @example
+ * (new BreakpointObserver((to, from) => {
+ *     alert(`breakpoint changed from "${from}" to "${to}"`);
+ * })).observe({
+ *     small : 0,
+ *     medium : 768,
+ *     large : 1024,
+ *     xlarge : 1440
+ * });
+ * (new BreakpointObserver())
+ *     .observe(
+ *         {small : 0},
+ *         ['medium', 768],
+ *         [
+ *             {large : 1024},
+ *             ['xlarge', 1440]
+ *         ]
+ *     )
+ *     .unobserve('xlarge')
+ *     .getCurrentBreakpoint()
+ * ;
+ * => 'medium'
+ */
+class BreakpointObserver {
+
+	#__className__ = 'BreakpointObserver';
+	#handlerMustBeFunctionMessage = 'handler must be function';
+	#handler;
+	#securedHandler;
+	#breakpoints;
+	#currentBreakpoint;
+	#currentBreakpointReadOnly;
+	#throttledHandleResize;
+
+	/**
+	 * Creates a new BreakpointObserver and, optionally, sets a handler for breakpoint changes.
+	 *
+	 * @param {?Function} [handler=null] - the function to call on breakpoint change, receives two parameters: newBreakpointName, oldBreakpointName (if there is no old breakpoint, the parameter will be undefined)
+	 * @param {?Number} [targetFps=BREAKPOINT_BASE_FPS] - the max amount of updates per second we are aiming for in the observer; since breakpoints are not changing very regularly, low FPS should be alright here for most cases
+	 * @throws error if handler is set, but is not a function
+	 */
+	constructor(handler=null, targetFps=BREAKPOINT_BASE_FPS){
+		const __methodName__ = 'constructor';
+
+		if( hasValue(handler) ){
+			assert(isFunction(handler), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${this.#handlerMustBeFunctionMessage}`);
+			this.#handler = handler;
+		}
+
+		this.#securedHandler = (to, from) => {
+			if( Object.keys(this.#breakpoints).length > 0 ){
+				this.#handler?.(to, from);
+			}
+		};
+
+		targetFps = minMax(1, orDefault(targetFps, VISIBILITY_BASE_FPS, 'int'), 120);
+		const fpsMs = round(1000 / targetFps);
+		this.#throttledHandleResize = throttle(fpsMs, this.#handleResize, true, true).bind(this);
+
+		this.connect(handler);
+	}
+
+
+
+	/**
+	 * (Re)starts breakpoint observation (resetting all data and states before) and, optionally, sets a new handler.
+	 *
+	 * @param {?Function} [handler=null] - the function to call on breakpoint change, receives two parameters: newBreakpointName, oldBreakpointName (if there is no old breakpoint, the parameter will be undefined)
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @see disconnect
+	 * @example
+	 * observer
+	 *     .connect((to, from) => {
+	 *         alert(`breakpoint changed from "${from}" to "${to}"`);
+	 *     })
+	 *     .observe(
+	 *         ['small', 0],
+	 *         ['medium', 768],
+	 *         ['large', 1024]
+	 *     )
+	 * ;
+	 */
+	connect(handler=null){
+		const __methodName__ = 'connect';
+
+		this.disconnect();
+
+		if( hasValue(handler) ){
+			assert(isFunction(handler), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${this.#handlerMustBeFunctionMessage}`);
+			this.#handler = handler;
+		}
+
+		this.#currentBreakpoint.subscribe(this.#securedHandler);
+		this.#currentBreakpoint.subscribe(to => { this.#currentBreakpointReadOnly.setValue(to); });
+
+		this.#registerEvents();
+
+		return this;
+	}
+
+
+
+	/**
+	 * Stops the observation of breakpoints and resets all data and states.
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @see connect
+	 * @example
+	 * observer.disconnect().getCurrentBreakpoint();
+	 * => null
+	 */
+	disconnect(){
+		this.#breakpoints = {};
+		this.#currentBreakpoint = new Observable();
+		this.#currentBreakpointReadOnly = new Observable();
+
+		this.#unregisterEvents();
+
+		return this;
+	}
+
+
+
+	/**
+	 * Returns either the width to a breakpoint name or the name to a breakpoint width.
+	 *
+	 * @param {String|Number} breakpoint - if a number, tries to return a corresponding breakpoint name, else we'll try to find a width to the given name
+	 * @returns {String|Number|null} - either a breakpoint name, a breakpoint width or null, if nothing was found
+	 *
+	 * @example
+	 * observer.getBreakpoint('large')
+	 * => 1024
+	 * observer.getBreakpoint(1024)
+	 * => 'large'
+	 */
+	getBreakpoint(breakpoint){
+		if( isNumber(breakpoint) ){
+			let name = null;
+
+			for( const breakpointName in this.#breakpoints ){
+				if( breakpoint === this.#breakpoints[breakpointName] ){
+					name = breakpointName;
+					break;
+				}
+			}
+
+			return name;
+		} else {
+			return this.#breakpoints[`${breakpoint}`] ?? null;
+		}
+	}
+
+
+
+	/**
+	 * Returns the currently configured breakpoints of the observer as a dictionary.
+	 *
+	 * The return value is a copy, changing values or names in this value will not change the observer's data.
+	 *
+	 * @returns {Object} the observer's configured breakpoints
+	 */
+	getBreakpoints(){
+		return {...this.#breakpoints};
+	}
+
+
+
+	/**
+	 * Returns the current breakpoint's name.
+	 *
+	 * If you need the width, use this value in .getBreakpoint().
+	 *
+	 * @returns {String} the current breakpoint's name
+	 *
+	 * @see getBreakpoint
+	 */
+	getCurrentBreakpoint(){
+		return this.#currentBreakpoint.getValue();
+	}
+
+
+
+	/**
+	 * Returns an observable, that notifies subscribers of breakpoint changes.
+	 *
+	 * Use this, if you need more than one handler or want a little bit more flexibility.
+	 *
+	 * This observable is read-only, setting its values will not influence breakpoint evaluation in the observer.
+	 *
+	 * @returns {Basic.Observable} the breakpoint observable
+	 *
+	 * @example
+	 * observer.getCurrentBreakpointObservable().subscribe((to, from) => {
+	 *     alert(`breakpoint changed from "${from}" to "${to}"`);
+	 * });
+	 */
+	getCurrentBreakpointObservable(){
+		return this.#currentBreakpointReadOnly;
+	}
+
+
+
+	/**
+	 * Adds breakpoint(s) to observe.
+	 *
+	 * @param {Object|Array|Array&lt;Array>|Array&lt;Object>} breakpoints - the breakpoint definition, either as a simple dictionary ({breakPointName : breakpointWidth, ...}) with 1 to n props, or as an entry array (['breakpointname', breakpointWidth]); both definitions can also be provided as a list of parameters or an array
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @see unobserve
+	 * @example
+	 * observer.observe({
+	 *     small : 0,
+	 *     medium : 768,
+	 *     large : 1024,
+	 *     xlarge : 1440
+	 * });
+	 * observer.observe(
+	 *     {small : 0},
+	 *     ['medium', 768],
+	 *     [
+	 *         {large : 1024},
+	 *         ['xlarge', 1440]
+	 *     ]
+	 * );
+	 */
+	observe(...breakpoints){
+		const additionalBreakpoints = this.#parseBreakpointList(breakpoints);
+		this.#breakpoints = {
+			...this.#breakpoints,
+			...additionalBreakpoints
+		};
+
+		this.#refreshCurrentBreakpoint();
+
+		return this;
+	}
+
+
+
+	/**
+	 * Removes breakpoint(s) from observation.
+	 *
+	 * @param {Array&lt;String>|Object|Array|Array&lt;Array>|Array&lt;Object>} breakpoints - this can either be a definition, as used in observe() or just a list of breakpoint names to remove
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @see observe
+	 * @example
+	 * observer.unobserve('small', 'xlarge');
+	 * observer.unobserve(['small', 'xlarge']);
+	 * observer.unobserve({
+	 *     small : 0,
+	 *     xlarge : 1440
+	 * });
+	 */
+	unobserve(...breakpoints){
+		const obsoleteBreakpoints = this.#parseBreakpointList(breakpoints, true);
+		Object.keys(obsoleteBreakpoints).forEach(obsoleteBreakpointName => {
+			delete this.#breakpoints[obsoleteBreakpointName];
+		});
+
+		this.#refreshCurrentBreakpoint();
+
+		return this;
+	}
+
+
+
+	/**
+	 * Takes an iterable list of breakpoint definitions and recursively parses this into a plain object of
+	 * key-value pairs, where keys are breakpoint names and values are breakpoint width integers.
+	 *
+	 * @param {Array&lt;Array>|Array&lt;Object>} list - the breakpoint definition lists, containing either a simple dictionaries ({breakPointName : breakpointWidth, ...}) with 1 to n props, or entry arrays (['breakpointname', breakpointWidth])
+	 * @param {Boolean} [acceptOnlyNames=false] - if true, will accept breakpoint names without widths and return these entries with a null width
+	 * @throws error if breakpoint width is not usable as an integer or width is negative
+	 * @returns {Object} dictionary of parsed breakpoints
+	 *
+	 * @private
+	 * @example
+	 * this.#parseBreakpointList([
+	 *     {small : 0},
+	 *     ['medium', 768],
+	 *     [
+	 *         {large : 1024},
+	 *         ['xlarge', 1440]
+	 *     ]
+	 * ])
+	 * => {
+	 *     small : 0,
+	 *     medium : 768,
+	 *     large : 1024,
+	 *     xlarge : 1440
+	 * }
+	 * this.#parseBreakpointList(['xlarge', {small : 0}, ['medium', ['large', 1024]]], true)
+	 * => {
+	 *     xlarge : null,
+	 *     small : 0,
+	 *     medium : null,
+	 *     large : 1024
+	 * }
+	 */
+	#parseBreakpointList(list, acceptOnlyNames=false){
+		const
+			__methodName__ = '#parseBreakpointList',
+			unusableBreakpointMessage = 'unusable breakpoint'
+		;
+
+		let breakpoints = {};
+
+		Array.from(list).forEach(breakpoint => {
+			if( isPlainObject(breakpoint) ){
+				for( const breakpointName in breakpoint ){
+					breakpoint[breakpointName] = parseInt(breakpoint[breakpointName], 10);
+					assert(
+						!isNaN(breakpoint[breakpointName]) &amp;&amp; (breakpoint[breakpointName] >= 0),
+						`${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${unusableBreakpointMessage} "${breakpointName}"`
+					);
+				}
+
+				breakpoints = {...breakpoints, ...breakpoint};
+			} else if( isArray(breakpoint) ){
+				if(
+					(breakpoint.length === 2)
+					&amp;&amp; !isPlainObject(breakpoint[0]) &amp;&amp; !isArray(breakpoint[0])
+					&amp;&amp; !isPlainObject(breakpoint[1]) &amp;&amp; !isArray(breakpoint[1])
+				){
+					const breakpointName = `${breakpoint[0]}`;
+					breakpoints[breakpointName] = parseInt(breakpoint[1], 10);
+					assert(
+						!isNaN(breakpoints[breakpointName]) &amp;&amp; (breakpoints[breakpointName] >= 0),
+						`${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${unusableBreakpointMessage} "${breakpointName}"`
+					);
+				} else {
+					breakpoints = {
+						...breakpoints,
+						...this.#parseBreakpointList(breakpoint, acceptOnlyNames)
+					};
+				}
+			} else if( acceptOnlyNames ){
+				breakpoints[`${breakpoint}`] = null;
+			}
+		});
+
+		return breakpoints;
+	}
+
+
+
+	/**
+	 * Updates the current breakpoint value, based on the current breakpoint configuration in regard to the current
+	 * viewport width.
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @private
+	 * @example
+	 * this.#refreshCurrentBreakpoint();
+	 */
+	#refreshCurrentBreakpoint(){
+		const
+			viewportWidth = window.innerWidth,
+			breakpoints = Object.entries(this.#breakpoints).sort((a, b) => {
+				return (a[1] === b[1])
+					? 0
+					: (
+						(a[1] > b[1])
+						? 1
+						: -1
+					)
+				;
+			})
+		;
+
+		let currentBreakpoint = null;
+		breakpoints.forEach(([breakpointName, breakpointWidth]) => {
+			if( viewportWidth >= breakpointWidth ){
+				currentBreakpoint = breakpointName;
+			}
+		});
+
+		this.#currentBreakpoint.setValue(currentBreakpoint);
+
+		return this;
+	}
+
+
+
+	/**
+	 * Event handler for resize events. Updates the current breakpoint if necessary.
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @private
+	 * @example
+	 * window.addEventListener('resize', this.#handleResize);
+	 */
+	#handleResize(){
+		this.#refreshCurrentBreakpoint();
+		return this;
+	}
+
+
+
+	/**
+	 * Registers all (global) events, such as the resize event, that are needed for breakpoint observation.
+	 *
+	 * Be sure to unregister trailing handlers before destructing the observer, by using disconnect().
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @private
+	 * @example
+	 * this.#registerEvents()
+	 */
+	#registerEvents(){
+		window.addEventListener('resize', this.#throttledHandleResize);
+		return this;
+	}
+
+
+
+	/**
+	 * Unregisters all (global) events, such as the resize event, to prevent trailing event handlers after destruction.
+	 *
+	 * Be sure to unregister trailing handlers before destructing the observer, by using disconnect().
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @private
+	 * @example
+	 * this.#unregisterEvents()
+	 */
+	#unregisterEvents(){
+		window.removeEventListener('resize', this.#throttledHandleResize);
+		return this;
+	}
+
+}
+
+export {BreakpointObserver};
 </code></pre>
         </article>
     </section>
@@ -1796,13 +2296,13 @@ export {VisibilityObserver};
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li class=""><a href="RestfulJsonClient.html">RestfulJsonClient</a></li><li class=""><a href="SaneDate.html">SaneDate</a></li><li class=""><a href="SimplePollingObserver.html">SimplePollingObserver</a></li><li class=""><a href="VisibilityObserver.html">VisibilityObserver</a></li><li class=""><a href="VisibilityState.html">VisibilityState</a></li></ul><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace"><a href="Animation_transition.html">Animation:transition</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isArray.html">Basic:isArray</a></li><li class="namespace"><a href="Basic_isBigInt.html">Basic:isBigInt</a></li><li class="namespace"><a href="Basic_isBoolean.html">Basic:isBoolean</a></li><li class="namespace"><a href="Basic_isCollection.html">Basic:isCollection</a></li><li class="namespace"><a href="Basic_isDate.html">Basic:isDate</a></li><li class="namespace"><a href="Basic_isDocument.html">Basic:isDocument</a></li><li class="namespace"><a href="Basic_isElement.html">Basic:isElement</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isError.html">Basic:isError</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isFunction.html">Basic:isFunction</a></li><li class="namespace"><a href="Basic_isGenerator.html">Basic:isGenerator</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isIterator.html">Basic:isIterator</a></li><li class="namespace"><a href="Basic_isMap.html">Basic:isMap</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isNodeList.html">Basic:isNodeList</a></li><li class="namespace"><a href="Basic_isNumber.html">Basic:isNumber</a></li><li class="namespace"><a href="Basic_isObject.html">Basic:isObject</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isRegExp.html">Basic:isRegExp</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_isSet.html">Basic:isSet</a></li><li class="namespace"><a href="Basic_isString.html">Basic:isString</a></li><li class="namespace"><a href="Basic_isSymbol.html">Basic:isSymbol</a></li><li class="namespace"><a href="Basic_isUrl.html">Basic:isUrl</a></li><li class="namespace"><a href="Basic_isUrlSearchParams.html">Basic:isUrlSearchParams</a></li><li class="namespace"><a href="Basic_isWeakMap.html">Basic:isWeakMap</a></li><li class="namespace"><a href="Basic_isWeakSet.html">Basic:isWeakSet</a></li><li class="namespace"><a href="Basic_isWindow.html">Basic:isWindow</a></li><li class="namespace"><a href="Basic_max.html">Basic:max</a></li><li class="namespace"><a href="Basic_min.html">Basic:min</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_round.html">Basic:round</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace"><a href="Context_getBrowserLanguage.html">Context:getBrowserLanguage</a></li><li class="namespace"><a href="Context_getBrowserLocale.html">Context:getBrowserLocale</a></li><li class="namespace"><a href="Context_getBrowserScrollbarWidth.html">Context:getBrowserScrollbarWidth</a></li><li class="namespace"><a href="Context_getLocale.html">Context:getLocale</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="Dates.html">Dates</a></li><li class="namespace"><a href="Dates_SaneDate.html">Dates:SaneDate</a></li><li class="namespace"><a href="Dates_format.html">Dates:format</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_defineNode.html">Elements:defineNode</a></li><li class="namespace"><a href="Elements_find.html">Elements:find</a></li><li class="namespace"><a href="Elements_findOne.html">Elements:findOne</a></li><li class="namespace"><a href="Elements_findTextNodes.html">Elements:findTextNodes</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_measureHiddenDimensions.html">Elements:measureHiddenDimensions</a></li><li class="namespace"><a href="Elements_prime.html">Elements:prime</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_emitPostMessage.html">Events:emitPostMessage</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_offPostMessage.html">Events:offPostMessage</a></li><li class="namespace"><a href="Events_offSwipe.html">Events:offSwipe</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_onDomReady.html">Events:onDomReady</a></li><li class="namespace"><a href="Events_onPostMessage.html">Events:onPostMessage</a></li><li class="namespace"><a href="Events_onSwipe.html">Events:onSwipe</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Forms.html">Forms</a></li><li class="namespace"><a href="Forms_formDataToObject.html">Forms:formDataToObject</a></li><li class="namespace"><a href="Forms_objectToFormData.html">Forms:objectToFormData</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Interaction.html">Interaction</a></li><li class="namespace"><a href="Interaction_createSelection.html">Interaction:createSelection</a></li><li class="namespace"><a href="Interaction_disableSelection.html">Interaction:disableSelection</a></li><li class="namespace"><a href="Interaction_enableSelection.html">Interaction:enableSelection</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateMailToLink.html">Interaction:obfuscatePrivateMailToLink</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateTelLink.html">Interaction:obfuscatePrivateTelLink</a></li><li class="namespace"><a href="Interaction_removeSelections.html">Interaction:removeSelections</a></li><li class="namespace"><a href="Interaction_setTappedState.html">Interaction:setTappedState</a></li><li class="namespace"><a href="Interaction_setupAutoTappedStates.html">Interaction:setupAutoTappedStates</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace"><a href="Objects_merge.html">Objects:merge</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillArrayAt.html">Polyfills:polyfillArrayAt</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_RestfulJsonClient.html">Requests:RestfulJsonClient</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_visitUrl.html">Requests:visitUrl</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_pad.html">Strings:pad</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_addCacheBuster.html">Urls:addCacheBuster</a></li><li class="namespace"><a href="Urls_addNextParameter.html">Urls:addNextParameter</a></li><li class="namespace"><a href="Urls_evaluateBaseDomain.html">Urls:evaluateBaseDomain</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_VisibilityObserver.html">Viewport:VisibilityObserver</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li class=""><a href="BreakpointObserver.html">BreakpointObserver</a></li><li class=""><a href="RestfulJsonClient.html">RestfulJsonClient</a></li><li class=""><a href="SaneDate.html">SaneDate</a></li><li class=""><a href="SimplePollingObserver.html">SimplePollingObserver</a></li><li class=""><a href="VisibilityObserver.html">VisibilityObserver</a></li><li class=""><a href="VisibilityState.html">VisibilityState</a></li></ul><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace"><a href="Animation_transition.html">Animation:transition</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_generateRange.html">Arrays:generateRange</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isArray.html">Basic:isArray</a></li><li class="namespace"><a href="Basic_isBigInt.html">Basic:isBigInt</a></li><li class="namespace"><a href="Basic_isBoolean.html">Basic:isBoolean</a></li><li class="namespace"><a href="Basic_isCollection.html">Basic:isCollection</a></li><li class="namespace"><a href="Basic_isDate.html">Basic:isDate</a></li><li class="namespace"><a href="Basic_isDocument.html">Basic:isDocument</a></li><li class="namespace"><a href="Basic_isElement.html">Basic:isElement</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isError.html">Basic:isError</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isFunction.html">Basic:isFunction</a></li><li class="namespace"><a href="Basic_isGenerator.html">Basic:isGenerator</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isIterator.html">Basic:isIterator</a></li><li class="namespace"><a href="Basic_isMap.html">Basic:isMap</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isNodeList.html">Basic:isNodeList</a></li><li class="namespace"><a href="Basic_isNumber.html">Basic:isNumber</a></li><li class="namespace"><a href="Basic_isObject.html">Basic:isObject</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isRegExp.html">Basic:isRegExp</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_isSet.html">Basic:isSet</a></li><li class="namespace"><a href="Basic_isString.html">Basic:isString</a></li><li class="namespace"><a href="Basic_isSymbol.html">Basic:isSymbol</a></li><li class="namespace"><a href="Basic_isUrl.html">Basic:isUrl</a></li><li class="namespace"><a href="Basic_isUrlSearchParams.html">Basic:isUrlSearchParams</a></li><li class="namespace"><a href="Basic_isWeakMap.html">Basic:isWeakMap</a></li><li class="namespace"><a href="Basic_isWeakSet.html">Basic:isWeakSet</a></li><li class="namespace"><a href="Basic_isWindow.html">Basic:isWindow</a></li><li class="namespace"><a href="Basic_max.html">Basic:max</a></li><li class="namespace"><a href="Basic_min.html">Basic:min</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_round.html">Basic:round</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace"><a href="Context_getBrowserLanguage.html">Context:getBrowserLanguage</a></li><li class="namespace"><a href="Context_getBrowserLocale.html">Context:getBrowserLocale</a></li><li class="namespace"><a href="Context_getBrowserScrollbarWidth.html">Context:getBrowserScrollbarWidth</a></li><li class="namespace"><a href="Context_getLocale.html">Context:getLocale</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="Dates.html">Dates</a></li><li class="namespace"><a href="Dates_SaneDate.html">Dates:SaneDate</a></li><li class="namespace"><a href="Dates_format.html">Dates:format</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_defineNode.html">Elements:defineNode</a></li><li class="namespace"><a href="Elements_find.html">Elements:find</a></li><li class="namespace"><a href="Elements_findOne.html">Elements:findOne</a></li><li class="namespace"><a href="Elements_findTextNodes.html">Elements:findTextNodes</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_measureHiddenDimensions.html">Elements:measureHiddenDimensions</a></li><li class="namespace"><a href="Elements_prime.html">Elements:prime</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_emitPostMessage.html">Events:emitPostMessage</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_offPostMessage.html">Events:offPostMessage</a></li><li class="namespace"><a href="Events_offSwipe.html">Events:offSwipe</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_onDomReady.html">Events:onDomReady</a></li><li class="namespace"><a href="Events_onPostMessage.html">Events:onPostMessage</a></li><li class="namespace"><a href="Events_onSwipe.html">Events:onSwipe</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Forms.html">Forms</a></li><li class="namespace"><a href="Forms_formDataToObject.html">Forms:formDataToObject</a></li><li class="namespace"><a href="Forms_objectToFormData.html">Forms:objectToFormData</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Interaction.html">Interaction</a></li><li class="namespace"><a href="Interaction_createSelection.html">Interaction:createSelection</a></li><li class="namespace"><a href="Interaction_disableSelection.html">Interaction:disableSelection</a></li><li class="namespace"><a href="Interaction_enableSelection.html">Interaction:enableSelection</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateMailToLink.html">Interaction:obfuscatePrivateMailToLink</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateTelLink.html">Interaction:obfuscatePrivateTelLink</a></li><li class="namespace"><a href="Interaction_removeSelections.html">Interaction:removeSelections</a></li><li class="namespace"><a href="Interaction_setTappedState.html">Interaction:setTappedState</a></li><li class="namespace"><a href="Interaction_setupAutoTappedStates.html">Interaction:setupAutoTappedStates</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace"><a href="Objects_merge.html">Objects:merge</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillArrayAt.html">Polyfills:polyfillArrayAt</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_RestfulJsonClient.html">Requests:RestfulJsonClient</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_visitUrl.html">Requests:visitUrl</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_pad.html">Strings:pad</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_trim.html">Strings:trim</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_addCacheBuster.html">Urls:addCacheBuster</a></li><li class="namespace"><a href="Urls_addNextParameter.html">Urls:addNextParameter</a></li><li class="namespace"><a href="Urls_evaluateBaseDomain.html">Urls:evaluateBaseDomain</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_BreakpointObserver.html">Viewport:BreakpointObserver</a></li><li class="namespace"><a href="Viewport_VisibilityObserver.html">Viewport:VisibilityObserver</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul><h3>Global</h3><ul><li><a href="global.html#trim">trim</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Wed Sep 20 2023 15:12:37 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Sep 25 2023 11:03:59 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

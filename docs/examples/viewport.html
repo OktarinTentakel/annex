@@ -5,6 +5,7 @@
 		<title>Viewport Module Examples</title>
 
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<!-- <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0"/> -->
 		<link rel="apple-touch-icon" sizes="180x180" href="./files/img/apple-touch-icon.png"/>
 		<link rel="icon" type="image/png" sizes="32x32" href="./files/img/favicon-32x32.png"/>
 		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png"/>
@@ -138,7 +139,7 @@
 
 		<script defer src="./lib/handle-version-switching.js"></script>
 		<script>
-			function setup(polyfillCustomEvent, isInViewport, scrollTo, VisibilityObserver){
+			function setup(polyfillCustomEvent, isInViewport, scrollTo, BreakpointObserver, VisibilityObserver){
 				polyfillCustomEvent();
 
 				var
@@ -149,11 +150,24 @@
 					element4content = document.querySelector('#scroll-to-elements .element-4 .element-4-content'),
 					element5 = document.querySelector('#scroll-to-elements .element-5'),
 					visibilityObserver = new VisibilityObserver(1),
-					viewportInfoObservable = visibilityObserver.getViewportObservable()
+					viewportInfoObservable = visibilityObserver.getViewportObservable(),
+					breakpointObserver = new BreakpointObserver(function(to){
+						console.info('initial breakpoint handler triggered with "'+to+'"');
+					})
 				;
 
 				function updatePanel(){
 					document.querySelector('#in-viewport-info').innerHTML = ''
+						+'<p>'
+							+'<b>Viewport Info</b><br/>'
+						+'</p>'
+						+'<pre>'+JSON.stringify(visibilityObserver.getViewportInfo(), null, 2)+'</pre>'
+						+'<p>'
+							+'<b>Breakpoint Info</b><br/>'
+							+'current breakpoint: <i>'+breakpointObserver.getBreakpoint(breakpointObserver.getBreakpoint(breakpointObserver.getCurrentBreakpoint()))+' '+breakpointObserver.getBreakpoint(breakpointObserver.getCurrentBreakpoint())+'</i><br/>'
+							+'breakpoints:'
+						+'</p>'
+						+'<pre>'+JSON.stringify(breakpointObserver.getBreakpoints(), null, 2)+'</pre>'
 						+'<p>'
 							+'<b>Element 1</b><br/>'
 							+'in viewport: <i>'+isInViewport(element1)+'</i>, fully: <i>'+isInViewport(element1, true)+'</i><br/>'
@@ -276,6 +290,36 @@
 					);
 				});
 
+				breakpointObserver
+					.observe({
+						small : 0,
+						medium : 768,
+						large : 1024,
+						xlarge : 1440
+					})
+					.disconnect()
+					.connect(function(to, from){
+						console.info('breakpoint handler changed from "'+from+'" to "'+to+'"');
+					})
+					.observe([
+						{small : 0},
+						['medium', 768],
+						[
+							{
+								large : 1024,
+								superlarge : 10000
+							},
+							['xlarge', 1440]
+						],
+						['supersuperlarge', 100000]
+					])
+					.unobserve('superlarge', ['supersuperlarge'])
+					.getCurrentBreakpointObservable()
+						.subscribe(function(to, from){
+							console.info('breakpoint observable changed from "'+from+'" to "'+to+'"');
+						})
+				;
+
 				visibilityObserver
 					.disconnect()
 					.connect(100, 30)
@@ -337,9 +381,14 @@
 			if( window.__ANNEX_VERSION__ !== 'es5' ){
 				(async () => {
 					const {polyfillCustomEvent} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/polyfills.js`);
-					const {isInViewport, scrollTo, VisibilityObserver} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/viewport.js`);
+					const {
+						isInViewport,
+						scrollTo,
+						BreakpointObserver,
+						VisibilityObserver
+					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/viewport.js`);
 
-					setup(polyfillCustomEvent, isInViewport, scrollTo, VisibilityObserver);
+					setup(polyfillCustomEvent, isInViewport, scrollTo, BreakpointObserver, VisibilityObserver);
 				})().catch(error => {
 					console.error(error);
 				});
@@ -357,6 +406,7 @@
 								window.annex.polyfills.polyfillCustomEvent,
 								window.annex.viewport.isInViewport,
 								window.annex.viewport.scrollTo,
+								window.annex.viewport.BreakpointObserver,
 								window.annex.viewport.VisibilityObserver
 							);
 						}
@@ -379,6 +429,19 @@
 					fully in the viewport or at least partly.
 				</p>
 				<div id="in-viewport-info"></div>
+			</section>
+
+			<h3>BreakpointObserver</h3>
+			<section>
+				<p>
+					If your pages work with breakpoints and you need programmatic information, apart from anything
+					happening in CSS, about the state of the viewport in comparison to your breakpoints and
+					notifications if the breakpoint changes, you can use this observer class, which fully manages
+					a list of breakpoints, gives you access to the current state and offers notifications on change.
+				</p>
+				<p>
+					If you have a look at the panel, you can see the current viewport information for this page.
+				</p>
 			</section>
 
 			<h3>VisibilityObserver</h3>

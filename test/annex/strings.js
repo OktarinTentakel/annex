@@ -13,6 +13,7 @@ const {
 	replace,
 	truncate,
 	pad,
+	trim,
 	concat,
 	format,
 	slugify,
@@ -62,6 +63,22 @@ test('pad', assert => {
 	assert.is(pad('foo', '---', 10), '-------foo');
 	assert.is(pad('', '##', -5), '');
 	assert.is(pad('', '##', 5, 'right'), '#####');
+});
+
+
+
+test('trim', assert => {
+	assert.is(trim('    foo  '), 'foo');
+	assert.is(trim(`
+
+	foo
+
+	`), 'foo');
+	assert.is(trim('  foo  ', null, 'right'), '  foo');
+	assert.is(trim('//foo/bar/', '/'), 'foo/bar');
+	assert.is(trim('-_ foo _-', [null, '-_', '_-']), 'foo');
+	assert.is(trim('foo bar', '\\S', 'left'), ' bar');
+	assert.is(trim('abcdefghijklmnopqrstuvwxyz', ['[a-f]', '[u-z]', 'l'], 'both'), 'ghijklmnopqrst');
 });
 
 

@@ -75,7 +75,9 @@ import {assert, isArray, isNumber, isString, isMap, isSet, isPlainObject, orDefa
  * => [1]
  */
 export function removeFrom(target, from, to=null){
-	assert(isArray(target), `${MODULE_NAME}:remove | target is no array`);
+	const __methodName__ = 'removeFrom';
+
+	assert(isArray(target), `${MODULE_NAME}:${__methodName__} | target is no array`);
 
 	if( isNumber(from) && (to !== true) ){
 		from = parseInt(from, 10);
@@ -119,4 +121,71 @@ export function removeFrom(target, from, to=null){
 			}, []);
 		}
 	}
+}
+
+
+
+/**
+ * @namespace Arrays:generateRange
+ */
+
+/**
+ * To remove these by reference from target, instead of iterating them, set "to" to true.
+ *
+ * @param {Number|String} from - the start of the range, may also be negative, if larger than "to", the range is created in reverse, as a string, this can be a single character
+ * @param {Number|String} to - the end of the range, may also be negative, if smaller than "from", the range is created in reverse, as a string, this can be a single character
+ * @param {?Number} [step=null] - the (positive) step length in the range to use between individual range values, if the step length does not hit "to" exactly, the range will end at the last possible value before "to"
+ * @throws error if "from" or "to" are empty strings
+ * @returns {Array} new array with generated range
+ *
+ * @memberof Arrays:generateRange
+ * @alias generateRange
+ * @example
+ * generateRange(0, 10, 2)
+ * => [0, 2, 4, 6, 8, 10]
+ * generateRange(5, -5, 3.5)
+ * => [5, 1.5, -2]
+ * generateRange('a', 'g, 3)
+ * => ['a', 'd', 'g']
+ */
+export function generateRange(from, to, step=1){
+	const
+		__methodName__ = 'generateRange',
+		cannotBeEmptyMessage = 'cannot be empty'
+	;
+
+	const generateChars = !isNumber(from) || !isNumber(to);
+	if( generateChars ){
+		if( !isNumber(from) ){
+			from = `${from}`;
+			assert((from.length > 0), `${MODULE_NAME}:${__methodName__} | "from" ${cannotBeEmptyMessage}`);
+			from = from.charCodeAt(0);
+		}
+
+		if( !isNumber(to) ){
+			to = `${to}`;
+			assert((to.length > 0), `${MODULE_NAME}:${__methodName__} | "to" ${cannotBeEmptyMessage}`);
+			to = to.charCodeAt(0);
+		}
+	}
+
+	step = orDefault(step, 1, 'float');
+
+	const
+		factor = ((to - from) < 0) ? -1 : 1,
+		range = []
+	;
+
+	let
+		diff = Math.abs(to - from),
+		current = from
+	;
+
+	while( diff >= 0 ){
+		range.push(generateChars ? String.fromCharCode(current) : current);
+		current += step * factor;
+		diff -= step;
+	}
+
+	return range;
 }

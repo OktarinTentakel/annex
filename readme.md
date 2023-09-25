@@ -66,6 +66,7 @@ Some of the Batteries Included
 - better randomization for numbers and ids
 - string generation and conversion tools like formatting and slugification
 - array tools like actually usable removal functionality based on values and flexible indices
+- dates, that actually make sense and offer helpful functions
 - browser capability checks and context evaluation
 - viewport information and functionality
 - interaction solutions like obfuscated mailto and tel links
@@ -213,12 +214,12 @@ cross-browser testing you did may be invalid and since you are not seeing everyt
 app may fall apart on certain devices, without you knowing.
 
 Another problem is sharing of packages between dev/build/hosting and frontend/client. Let's say both use lodash or q
-promises: both have to agree on the exact same version, that should not be changed frequently because of the afore
-mentioned problems. That is very unpractical for both usages and each should be able to use the version fitting its
+promises: both have to agree on the exact same version, that should not be changed frequently because of the
+aforementioned problems. That is very unpractical for both usages and each should be able to use the version fitting its
 purpose, since they are used for different things on very different machines, even if it is the same package under the
 hood.
 
-So I generally propse separating all npm packages, that are delivered to the client directly in any way into a specific
+So I generally propose separating all npm packages, that are delivered to the client directly in any way into a specific
 `@client` package in `node_modules` using fixed versioning for these (I originally got the idea when I transitioned)
 from bower to npm, reading the bower team's [ideas](https://bower.io/blog/2017/how-to-migrate-away-from-bower/) about
 this.
@@ -266,7 +267,7 @@ For this purpose I included a `dist` dir, containing minified, ES6 scripts. Use 
 
 In this case, make sure all dist file are publicly available and are in the same dir, so imports can work.
 
-Of course you can also import `dist` files via a bundler, but in that case you would lose the capability to jump to
+Of course, you can also import `dist` files via a bundler, but in that case you would lose the capability to jump to
 readable source in your IDE and you would also lose all JSDOC strings.
 
 Be aware, that all module source code is written in fairly up-to-date ES6, disregarding legacy concerns. So, whether

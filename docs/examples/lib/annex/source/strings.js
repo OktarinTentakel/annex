@@ -174,7 +174,7 @@ export function truncate(subject, maxLength=30, suffix='...'){
  *
  * A usual use-case for this would be, to add zeroes to a number, to fit a format like ISO dates.
  *
- * @param {*} value - the value to pad
+ * @param {String} subject - the string to pad
  * @param {String} paddingCharacter - the character to use for padding, only first character is used
  * @param {Number} expectedLength - the number of characters, the result has to have at least
  * @param {String} [from='left'] - the number of characters, the result has to have at least
@@ -186,20 +186,50 @@ export function truncate(subject, maxLength=30, suffix='...'){
  * pad(1, '0', 4, 'right')
  * => '1000'
  */
-export function pad(value, paddingCharacter, expectedLength, from='left'){
-	value = `${value}`;
+export function pad(subject, paddingCharacter, expectedLength, from='left'){
+	subject = `${subject}`;
 	paddingCharacter = `${paddingCharacter}`[0];
 	expectedLength = orDefault(expectedLength, 2, 'int');
 	from = ['left', 'right'].includes(`${from}`) ? `${from}` : 'left';
 
-	const difference = expectedLength - value.length;
+	const difference = expectedLength - subject.length;
 	if( difference > 0 ){
 		for( let i = 0; i < difference; i++ ){
-			value = (from === 'right') ? `${value}${paddingCharacter}` : `${paddingCharacter}${value}`;
+			subject = (from === 'right') ? `${subject}${paddingCharacter}` : `${paddingCharacter}${subject}`;
 		}
 	}
 
-	return value;
+	return subject;
+}
+
+
+/**
+ * @namespace Strings:trim
+ */
+
+/**
+ * Removes whitespace or characters from the beginning and the end (or just one side) of a string.
+ *
+ * This is usually used to sanitize values and remove leading or trailing whitespace in user input.
+ *
+ * @param {String} subject - the string to trim
+ * @param {?String|Array<String>} [characters=null] - defines which character(s) to trim; will trim whitespace if nullish (or '\\s'); if you want to trim whitespace and something else, define an array including a nullish value (or '\\s') as well as the other characters; this parameter uses regex definitions
+ * @param {?String} [from='both'] - the side(s) from which to trim, either "both", "left" or "right"
+ */
+export function trim(subject, characters=null, from='both'){
+	subject = `${subject}`;
+	characters = [].concat(characters).map(char => !!char ? `${char}` : '\\s');
+	from = ['both', 'left', 'right'].includes(`${from}`) ? `${from}` : 'both';
+
+	if( ['both', 'left'].includes(from) ){
+		subject = subject.replace(new RegExp(`^(${characters.join('|')})+`, 'g'), '');
+	}
+
+	if( ['both', 'right'].includes(from) ){
+		subject = subject.replace(new RegExp(`(${characters.join('|')})+$`, 'g'), '');
+	}
+
+	return subject;
 }
 
 

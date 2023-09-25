@@ -16,6 +16,8 @@ import {
 	hasValue,
 	orDefault,
 	isWindow,
+	isPlainObject,
+	isArray,
 	isFunction,
 	isElement,
 	isBoolean,
@@ -37,8 +39,11 @@ import {warn} from './logging.js';
 
 //###[ DATA ]###########################################################################################################
 
-export const VISIBILITY_BASE_FPS = 15;
-const DISTANCE_BASE_FPS = 4;
+const
+	VISIBILITY_BASE_FPS = 15,
+	DISTANCE_BASE_FPS = 4,
+	BREAKPOINT_BASE_FPS = 4
+;
 
 
 
@@ -1049,14 +1054,16 @@ export function scrollTo(
 	scrollEvenIfFullyInViewport=false,
 	cancelOnUserScroll=false
 ){
+	const __methodName__ = 'scrollTo';
+
 	durationMs = orDefault(durationMs, 1000, 'int');
 	offset = orDefault(offset, 0, 'int');
 	easing = orDefault(easing, 'easeInOutCubic', 'str');
 	scrollEvenIfFullyInViewport = orDefault(scrollEvenIfFullyInViewport, false, 'bool');
 	cancelOnUserScroll = orDefault(cancelOnUserScroll, false, 'bool');
 
-	assert(isElement(element) || isWindow(element), `${MODULE_NAME}:scrollTo | element unusable`);
-	assert(durationMs > 0, `${MODULE_NAME}:scrollTo | durationMs must be > 0`);
+	assert(isElement(element) || isWindow(element), `${MODULE_NAME}:${__methodName__} | element unusable`);
+	assert(durationMs > 0, `${MODULE_NAME}:${__methodName__} | durationMs must be > 0`);
 
 	if( !isFunction(EasingFunctions[easing]) ){
 		easing = EasingFunctions.easeInOutCubic;
@@ -1136,6 +1143,8 @@ export function scrollTo(
  * @type Object
  *
  * @property {Number} scrollTop - scroll distance of the window/document in pixels to the upper bound of the viewport
+ * @property {String} scrollDirection - either "down" or "up", depending on the last scroll movement
+ * @property {String} fuzzyScrollDirection - either "down" or "up", depending on the last scroll movement; the user needs to scroll at least a small distance in the opposite direction for this to change, minimal changes will not change this
  * @property {Number} width - inner width of the window/viewport
  * @property {Number} height - inner height of the window/viewport
  * @property {Object} bounds - the viewport bound rectangle
@@ -1204,13 +1213,13 @@ class VisibilityObserver {
 	#throttledHandleScroll;
 	#throttledHandleResize;
 	#throttledHandleMutation;
-	#throttledHandlePoll;
 	#throttledTriggerEvent;
 	#thresholds;
 	#observer;
 	#refreshPoll;
 	#documentMutationObserver;
 	#viewportInfo;
+	#viewportInfoReferenceScrollTop;
 	#viewportInfoHash;
 
 	/**
@@ -1241,6 +1250,7 @@ class VisibilityObserver {
 	 * @param {?Boolean} [forcePollingObserver=false] - set this to true, if you want to skip usage of IntersectionObserver and, instead, just use polling all the time (this is a brute-force method putting stress on the CPU, only do this for a good reason)
 	 * @returns {VisibilityObserver} the observer instance
 	 *
+	 * @see disconnect
 	 * @example
 	 * visibilityObserver.connect(100, 50);
 	 */
@@ -1253,10 +1263,9 @@ class VisibilityObserver {
 		this.#targetFps = minMax(1, orDefault(targetFps, VISIBILITY_BASE_FPS, 'int'), 120);
 
 		const fpsMs = round(1000 / targetFps);
-		this.#throttledHandleScroll = throttle(fpsMs, this.#handleScroll).bind(this);
-		this.#throttledHandleResize = throttle(fpsMs, this.#handleResize).bind(this);
-		this.#throttledHandleMutation = throttle(fpsMs, this.#handleMutation).bind(this);
-		this.#throttledHandlePoll = throttle(fpsMs, this.#handlePoll).bind(this);
+		this.#throttledHandleScroll = throttle(fpsMs, this.#handleScroll, true, true).bind(this);
+		this.#throttledHandleResize = throttle(fpsMs, this.#handleResize, true, true).bind(this);
+		this.#throttledHandleMutation = throttle(fpsMs, this.#handleMutation, true, true).bind(this);
 		this.#throttledTriggerEvent = throttle(fpsMs, this.#triggerEvent, true, true).bind(this);
 
 		let ObserverImplementation;
@@ -1291,6 +1300,7 @@ class VisibilityObserver {
 	 *
 	 * @returns {VisibilityObserver} the observer instance
 	 *
+	 * @see connect
 	 * @example
 	 * visibilityObserver.disconnect();
 	 */
@@ -1320,6 +1330,7 @@ class VisibilityObserver {
 	 * @throws error if element is not an HTML element
 	 * @returns {VisibilityObserver} the observer instance
 	 *
+	 * @see unobserve
 	 * @example
 	 * visibilityObserver.observe(teaserElement);
 	 * visibilityObserver.observe(anotherTeaserElement, true, true);
@@ -1358,6 +1369,7 @@ class VisibilityObserver {
 	 * @param {HTMLElement} element - the element to unobserve
 	 * @returns {VisibilityObserver} the observer instance
 	 *
+	 * @see observe
 	 * @example
 	 * visibilityObserver.unobserve(teaserElement);
 	 */
@@ -1501,6 +1513,8 @@ class VisibilityObserver {
 		if( !hasValue(this.#viewportInfo) ){
 			this.#viewportInfo = {
 				scrollTop : window.scrollY ?? window.pageYOffset,
+				scrollDirection : 'down',
+				fuzzyScrollDirection : 'down',
 				width : viewportWidth,
 				height : viewportHeight,
 				bounds : {
@@ -1512,19 +1526,37 @@ class VisibilityObserver {
 					height : viewportHeight,
 				}
 			};
+			this.#viewportInfoReferenceScrollTop = this.#viewportInfo.scrollTop;
 			this.#viewportInfoHash = new Observable(
 				`${this.#viewportInfo.scrollTop}${this.#viewportInfo.width}${this.#viewportInfo.height}`
 			);
-		} else if( !onlyScroll ){
-			this.#viewportInfo.scrollTop = window.scrollY ?? window.pageYOffset;
-			this.#viewportInfo.width = viewportWidth;
-			this.#viewportInfo.height = viewportHeight;
-			this.#viewportInfo.bounds.right = viewportWidth;
-			this.#viewportInfo.bounds.bottom = viewportHeight;
-			this.#viewportInfo.bounds.width = viewportWidth;
-			this.#viewportInfo.bounds.height = viewportHeight;
 		} else {
-			this.#viewportInfo.scrollTop = window.scrollY ?? window.pageYOffset;
+			const newScrollTop = window.scrollY ?? window.pageYOffset;
+
+			if( newScrollTop > this.#viewportInfo.scrollTop ){
+				this.#viewportInfo.scrollDirection = 'down';
+			} else if( newScrollTop < this.#viewportInfo.scrollTop ){
+				this.#viewportInfo.scrollDirection = 'up';
+			}
+
+			if( newScrollTop > (this.#viewportInfoReferenceScrollTop + 10) ){
+				this.#viewportInfo.fuzzyScrollDirection = 'down';
+				this.#viewportInfoReferenceScrollTop = newScrollTop;
+			} else if( newScrollTop < (this.#viewportInfoReferenceScrollTop - 10) ){
+				this.#viewportInfo.fuzzyScrollDirection = 'up';
+				this.#viewportInfoReferenceScrollTop = newScrollTop;
+			}
+
+			this.#viewportInfo.scrollTop = newScrollTop;
+
+			if( !onlyScroll ){
+				this.#viewportInfo.width = viewportWidth;
+				this.#viewportInfo.height = viewportHeight;
+				this.#viewportInfo.bounds.right = viewportWidth;
+				this.#viewportInfo.bounds.bottom = viewportHeight;
+				this.#viewportInfo.bounds.width = viewportWidth;
+				this.#viewportInfo.bounds.height = viewportHeight;
+			}
 		}
 
 		const viewportInfoHash = `${this.#viewportInfo.scrollTop}${this.#viewportInfo.width}${this.#viewportInfo.height}`;
@@ -1542,6 +1574,7 @@ class VisibilityObserver {
 	 * The event handler for scroll events, updating the viewport information.
 	 *
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
+	 * @returns {VisibilityObserver} the observer instance
 	 *
 	 * @private
 	 * @example
@@ -1549,6 +1582,7 @@ class VisibilityObserver {
 	 */
 	#handleScroll(){
 		this.#refreshViewportInfo(true);
+		return this;
 	}
 
 
@@ -1557,6 +1591,7 @@ class VisibilityObserver {
 	 * The event handler for resize events, updating the viewport information.
 	 *
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
+	 * @returns {VisibilityObserver} the observer instance
 	 *
 	 * @private
 	 * @example
@@ -1564,6 +1599,7 @@ class VisibilityObserver {
 	 */
 	#handleResize(){
 		this.#refreshViewportInfo();
+		return this;
 	}
 
 
@@ -1572,6 +1608,7 @@ class VisibilityObserver {
 	 * The event handler for document mutation events, updating the viewport information.
 	 *
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
+	 * @returns {VisibilityObserver} the observer instance
 	 *
 	 * @private
 	 * @example
@@ -1579,6 +1616,7 @@ class VisibilityObserver {
 	 */
 	#handleMutation(){
 		this.#refreshViewportInfo();
+		return this;
 	}
 
 
@@ -1587,6 +1625,7 @@ class VisibilityObserver {
 	 * The event handler for polling events, updating the viewport information.
 	 *
 	 * @fires CustomEvent#"viewportchanged.visibilityobserver"
+	 * @returns {VisibilityObserver} the observer instance
 	 *
 	 * @private
 	 * @example
@@ -1594,6 +1633,7 @@ class VisibilityObserver {
 	 */
 	#handlePoll(){
 		this.#refreshViewportInfo();
+		return this;
 	}
 
 
@@ -1680,6 +1720,8 @@ class VisibilityObserver {
 		}
 
 		this.#throttledTriggerEvent('updated');
+
+		return this;
 	}
 
 
@@ -1758,3 +1800,461 @@ class VisibilityObserver {
 }
 
 export {VisibilityObserver};
+
+
+
+/**
+ * @namespace Viewport:BreakpointObserver
+ */
+
+/**
+ * A class observing a defined list of breakpoints, notifying subscribers, if the breakpoint changes for whatever
+ * reason (viewport resizes or device orientation changes mostly).
+ *
+ * See class documentation below for details.
+ *
+ * @memberof Viewport:BreakpointObserver
+ * @name BreakpointObserver
+ *
+ * @see BreakpointObserver
+ * @example
+ * (new BreakpointObserver((to, from) => {
+ *     alert(`breakpoint changed from "${from}" to "${to}"`);
+ * })).observe({
+ *     small : 0,
+ *     medium : 768,
+ *     large : 1024,
+ *     xlarge : 1440
+ * });
+ * (new BreakpointObserver())
+ *     .observe(
+ *         {small : 0},
+ *         ['medium', 768],
+ *         [
+ *             {large : 1024},
+ *             ['xlarge', 1440]
+ *         ]
+ *     )
+ *     .unobserve('xlarge')
+ *     .getCurrentBreakpoint()
+ * ;
+ * => 'medium'
+ */
+class BreakpointObserver {
+
+	#__className__ = 'BreakpointObserver';
+	#handlerMustBeFunctionMessage = 'handler must be function';
+	#handler;
+	#securedHandler;
+	#breakpoints;
+	#currentBreakpoint;
+	#currentBreakpointReadOnly;
+	#throttledHandleResize;
+
+	/**
+	 * Creates a new BreakpointObserver and, optionally, sets a handler for breakpoint changes.
+	 *
+	 * @param {?Function} [handler=null] - the function to call on breakpoint change, receives two parameters: newBreakpointName, oldBreakpointName (if there is no old breakpoint, the parameter will be undefined)
+	 * @param {?Number} [targetFps=BREAKPOINT_BASE_FPS] - the max amount of updates per second we are aiming for in the observer; since breakpoints are not changing very regularly, low FPS should be alright here for most cases
+	 * @throws error if handler is set, but is not a function
+	 */
+	constructor(handler=null, targetFps=BREAKPOINT_BASE_FPS){
+		const __methodName__ = 'constructor';
+
+		if( hasValue(handler) ){
+			assert(isFunction(handler), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${this.#handlerMustBeFunctionMessage}`);
+			this.#handler = handler;
+		}
+
+		this.#securedHandler = (to, from) => {
+			if( Object.keys(this.#breakpoints).length > 0 ){
+				this.#handler?.(to, from);
+			}
+		};
+
+		targetFps = minMax(1, orDefault(targetFps, VISIBILITY_BASE_FPS, 'int'), 120);
+		const fpsMs = round(1000 / targetFps);
+		this.#throttledHandleResize = throttle(fpsMs, this.#handleResize, true, true).bind(this);
+
+		this.connect(handler);
+	}
+
+
+
+	/**
+	 * (Re)starts breakpoint observation (resetting all data and states before) and, optionally, sets a new handler.
+	 *
+	 * @param {?Function} [handler=null] - the function to call on breakpoint change, receives two parameters: newBreakpointName, oldBreakpointName (if there is no old breakpoint, the parameter will be undefined)
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @see disconnect
+	 * @example
+	 * observer
+	 *     .connect((to, from) => {
+	 *         alert(`breakpoint changed from "${from}" to "${to}"`);
+	 *     })
+	 *     .observe(
+	 *         ['small', 0],
+	 *         ['medium', 768],
+	 *         ['large', 1024]
+	 *     )
+	 * ;
+	 */
+	connect(handler=null){
+		const __methodName__ = 'connect';
+
+		this.disconnect();
+
+		if( hasValue(handler) ){
+			assert(isFunction(handler), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${this.#handlerMustBeFunctionMessage}`);
+			this.#handler = handler;
+		}
+
+		this.#currentBreakpoint.subscribe(this.#securedHandler);
+		this.#currentBreakpoint.subscribe(to => { this.#currentBreakpointReadOnly.setValue(to); });
+
+		this.#registerEvents();
+
+		return this;
+	}
+
+
+
+	/**
+	 * Stops the observation of breakpoints and resets all data and states.
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @see connect
+	 * @example
+	 * observer.disconnect().getCurrentBreakpoint();
+	 * => null
+	 */
+	disconnect(){
+		this.#breakpoints = {};
+		this.#currentBreakpoint = new Observable();
+		this.#currentBreakpointReadOnly = new Observable();
+
+		this.#unregisterEvents();
+
+		return this;
+	}
+
+
+
+	/**
+	 * Returns either the width to a breakpoint name or the name to a breakpoint width.
+	 *
+	 * @param {String|Number} breakpoint - if a number, tries to return a corresponding breakpoint name, else we'll try to find a width to the given name
+	 * @returns {String|Number|null} - either a breakpoint name, a breakpoint width or null, if nothing was found
+	 *
+	 * @example
+	 * observer.getBreakpoint('large')
+	 * => 1024
+	 * observer.getBreakpoint(1024)
+	 * => 'large'
+	 */
+	getBreakpoint(breakpoint){
+		if( isNumber(breakpoint) ){
+			let name = null;
+
+			for( const breakpointName in this.#breakpoints ){
+				if( breakpoint === this.#breakpoints[breakpointName] ){
+					name = breakpointName;
+					break;
+				}
+			}
+
+			return name;
+		} else {
+			return this.#breakpoints[`${breakpoint}`] ?? null;
+		}
+	}
+
+
+
+	/**
+	 * Returns the currently configured breakpoints of the observer as a dictionary.
+	 *
+	 * The return value is a copy, changing values or names in this value will not change the observer's data.
+	 *
+	 * @returns {Object} the observer's configured breakpoints
+	 */
+	getBreakpoints(){
+		return {...this.#breakpoints};
+	}
+
+
+
+	/**
+	 * Returns the current breakpoint's name.
+	 *
+	 * If you need the width, use this value in .getBreakpoint().
+	 *
+	 * @returns {String} the current breakpoint's name
+	 *
+	 * @see getBreakpoint
+	 */
+	getCurrentBreakpoint(){
+		return this.#currentBreakpoint.getValue();
+	}
+
+
+
+	/**
+	 * Returns an observable, that notifies subscribers of breakpoint changes.
+	 *
+	 * Use this, if you need more than one handler or want a little bit more flexibility.
+	 *
+	 * This observable is read-only, setting its values will not influence breakpoint evaluation in the observer.
+	 *
+	 * @returns {Basic.Observable} the breakpoint observable
+	 *
+	 * @example
+	 * observer.getCurrentBreakpointObservable().subscribe((to, from) => {
+	 *     alert(`breakpoint changed from "${from}" to "${to}"`);
+	 * });
+	 */
+	getCurrentBreakpointObservable(){
+		return this.#currentBreakpointReadOnly;
+	}
+
+
+
+	/**
+	 * Adds breakpoint(s) to observe.
+	 *
+	 * @param {Object|Array|Array<Array>|Array<Object>} breakpoints - the breakpoint definition, either as a simple dictionary ({breakPointName : breakpointWidth, ...}) with 1 to n props, or as an entry array (['breakpointname', breakpointWidth]); both definitions can also be provided as a list of parameters or an array
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @see unobserve
+	 * @example
+	 * observer.observe({
+	 *     small : 0,
+	 *     medium : 768,
+	 *     large : 1024,
+	 *     xlarge : 1440
+	 * });
+	 * observer.observe(
+	 *     {small : 0},
+	 *     ['medium', 768],
+	 *     [
+	 *         {large : 1024},
+	 *         ['xlarge', 1440]
+	 *     ]
+	 * );
+	 */
+	observe(...breakpoints){
+		const additionalBreakpoints = this.#parseBreakpointList(breakpoints);
+		this.#breakpoints = {
+			...this.#breakpoints,
+			...additionalBreakpoints
+		};
+
+		this.#refreshCurrentBreakpoint();
+
+		return this;
+	}
+
+
+
+	/**
+	 * Removes breakpoint(s) from observation.
+	 *
+	 * @param {Array<String>|Object|Array|Array<Array>|Array<Object>} breakpoints - this can either be a definition, as used in observe() or just a list of breakpoint names to remove
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @see observe
+	 * @example
+	 * observer.unobserve('small', 'xlarge');
+	 * observer.unobserve(['small', 'xlarge']);
+	 * observer.unobserve({
+	 *     small : 0,
+	 *     xlarge : 1440
+	 * });
+	 */
+	unobserve(...breakpoints){
+		const obsoleteBreakpoints = this.#parseBreakpointList(breakpoints, true);
+		Object.keys(obsoleteBreakpoints).forEach(obsoleteBreakpointName => {
+			delete this.#breakpoints[obsoleteBreakpointName];
+		});
+
+		this.#refreshCurrentBreakpoint();
+
+		return this;
+	}
+
+
+
+	/**
+	 * Takes an iterable list of breakpoint definitions and recursively parses this into a plain object of
+	 * key-value pairs, where keys are breakpoint names and values are breakpoint width integers.
+	 *
+	 * @param {Array<Array>|Array<Object>} list - the breakpoint definition lists, containing either a simple dictionaries ({breakPointName : breakpointWidth, ...}) with 1 to n props, or entry arrays (['breakpointname', breakpointWidth])
+	 * @param {Boolean} [acceptOnlyNames=false] - if true, will accept breakpoint names without widths and return these entries with a null width
+	 * @throws error if breakpoint width is not usable as an integer or width is negative
+	 * @returns {Object} dictionary of parsed breakpoints
+	 *
+	 * @private
+	 * @example
+	 * this.#parseBreakpointList([
+	 *     {small : 0},
+	 *     ['medium', 768],
+	 *     [
+	 *         {large : 1024},
+	 *         ['xlarge', 1440]
+	 *     ]
+	 * ])
+	 * => {
+	 *     small : 0,
+	 *     medium : 768,
+	 *     large : 1024,
+	 *     xlarge : 1440
+	 * }
+	 * this.#parseBreakpointList(['xlarge', {small : 0}, ['medium', ['large', 1024]]], true)
+	 * => {
+	 *     xlarge : null,
+	 *     small : 0,
+	 *     medium : null,
+	 *     large : 1024
+	 * }
+	 */
+	#parseBreakpointList(list, acceptOnlyNames=false){
+		const
+			__methodName__ = '#parseBreakpointList',
+			unusableBreakpointMessage = 'unusable breakpoint'
+		;
+
+		let breakpoints = {};
+
+		Array.from(list).forEach(breakpoint => {
+			if( isPlainObject(breakpoint) ){
+				for( const breakpointName in breakpoint ){
+					breakpoint[breakpointName] = parseInt(breakpoint[breakpointName], 10);
+					assert(
+						!isNaN(breakpoint[breakpointName]) && (breakpoint[breakpointName] >= 0),
+						`${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${unusableBreakpointMessage} "${breakpointName}"`
+					);
+				}
+
+				breakpoints = {...breakpoints, ...breakpoint};
+			} else if( isArray(breakpoint) ){
+				if(
+					(breakpoint.length === 2)
+					&& !isPlainObject(breakpoint[0]) && !isArray(breakpoint[0])
+					&& !isPlainObject(breakpoint[1]) && !isArray(breakpoint[1])
+				){
+					const breakpointName = `${breakpoint[0]}`;
+					breakpoints[breakpointName] = parseInt(breakpoint[1], 10);
+					assert(
+						!isNaN(breakpoints[breakpointName]) && (breakpoints[breakpointName] >= 0),
+						`${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${unusableBreakpointMessage} "${breakpointName}"`
+					);
+				} else {
+					breakpoints = {
+						...breakpoints,
+						...this.#parseBreakpointList(breakpoint, acceptOnlyNames)
+					};
+				}
+			} else if( acceptOnlyNames ){
+				breakpoints[`${breakpoint}`] = null;
+			}
+		});
+
+		return breakpoints;
+	}
+
+
+
+	/**
+	 * Updates the current breakpoint value, based on the current breakpoint configuration in regard to the current
+	 * viewport width.
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @private
+	 * @example
+	 * this.#refreshCurrentBreakpoint();
+	 */
+	#refreshCurrentBreakpoint(){
+		const
+			viewportWidth = window.innerWidth,
+			breakpoints = Object.entries(this.#breakpoints).sort((a, b) => {
+				return (a[1] === b[1])
+					? 0
+					: (
+						(a[1] > b[1])
+						? 1
+						: -1
+					)
+				;
+			})
+		;
+
+		let currentBreakpoint = null;
+		breakpoints.forEach(([breakpointName, breakpointWidth]) => {
+			if( viewportWidth >= breakpointWidth ){
+				currentBreakpoint = breakpointName;
+			}
+		});
+
+		this.#currentBreakpoint.setValue(currentBreakpoint);
+
+		return this;
+	}
+
+
+
+	/**
+	 * Event handler for resize events. Updates the current breakpoint if necessary.
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @private
+	 * @example
+	 * window.addEventListener('resize', this.#handleResize);
+	 */
+	#handleResize(){
+		this.#refreshCurrentBreakpoint();
+		return this;
+	}
+
+
+
+	/**
+	 * Registers all (global) events, such as the resize event, that are needed for breakpoint observation.
+	 *
+	 * Be sure to unregister trailing handlers before destructing the observer, by using disconnect().
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @private
+	 * @example
+	 * this.#registerEvents()
+	 */
+	#registerEvents(){
+		window.addEventListener('resize', this.#throttledHandleResize);
+		return this;
+	}
+
+
+
+	/**
+	 * Unregisters all (global) events, such as the resize event, to prevent trailing event handlers after destruction.
+	 *
+	 * Be sure to unregister trailing handlers before destructing the observer, by using disconnect().
+	 *
+	 * @returns {BreakpointObserver} the observer instance
+	 *
+	 * @private
+	 * @example
+	 * this.#unregisterEvents()
+	 */
+	#unregisterEvents(){
+		window.removeEventListener('resize', this.#throttledHandleResize);
+		return this;
+	}
+
+}
+
+export {BreakpointObserver};

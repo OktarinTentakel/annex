@@ -181,6 +181,16 @@ test.serial('once', assert => {
 	assert.is(EVENT_MAP.size, 1);
 	removers.forEach(remover => { remover(); });
 	assert.is(EVENT_MAP.size, 0);
+
+	let failed = false;
+	window.onerror = () => { failed = true; };
+	once(foo, 'burn', () => {
+		off(foo, 'burn');
+	});
+	foo.dispatchEvent(new CustomEvent('burn'));
+	assert.false(failed);
+	window.onerror = null;
+	assert.is(EVENT_MAP.size, 0);
 });
 
 

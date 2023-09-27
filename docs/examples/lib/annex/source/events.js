@@ -342,7 +342,7 @@ function createDelegatedHandler(delegation, handler){
  *
  * @private
  */
-function createHandlerRemover(target, namespace, event, handler, delegation=null){
+function createHandlerRemover(target, namespace, event, handler, delegation=null, ignoreInvalidScope=false){
 	const
 		__methodName__ = 'createHandlerRemover',
 		targetEvents = EVENT_MAP.get(target)
@@ -354,7 +354,11 @@ function createHandlerRemover(target, namespace, event, handler, delegation=null
 		handlerScope = handlerScope.delegations[`${delegation}`];
 	}
 
-	assert(isPlainObject(handlerScope), `${MODULE_NAME}:${__methodName__} | invalid handlerScope`);
+	if( !ignoreInvalidScope ){
+		assert(isPlainObject(handlerScope), `${MODULE_NAME}:${__methodName__} | invalid handlerScope`);
+	} else if( !isPlainObject(handlerScope) ){
+		return () => {};
+	}
 
 	return function handlerRemover(){
 		const removedHandlers = handlerScope.handlers.filter(existingHandler => existingHandler.handler === handler);
@@ -380,7 +384,7 @@ function createHandlerRemover(target, namespace, event, handler, delegation=null
 function createSelfRemovingHandler(target, namespace, event, handler, delegation=null){
 	return function selfRemovingHandler(e){
 		handler(e);
-		createHandlerRemover(target, namespace, event, handler, delegation)();
+		createHandlerRemover(target, namespace, event, handler, delegation, true)();
 	};
 }
 

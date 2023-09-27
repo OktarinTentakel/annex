@@ -188,14 +188,22 @@ export function format(date, definition='long', locale='en-US', type='datetime',
 		tokenMap.set('HH', pad(`${date[settersAndGetters.hours.getter]()}`, '0', 2));
 		tokenMap.set('H', `${date[settersAndGetters.hours.getter]()}`);
 		tokenMap.set('hh', pad(`${
-			(date[settersAndGetters.hours.getter]() > 12)
+			(date[settersAndGetters.hours.getter]() === 0)
+			? 12
+			: (
+				(date[settersAndGetters.hours.getter]() > 12)
 				? date[settersAndGetters.hours.getter]() - 12
 				: date[settersAndGetters.hours.getter]()
+			)
 		}`, '0', 2));
 		tokenMap.set('h', `${
-			(date[settersAndGetters.hours.getter]() > 12)
-			? date[settersAndGetters.hours.getter]() - 12
-			: date[settersAndGetters.hours.getter]()
+			(date[settersAndGetters.hours.getter]() === 0)
+			? 12
+			: (
+				(date[settersAndGetters.hours.getter]() > 12)
+				? date[settersAndGetters.hours.getter]() - 12
+				: date[settersAndGetters.hours.getter]()
+			)
 		}`);
 		tokenMap.set('mm', pad(`${date[settersAndGetters.minutes.getter]()}`, '0', 2));
 		tokenMap.set('m', `${date[settersAndGetters.minutes.getter]()}`);

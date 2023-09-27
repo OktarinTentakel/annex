@@ -18,6 +18,7 @@ const {
 
 test('format', assert => {
 	const foo = new Date('2016-02-28T18:35:06.700Z');
+
 	assert.is(format(foo, 'short', 'de-DE'), '29.02.16, 04:05');
 	assert.is(format(foo), 'February 29, 2016 at 4:05:06 AM GMT+9:30');
 	assert.is(format(foo, 'long', null, 'date'), 'February 29, 2016');
@@ -26,6 +27,10 @@ test('format', assert => {
 	assert.is(format(foo, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), '2016-02-29T04:05:06.700+09:30');
 	assert.is(format(foo, 'YYYY-MM-DDTHH:mm:ss.SSSZ', null, null, {timeZone : 'Australia/Darwin'}), '2016-02-29T04:05:06.700+09:30');
 	assert.is(format(foo, 'YYMDHms', 'en-GB', 'date', {timeZone : 'Europe/Berlin'}), '16229456');
+	assert.is(format(new Date('2016-02-28T00:59:06+09:30'), 'h:mm A'), '12:59 AM');
+	assert.is(format(new Date('2016-02-28T01:59:06+09:30'), 'h:mm A'), '1:59 AM');
+	assert.is(format(new Date('2016-02-28T12:59:06+09:30'), 'h:mm:ssa'), '12:59:06pm');
+	assert.is(format(new Date('2016-02-28T13:59:06+09:30'), 'h:mm:ssa'), '1:59:06pm');
 });
 
 

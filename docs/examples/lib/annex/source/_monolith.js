@@ -25,6 +25,9 @@ export const timers = _timers;
 import * as _functions from './functions.js';
 export const functions = _functions;
 
+import * as _units from './units.js';
+export const units = _units;
+
 import * as _dates from './dates.js';
 export const dates = _dates;
 

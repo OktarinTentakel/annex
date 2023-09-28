@@ -203,8 +203,8 @@ test.serial('off', assert => {
 		createScenario = () => {
 			eventsFiredCount = 0;
 			handlersRemoved = 0;
-			on(foo, 'Crash.test.dümmy', handler1);
-			on(foo, ['CRASH.test', 'crAsh.site', 'crash.dÚmmy'], handler1);
+			on(foo, 'Cra_:_sh.test.dümmy', handler1);
+			on(foo, ['CRA_:_SH.test', 'crA_:_sh.site', 'cra_:_sh.dÚmmy'], handler1);
 			on([foo, 'a', foo, '.btn[data-foobar="test"]'], 'click.delegated', handler2);
 			on([bar, baz], 'click', handler2);
 		}
@@ -216,13 +216,14 @@ test.serial('off', assert => {
 	assert.is(EVENT_MAP.size, 2);
 	handlersRemoved += off(bar, '*.__default');
 	assert.is(EVENT_MAP.size, 1);
-	handlersRemoved += off(foo, 'crash');
+	handlersRemoved += off(foo, 'cra_:_sh');
 	assert.is(EVENT_MAP.size, 1);
 	handlersRemoved += off([foo, 'a'], 'click');
 	handlersRemoved += off([foo, '.btn[data-foobar="test"]'], '*.delegated', handler2);
+console.log(EVENT_MAP);
 	assert.is(EVENT_MAP.size, 0);
 	assert.is(handlersRemoved, 8);
-	foo.dispatchEvent(new CustomEvent('crash'));
+	foo.dispatchEvent(new CustomEvent('cra_:_sh'));
 	bar.click();
 	baz.click();
 	assert.is(eventsFiredCount, 0);

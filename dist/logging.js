@@ -1,5 +1,5 @@
 /*!
- * @oktarintentakel/annex v0.1.11-beta
+ * @oktarintentakel/annex v0.1.12-beta
  */
 /*!
  * Module Logging

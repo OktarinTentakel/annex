@@ -233,7 +233,7 @@ export function format(date, definition='long', locale='en-US', type='datetime',
 			}
 		}
 
-		locale = orDefault(locale, 'en-US', 'str');
+		locale = orDefault(locale, 'en-US');
 		if(
 			(!isArray(locale) && (locale !== 'en-US'))
 			|| (isArray(locale) && !locale.includes('en-US'))

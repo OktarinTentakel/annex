@@ -215,6 +215,17 @@ export function pad(subject, paddingCharacter, expectedLength, from='left'){
  * @param {String} subject - the string to trim
  * @param {?String|Array<String>} [characters=null] - defines which character(s) to trim; will trim whitespace if nullish (or '\\s'); if you want to trim whitespace and something else, define an array including a nullish value (or '\\s') as well as the other characters; this parameter uses regex definitions
  * @param {?String} [from='both'] - the side(s) from which to trim, either "both", "left" or "right"
+ * @returns {String} the trimmed subject
+ *
+ * @memberof Strings:trim
+ * @alias trim
+ * @example
+ * trim('  foo  ')
+ * => 'foo'
+ * trim('  foo  ', null, 'right')
+ * => '  foo'
+ * trim('abcdefghijklmnopqrstuvwxyz', ['[a-f]', '[u-z]', 'l'], 'both')
+ * => 'ghijklmnopqrst'
  */
 export function trim(subject, characters=null, from='both'){
 	subject = `${subject}`;
@@ -432,7 +443,8 @@ export function format(template, ...replacements){
  * (will take precedence over the default map).
  *
  * @param {String} text - the text to slugify
- * @param {String?} [additionalMap=null] - optional character map to supplement/override the default map, having the form {'[search character]' : '[replacement]', ...}
+ * @param {?String} [additionalMap=null] - optional character map to supplement/override the default map, having the form {'[search character]' : '[replacement]', ...}
+ * @param {?Boolean} [toLowerCase=true] - set this to false, to keep character casing
  * @returns {String} the slugified string
  *
  * @memberof Strings:slugify
@@ -441,17 +453,23 @@ export function format(template, ...replacements){
  * slugify('This is a cömplicated ßtring for URLs!')
  * => 'this-is-a-complicated-sstring-for-urls'
  */
-export function slugify(text, additionalMap=null){
+export function slugify(text, additionalMap=null, toLowerCase=true){
 	if( !isPlainObject(additionalMap) ){
 		additionalMap = {};
 	}
+	toLowerCase = orDefault(toLowerCase, true, 'bool');
 
-	return `${text}`.toLowerCase()
-		.replace(/\s+|_+/g, '-')        // replace spaces and underscores with "-"
+	text = `${text}`;
+	if( toLowerCase ){
+		text = text.toLowerCase();
+	}
+
+	return text
 		.replace(
 			/[^\-]/g,                   // replace accented chars with plain ones via map and/or apply additionalMap
 			char => additionalMap[char] ?? SLUGIFY_LATINMAP[char] ?? char
 		)
+		.replace(/\s+|_+/g, '-')        // replace spaces and underscores with "-"
 		.replace(/[^\w\-]+/g, '')       // remove all non-word, non-dash chars
 		.replace(/--+/g, '-')           // replace multiple "-" with single "-"
 		.replace(/^-+/, '')             // trim "-" from start of text

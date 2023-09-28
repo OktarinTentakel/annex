@@ -28,7 +28,7 @@ import {
 	isEmpty,
 	isSelector
 } from './basic.js';
-import {slugify} from './strings.js';
+import {slugify, replace} from './strings.js';
 import {removeFrom} from './arrays.js';
 import {detectInteractionType} from './context.js';
 import {warn} from './logging.js';
@@ -123,16 +123,36 @@ function prepareEventMethodBaseParams(methodName, targets, events, handler, hand
 		`${MODULE_NAME}:${methodName} | not all delegated targets are a selector or have an ancestor`
 	);
 
-	events = events
+	const normalizedEvents = events
 		.map(event => event.replace(`.${DEFAULT_NAMESPACE}`, '.-default-ns'))
+		.map(event => replace(event, ['xxyxxx-', '-xxyxx',], ''))
 		.map(event => slugify(event, {
-			'.' : '___dot___',
-			'*' : '___star___'
+			'_' : 'xxyxx-underscore-xxyxx',
+			'.' : 'xxyxx-dot-xxyxx',
+			'*' : 'xxyxx-star-xxyxx',
+			':' : 'xxyxx-colon-xxyxx'
 		}))
-		.map(event => event.replaceAll('___dot___', '.'))
-		.map(event => event.replaceAll('___star___', '*'))
+		.map(event => replace(event, [
+			'xxyxx-underscore-xxyxx',
+			'xxyxx-dot-xxyxx',
+			'xxyxx-star-xxyxx',
+			'xxyxx-colon-xxyxx',
+		], [
+			'_',
+			'.',
+			'*',
+			':'
+		]))
 		.map(event => event.replace('.-default-ns', `.${DEFAULT_NAMESPACE}`))
 	;
+
+	for( const normalizedEventIndex in normalizedEvents ){
+		if( normalizedEvents[normalizedEventIndex] !== events[normalizedEventIndex] ){
+			warn(`${MODULE_NAME}:${methodName} | invalid event name "${events[normalizedEventIndex]}" has been normalized to "${normalizedEvents[normalizedEventIndex]}", please check event handling`);
+		}
+	}
+
+	events = normalizedEvents;
 
 	return {targets, events, handler};
 }

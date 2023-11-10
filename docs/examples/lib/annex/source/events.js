@@ -629,12 +629,12 @@ function createSyntheticEvent(
 
 	let e;
 	if( isFunction(EventConstructor) ){
-		if( isPlainObject(payload) ){
-			console.warn(`${MODULE_NAME}:${__methodName__} | can't add payload to event "${EventConstructor.name}", skipping`);
+		if( hasValue(payload) ){
+			warn(`${MODULE_NAME}:${__methodName__} | can't add payload to event "${EventConstructor.name}", skipping`);
 		}
 		e = new EventConstructor(event, {bubbles, cancelable, ...eventOptions});
 	} else {
-		e = isPlainObject(payload)
+		e = hasValue(payload)
 			? new CustomEvent(event, {detail : payload, bubbles, cancelable, ...eventOptions})
 			// we could use new Event() here, but jsdom and ava cannot use that constructor for dispatchEvent :(
 			: new CustomEvent(event, {bubbles, cancelable, ...eventOptions})

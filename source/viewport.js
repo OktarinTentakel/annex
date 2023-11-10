@@ -34,6 +34,7 @@ import {EasingFunctions} from './animation.js';
 import {requestAnimationFrame, cancelAnimationFrame} from './timers.js';
 import {throttle, defer} from './functions.js';
 import {warn} from './logging.js';
+import {fire} from './events.js';
 
 
 
@@ -534,7 +535,7 @@ class VisibilityState {
 	 * bounds. This value may also be negative, if so, it indicates distance from the top.
 	 *
 	 * @param {?Number} [value=null] - the value to set, if left out or nullish, the method will just return the current value
-	 * @fires CustomEvent#"distanceviewports.visibilitystate" - {detail : percentNumber}
+	 * @fires CustomEvent#"distanceviewports.visibilitystate" - {detail : viewportNumber}
 	 * @fires CustomEvent#"changed.visibilitystate"
 	 * @returns {Number} the amount of viewports to scroll until the element hits the viewport bounds
 	 *
@@ -826,6 +827,12 @@ class VisibilityState {
 			`${eventName}.${this.#eventNameSpace}`,
 			{detail : payload ?? {}}
 		));
+
+		fire(
+			this.#element,
+			`${eventName}.${this.#eventNameSpace}`,
+			payload ?? {}
+		);
 
 		return this;
 	}
@@ -1197,7 +1204,7 @@ export function scrollTo(
  * ;
  * element1.addEventListener(
  *   'visiblepixels.visibilityobserver',
- *   visiblePixels => { console.log(`${visiblePixels} vertical pixels of element1 are visible`); }
+ *   e => { console.log(`${e.detail} vertical pixels of element1 are visible`); }
  * );
  */
 class VisibilityObserver {
@@ -1745,6 +1752,12 @@ class VisibilityObserver {
 			`${eventName}.${this.#eventNameSpace}`,
 			{detail : payload ?? {}}
 		));
+
+		fire(
+			document.body,
+			`${eventName}.${this.#eventNameSpace}`,
+			payload ?? {}
+		);
 
 		return this;
 	}

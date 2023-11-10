@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: objects.js</title>
+    <title>JSDoc: Namespace: Units:asDecimal</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,268 +17,407 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: objects.js</h1>
+    <h1 class="page-title">Namespace: Units:asDecimal</h1>
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/*!
- * Module Objects
- */
+        <h2>Units:asDecimal</h2>
+        
+    
+</header>
 
-/**
- * @namespace Objects
- */
+<article>
+    <div class="container-overview">
+    
+        
 
-const MODULE_NAME = 'Objects';
-
-
-
-//###[ IMPORTS ]########################################################################################################
-
-import {getType, isFunction, isPlainObject, orDefault} from './basic.js';
+        
 
 
+<dl class="details">
 
-//###[ EXPORTS ]########################################################################################################
+    
 
-/**
- * @namespace Objects:clone
- */
+    
 
-/**
- * Cloning arbitrary objects, values and structured values is no trivial task in JavaScript.
- * For basic values this can easily be achieved by serializing/deserializing via JSON.parse(JSON.stringify(value)), but
- * for everything not included in the JSON standard, such as nodes, sets, maps, functions and objects with constructors
- * this gets hairy pretty quickly.
- *
- * This function implements a fairly robust recursive cloning algorithm with circular dependency detection and should
- * be sufficient for 90% of your cloning needs. It can create deep and shallow copies, although I generally presume
- * that you need a deep copy if you are in need of a clone method to begin with. This method handles ordinal values,
- * regexes, dates and htmlelements/nodes, as well as nested structures consisting of arrays, plain objects,
- * simple constructed objects with settable properties, sets, maps and even nodelists.
- *
- * Be aware of these restrictions:
- * - map keys are not cloned since, if you would, you'd lose all access to values,
- *   because you would have no valid references
- * - cloning a nodelist in a shallow manner results in the original list being empty afterwards, since moving a node
- *   reference from one nodelist to another automatically removes the reference from the first, because a node may
- *   only appear at exactly one place in a dom tree
- *
- * If this function does not suffice, have a look at lodash's cloneDeep method, which is a very robust and complete
- * (but large and complex) solution: https://www.npmjs.com/package/lodash.clonedeep
- *
- * @param {*} target - the object/value to clone
- * @param {?Boolean} [deep=true] - define if nested objects/values are to be cloned as well or just referenced in a shallow way
- * @returns {*} the cloned object/value
- *
- * @memberof Objects:clone
- * @alias clone
- * @example
- * const foo = {foo : 'bar', bar : [new Foobar(1, 2, 3), new Set([new Date('2021-03-09'), new RegExp('^foobar$')])]};
- * const allNewFoo = clone(foo);
- * const shallowNewFoo = clone(foo, false);
- * const thatOneTextAgain = clone(document.querySelector('p.that-one-text'));
- * thatOneTextAgain.classList.add('hooray');
- */
-export function clone(target, deep=true){
-	deep = orDefault(deep, true, 'bool');
+    
 
-	if( isFunction(target?.clone) ){
-		return target.clone(deep);
-	}
+    
 
-	const
-		seenReferences = Array.from(arguments)[2] ?? [],
-		seenCopies = Array.from(arguments)[3] ?? []
-	;
+    
 
-	if( seenReferences.indexOf(target) >= 0 ){
-		return seenCopies[seenReferences.indexOf(target)];
-	}
+    
 
-	const targetType = getType(target);
-	switch( targetType ){
-		case 'array':
-			const arrayCopy = [...target];
+    
 
-			seenReferences.push(target);
-			seenCopies.push(arrayCopy);
+    
 
-			if( deep ){
-				let i = arrayCopy.length;
-				while( i-- ){
-					arrayCopy[i] = clone(arrayCopy[i], deep, seenReferences, seenCopies);
-				}
-			}
+    
 
-			return arrayCopy;
+    
 
-		case 'set':
-		case 'weakset':
-			const setCopy = (targetType === 'weakset')
-				? new WeakSet()
-				: new Set()
-			;
+    
 
-			seenReferences.push(target);
-			seenCopies.push(setCopy);
+    
 
-			target.forEach(value => {
-				if( deep ){
-					setCopy.add(clone(value, deep, seenReferences, seenCopies));
-				} else {
-					setCopy.add(value);
-				}
-			});
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="units.js.html">units.js</a>, <a href="units.js.html#line144">line 144</a>
+    </li></ul></dd>
+    
 
-			return setCopy;
+    
 
-		case 'map':
-		case 'weakmap':
-			const mapCopy = (targetType === 'weakmap')
-				? new WeakMap()
-				: new Map()
-			;
+    
 
-			seenReferences.push(target);
-			seenCopies.push(mapCopy);
+    
+</dl>
 
-			target.forEach((value, key) => {
-				if( deep ){
-					mapCopy.set(key, clone(value, deep, seenReferences, seenCopies));
-				} else {
-					mapCopy.set(key, value);
-				}
-			});
 
-			return mapCopy;
+        
+    
+    </div>
 
-		case 'url':
-			const urlCopy = new URL(target);
+    
 
-            seenReferences.push(target);
-            seenCopies.push(urlCopy);
+    
 
-			return urlCopy;
+    
 
-		case 'urlsearchparams':
-            const urlSearchParamsCopy = new URLSearchParams(target.toString());
+     
 
-            seenReferences.push(target);
-            seenCopies.push(urlSearchParamsCopy);
+    
 
-            return urlSearchParamsCopy;
+    
 
-		case 'object':
-			const objectCopy = Object.create(Object.getPrototypeOf ? Object.getPrototypeOf(target) : target.__proto__);
+    
+        <h3 class="subsection-title">Methods</h3>
 
-			seenReferences.push(target);
-			seenCopies.push(objectCopy);
+        
+            
 
-			for( let prop in target ){
-				if( target.hasOwnProperty(prop) ){
-					if( deep ){
-						objectCopy[prop] = clone(target[prop], deep, seenReferences, seenCopies);
-					} else {
-						objectCopy[prop] = target[prop];
-					}
-				}
-			}
+    
 
-			return objectCopy;
+    <h4 class="name" id="asDecimal"><span class="type-signature"></span>asDecimal<span class="signature">(number, locale<span class="signature-attributes">opt</span>, minPrecision<span class="signature-attributes">opt, nullable</span>, maxPrecision<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {String}</span></h4>
 
-		case 'nodelist':
-			const fragment = document.createDocumentFragment();
-
-			// no optimization with seenReferences or seenCopies, since, in a dom tree, we cannot reuse
-			// references or elements, since that would mean reattaching a node, which would move the node
-
-			if( deep ){
-				target.forEach(element => {
-					if( deep ){
-						fragment.appendChild(clone(element, deep, seenReferences, seenCopies));
-					}
-				});
-			// shallow copying a nodelist is destructive, since appending the original element, empties the original
-			// list, since every node may only exist once inside a dom
-			} else {
-				while( target.length ){
-					fragment.appendChild(target.item(0));
-				}
-			}
-
-			return fragment.childNodes;
-
-		case 'date': return new Date(target.getTime());
-		case 'regexp': return new RegExp(target);
-		case 'htmlelement': return target.cloneNode(deep);
-		default: return target;
-	}
-}
+    
 
 
 
-/**
- * @namespace Objects:merge
- */
+<div class="description">
+    <p>Renders a number as a decimal value, using native Intl.NumberFormat functionality.</p>
+</div>
 
-/**
- * Merging objects in JS is easy, using spread operators, as long as we are talking about shallow merging of the first
- * level. This method aims to deep merge recursively, always returning a new object, never touching or changing the
- * original one.
- *
- * This method implements LIFO precedence: the last extension wins.
- *
- * Possible differences to other implementations (like lodash's):
- * - arrays are not concatenated here, but replaced.
- * - explicitly extending an empty object, replaces the value with the empty object instead of doing nothing
- * - all involved objects are cloned, so references in the resulting object will differ
- *
- * @param {Object} base - the object to extend
- * @param {Array&lt;Object>} extensions - one or more objects to merge into base sequentially, the last taking precedence
- * @returns {Object} the (newly created) merged object
- *
- * @memberof Objects:merge
- * @alias merge
- * @example
- * merge(
- *   {ducks : {uncles : ['Donald', 'Scrooge'], nephews : {huey : true}}},
- *   {ducks : {nephews : {dewey : true}}, mice : ['Mickey']},
- *   {ducks : {uncles : ['Gladstone'], nephews : {louie : true}}, mice : ['Mickey', 'Minnie']}
- * )
- * => {ducks : {uncles : ['Gladstone'], nephews : {huey : true, dewey : true, louie : true}}, mice : ['Mickey', 'Minnie']}
- */
-export function merge(base, ...extensions){
-	base = clone(base);
 
-	Array.from(extensions).forEach(extension => {
-		extension = clone(extension);
 
-		for( let prop in extension ){
-			if( extension.hasOwnProperty(prop) ){
-				if(
-					base.hasOwnProperty(prop)
-					&amp;&amp; (isPlainObject(base[prop]) &amp;&amp; isPlainObject(extension[prop]))
-					&amp;&amp; (Object.keys(extension[prop]).length > 0)
-				){
-					base[prop] = merge(base[prop], extension[prop]);
-				} else {
-					base[prop] = extension[prop];
-				}
-			}
-		}
-	});
 
-	return base;
-}
-</code></pre>
-        </article>
-    </section>
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>number</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>the number to use as a decimal amount</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>locale</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+|
+
+<span class="param-type">Array.&lt;String></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'en-US'
+                
+                </td>
+            
+
+            <td class="description last"><p>locale to use, use array to define fallback; always falls back to en-US if nothing else works</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>minPrecision</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    2
+                
+                </td>
+            
+
+            <td class="description last"><p>the minimal precision to use in decimal display</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>maxPrecision</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>the minimal precision to use in decimal display; if nullish, will be set to minPrecision</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="units.js.html">units.js</a>, <a href="units.js.html#line166">line 166</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    the formatted decimal amount
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>asDecimal(42.666)
+=> '42.67'
+asDecimal(42.666, 'de-DE', 1)
+=> '42,7'</code></pre>
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 
@@ -292,7 +431,7 @@ export function merge(base, ...extensions){
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Fri Nov 10 2023 14:44:37 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Fri Nov 10 2023 14:44:38 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

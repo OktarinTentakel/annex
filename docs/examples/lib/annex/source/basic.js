@@ -387,6 +387,7 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  * - "weakmap"
  * - "htmldocument"
  * - "htmlelement"
+ * - "svgelement"
  * - "htmlcollection"
  * - "nodelist"
  * - "window"
@@ -412,6 +413,7 @@ export function getType(value) {
 	if( deepType === 'document' ) return 'htmldocument';
 	if( deepType === 'element' ) return 'htmlelement';
 	if( /^html.*element$/.test(deepType) ) return 'htmlelement';
+	if( /^svg.*element$/.test(deepType) ) return 'svgelement';
 	if( /^.*iterator$/.test(deepType) ) return 'iterator';
 
 	return deepType.match(/^(array|bigint|date|error|function|generator|regexp|symbol|set|weakset|map|weakmap|htmldocument|htmlcollection|nodelist|window|url|urlsearchparams)$/)
@@ -464,6 +466,7 @@ export function isA(value, type){
 			'weakmap',
 			'htmldocument',
 			'htmlelement',
+			'svgelement',
 			'htmlcollection',
 			'nodelist',
 			'window',
@@ -1036,6 +1039,7 @@ export function isDocument(value){
  * Returns if a value is an HTML element.
  * Be aware, that this explicitly means an element, not necessarily any node.
  * So text nodes, comments and such do not qualify.
+ * Also keep in mind, that SVGs are also something different.
  *
  * @param {*} value - the value to check
  * @returns {Boolean} true if value is an HTML element
@@ -1049,6 +1053,29 @@ export function isDocument(value){
  */
 export function isElement(value){
 	return isA(value, 'htmlelement');
+}
+
+
+
+/**
+ * @namespace Basic:isSvg
+ */
+
+/**
+ * Returns if a value is an SVG element.
+ *
+ * @param {*} value - the value to check
+ * @returns {Boolean} true if value is an SVG element
+ *
+ * @memberof Basic:isSvg
+ * @alias isSvg
+ * @example
+ * if( isSvg(target) ){
+ *   target.querySelectorAll('path').remove();
+ * }
+ */
+export function isSvg(value){
+	return isA(value, 'svgelement');
 }
 
 

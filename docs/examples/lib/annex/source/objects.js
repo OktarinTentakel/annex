@@ -186,6 +186,12 @@ export function clone(target, deep=true){
 
 			return fragment.childNodes;
 
+		case 'svgelement':
+			const outerNode = document.createElement('div');
+			outerNode.innerHTML = target.outerHTML;
+
+			return outerNode.firstChild;
+
 		case 'date': return new Date(target.getTime());
 		case 'regexp': return new RegExp(target);
 		case 'htmlelement': return target.cloneNode(deep);

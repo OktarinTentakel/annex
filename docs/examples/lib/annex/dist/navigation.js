@@ -1,5 +1,5 @@
 /*!
- * @oktarintentakel/annex v0.1.14-beta
+ * @oktarintentakel/annex v0.1.15-beta
  */
 /*!
  * Module Navigation

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: arrays.js</title>
+    <title>JSDoc: Namespace: Basic:isSvg</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,209 +17,259 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: arrays.js</h1>
+    <h1 class="page-title">Namespace: Basic:isSvg</h1>
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/*!
- * Module Arrays
- */
+        <h2>Basic:isSvg</h2>
+        
+    
+</header>
 
-/**
- * @namespace Arrays
- */
+<article>
+    <div class="container-overview">
+    
+        
 
-const MODULE_NAME = 'Arrays';
-
-
-
-//###[ IMPORTS ]########################################################################################################
-
-import {assert, isArray, isNumber, isString, isMap, isSet, isPlainObject, orDefault} from './basic.js';
+        
 
 
+<dl class="details">
 
-//###[ EXPORTS ]########################################################################################################
+    
 
-/**
- * @namespace Arrays:removeFrom
- */
+    
 
-/**
- * Removes Elements from an Array, where to and from are inclusive.
- * If you only provide "from", that exact index is removed.
- *
- * Does not modify the original.
- *
- * Keep in mind, that "from" should normally be smaller than "to" to slice from left to right. This means that the elements
- * indexed by "from" and "to" should have the right order. For example: [1,2,3,4]. Here from=-1 and to=-3 are illegal since
- * "from" references a later element than "to", but there are also viable examples where "from" is numerically bigger. If we
- * use from=2 and to=-1, "from" is numerically bigger, but references an earlier element than -1 (which is the last element),
- * which is totally okay. Just make sure "from" comes before "to" in the element's order.
- *
- * If you provide a string for "from" everything matching that string with its string representation will be removed
- * (you can provide stringification for objects via the toString method, see:
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString).
- *
- * Everything else (except collections) provided for "from" will determine the element(s) to remove by identity (===).
- *
- * If you want to remove several elements at once, you may provide an iterable collection as "from" and
- * This also makes it possible to actually remove numbers from an array by identity: define the number(s) as an array,
- * to signal, that these are no indices. If you need to remove a collection from the array by reference, either put
- * the collection in an array or set "to" to true, to force the collection being treated as a reference.
- *
- * Iterable collections, usable in "from" in the sense of this method are:
- * - PlainObject (values)
- * - Array
- * - Set
- * - Map (values)
- * To remove these by reference from target, instead of iterating them, set "to" to true.
- *
- * @param {Array} target - the array to remove elements from
- * @param {*} from - numerical index to start removing from (can also be negative to start counting from back), a string to identify elements to remove by their string representation or any other value identifying elements to remove by identity, if this is an iterable collection, the collection is iterated instead of being treated as a reference, enforce treatment as a reference, by setting "to" to true
- * @param {?Number|Boolean} [to=null] - index to end removing (can also be negative to end counting from back), if true, "from" defines a given iterable collection to be removed by reference, instead of removing the contained values, with this you can remove an array from an array for example
- * @throws error if target is not an array
- * @returns {Array} new array without index/range/matches
- *
- * @memberof Arrays:removeFrom
- * @alias removeFrom
- * @example
- * removeFrom([1, 2, 3, 4, 5], 0, 2);
- * => [4, 5]
- * removeFrom([1, 2, 3, 4, 5], -3, -1);
- * => [1, 2]
- * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], 'b');
- * => [b, 1]
- * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], b);
- * => [{a : 'b', toString(){ return 'b'; }}, 'b', 1]
- * removeFrom([true, true, false, true, true], true)
- * => [false]
- * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2]);
- * => [1]
- */
-export function removeFrom(target, from, to=null){
-	const __methodName__ = 'removeFrom';
+    
 
-	assert(isArray(target), `${MODULE_NAME}:${__methodName__} | target is no array`);
+    
 
-	if( isNumber(from) &amp;&amp; (to !== true) ){
-		from = parseInt(from, 10);
-		to = orDefault(to, null, 'int');
+    
 
-		target = target.slice(0);
-		const rest = target.slice((to || from) + 1 || target.length);
-		target.length = (from &lt; 0) ? (target.length + from) : from;
+    
 
-		return target.concat(rest);
-	} else if( isString(from) ){
-		return target.reduce((reducedArray, item) => {
-			if( `${item}` !== from ){
-				reducedArray.push(item);
-			}
-			return reducedArray;
-		}, []);
-	} else {
-		let fromList;
-		if( isPlainObject(from) ){
-			fromList = Object.values(from);
-		} else if( isMap(from) ){
-			fromList = Array.from(from.values());
-		} else if( isSet(from) ){
-			fromList = Array.from(from.values());
-		} else {
-			fromList = Array.from(from);
-		}
+    
 
-		if( (fromList.length > 0) &amp;&amp; (to !== true) ){
-			return fromList.reduce((reducedArray, item) => {
-				reducedArray = removeFrom(reducedArray, item, true);
-				return reducedArray;
-			}, [...target]);
-		} else {
-			return target.reduce((reducedArray, item) => {
-				if( item !== from ){
-					reducedArray.push(item);
-				}
-				return reducedArray;
-			}, []);
-		}
-	}
-}
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="basic.js.html">basic.js</a>, <a href="basic.js.html#line1060">line 1060</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="isSvg"><span class="type-signature"></span>isSvg<span class="signature">(value)</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
+
+    
 
 
 
-/**
- * @namespace Arrays:generateRange
- */
+<div class="description">
+    <p>Returns if a value is an SVG element.</p>
+</div>
 
-/**
- * To remove these by reference from target, instead of iterating them, set "to" to true.
- *
- * @param {Number|String} from - the start of the range, may also be negative, if larger than "to", the range is created in reverse, as a string, this can be a single character
- * @param {Number|String} to - the end of the range, may also be negative, if smaller than "from", the range is created in reverse, as a string, this can be a single character
- * @param {?Number} [step=null] - the (positive) step length in the range to use between individual range values, if the step length does not hit "to" exactly, the range will end at the last possible value before "to"
- * @throws error if "from" or "to" are empty strings
- * @returns {Array} new array with generated range
- *
- * @memberof Arrays:generateRange
- * @alias generateRange
- * @example
- * generateRange(0, 10, 2)
- * => [0, 2, 4, 6, 8, 10]
- * generateRange(5, -5, 3.5)
- * => [5, 1.5, -2]
- * generateRange('a', 'g, 3)
- * => ['a', 'd', 'g']
- */
-export function generateRange(from, to, step=1){
-	const
-		__methodName__ = 'generateRange',
-		cannotBeEmptyMessage = 'cannot be empty'
-	;
 
-	const generateChars = !isNumber(from) || !isNumber(to);
-	if( generateChars ){
-		if( !isNumber(from) ){
-			from = `${from}`;
-			assert((from.length > 0), `${MODULE_NAME}:${__methodName__} | "from" ${cannotBeEmptyMessage}`);
-			from = from.charCodeAt(0);
-		}
 
-		if( !isNumber(to) ){
-			to = `${to}`;
-			assert((to.length > 0), `${MODULE_NAME}:${__methodName__} | "to" ${cannotBeEmptyMessage}`);
-			to = to.charCodeAt(0);
-		}
-	}
 
-	step = orDefault(step, 1, 'float');
 
-	const
-		factor = ((to - from) &lt; 0) ? -1 : 1,
-		range = []
-	;
 
-	let
-		diff = Math.abs(to - from),
-		current = from
-	;
 
-	while( diff >= 0 ){
-		range.push(generateChars ? String.fromCharCode(current) : current);
-		current += step * factor;
-		diff -= step;
-	}
 
-	return range;
-}
-</code></pre>
-        </article>
-    </section>
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the value to check</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="basic.js.html">basic.js</a>, <a href="basic.js.html#line1077">line 1077</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    true if value is an SVG element
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>if( isSvg(target) ){
+  target.querySelectorAll('path').remove();
+}</code></pre>
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 
@@ -233,7 +283,7 @@ export function generateRange(from, to, step=1){
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Thu Nov 16 2023 10:47:35 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Thu Nov 16 2023 10:47:36 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

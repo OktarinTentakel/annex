@@ -12,8 +12,20 @@ const MODULE_NAME = 'Urls';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {hasValue, orDefault, size, assert} from './basic.js';
+import {
+	hasValue,
+	orDefault,
+	size,
+	assert,
+	isFunction,
+	isString,
+	isArray,
+	isObject,
+	isNaN,
+	isEmpty
+} from './basic.js';
 import {log} from './logging.js';
+import {replace} from './strings.js';
 
 
 
@@ -36,6 +48,341 @@ export const COMMON_TOP_LEVEL_DOMAINS = [
 	'ua', 'ug', 'uk', 'um', 'us', 'uy', 'uz', 'va', 'vc', 've', 'vg', 'vi', 'vn', 'vu', 'wf', 'ws', 'ye', 'yt', 'yu',
 	'za', 'zm', 'zr', 'zw', 'local'
 ];
+
+const
+	URISON_VALUE_FORMAT = `[^\-0123456789 '!:(),*@$][^ '!:(),*@$]*`,
+	URISON_VALUE_REX = new RegExp(`^${URISON_VALUE_FORMAT}$`),
+	URISON_NEXT_VALUE_REX = new RegExp(URISON_VALUE_FORMAT, 'g')
+;
+
+
+
+//###[ HELPERS ]########################################################################################################
+
+/**
+ * A parser to translate a Rison string such as `'(key1:value,key2:!t,key3:!(!f,42,!n))'` into its
+ * JSON object/array representation `{key1 : 'value', key2 : true, key3 : [false, 42, null]}`. This is a helper class
+ * for the public Urison class below.
+ *
+ * @protected
+ * @memberof Urls
+ * @name UrisonParser
+ *
+ * @see https://github.com/Nanonid/rison
+ * @example
+ * new UrisonParser(error => { console.error(error); });
+ */
+class UrisonParser {
+
+	#__className__ = 'UrisonParser';
+	#errorHandler;
+	#string = '';
+	#index = 0;
+	#message = null;
+	#bangTokens;
+	#tokenMap;
+
+	/**
+	 * Creates a new UrisonParser instance.
+	 *
+	 * All errors in this class result in a console error message rather than an exception. To work with occurring
+	 * errors, define an errorCallback for the constructor and throw errors from there if needed.
+	 *
+	 * @param {Function} [errorHandler=null] - function to call in case parsing fails, receives the error message and the character index as parameters
+	 */
+	constructor(errorHandler=null){
+		const instance = this;
+
+		this.#errorHandler = isFunction(errorHandler) ? errorHandler : null;
+
+		// syntax tokens preceded with a "!" and the values they represent in JSON
+		this.#bangTokens = {
+			't' : true,
+			'f' : false,
+			'n' : null,
+			'(' : this.#parseArray
+		};
+
+		// syntax structure tokens and the procedures, that transform these tokens into json structure
+		this.#tokenMap = {
+			'!' : function(){
+				const char = instance.#string.charAt(instance.#index++);
+				if( char === '' ) return instance.#error('"!" at end of input');
+
+				const value = instance.#bangTokens[char];
+				if( value === undefined ) return instance.#error(`unknown literal: "!${char}"`);
+				if( isFunction(value) ) return value.call(this);
+
+				return value;
+			},
+
+			'(' : function(){
+				const res = {};
+				let
+					first = true,
+					char
+				;
+
+				while( (char = instance.#next()) !== ')' ){
+					if( !first ){
+						if( char !== ',' ){
+							return instance.#error('missing ","');
+						}
+					} else if( char === ',' ){
+						return instance.#error('extra ","');
+					} else {
+						instance.#index--;
+					}
+
+					const key = instance.#readValue();
+					if( key === undefined ) return undefined;
+					if( instance.#next() !== ':' ) return instance.#error('missing ":"');
+
+					const value = instance.#readValue();
+					if( value === undefined ) return undefined;
+					res[key] = value;
+
+					first = false;
+				}
+
+				return res;
+			},
+
+			"'" : function(){
+				const segments = [];
+				let
+					i = instance.#index,
+					start = instance.#index,
+					char
+				;
+
+				while( (char = instance.#string.charAt(i++)) !== "'" ){
+					if( char === '' ) return instance.#error(`unmatched "'"`);
+					if( char === '!' ){
+						if( start < (i - 1) ){
+							segments.push(instance.#string.slice(start, i - 1));
+						}
+						char = instance.#string.charAt(i++);
+						if( ['!', "'"].includes(char) ){
+							segments.push(char);
+						} else {
+							return instance.#error(`invalid string escape: "!${char}"`);
+						}
+						start = i;
+					}
+				}
+				if( start < (i - 1) ){
+					segments.push(instance.#string.slice(start, i - 1));
+				}
+				instance.#index = i;
+
+				return (segments.length === 1) ? segments[0] : segments.join('');
+			},
+
+			'-' : function(){
+				const
+					start = instance.#index - 1,
+					numberTypeMap = {
+						'int+.' : 'frac',
+						'int+e' : 'exp',
+						'frac+e' : 'exp'
+					}
+				;
+				let
+					s = instance.#string,
+					i = instance.#index,
+					numberType = 'int',
+					permittedSigns = '-'
+				;
+
+				do {
+					const char = s.charAt(i++);
+					if( char === '' ) break;
+					if( (char >= '0') && (char <= '9') ) continue;
+					if( permittedSigns.includes(char) ){
+						permittedSigns = '';
+						continue;
+					}
+
+					numberType = numberTypeMap[`${numberType}+${char.toLowerCase()}`];
+					if( numberType === 'exp' ){
+						permittedSigns = '-';
+					}
+				} while( numberType !== undefined );
+
+				i--;
+				instance.#index = i;
+				s = s.slice(start, i);
+				if( s === '-' ) return instance.#error('invalid number');
+				return Number(s);
+			}
+		};
+
+		(function(tokenMap){
+			for( let i = 0; i <= 9; i++ ){
+				tokenMap[`${i}`] = tokenMap['-'];
+			}
+		})(this.#tokenMap);
+	}
+
+
+
+	/**
+	 * Parses a Rison string into a JSON object.
+	 * Resets internal parsing info, like parsing index, to start new parsing process.
+	 *
+	 * @param {String} risonString - the string to parse
+	 * @returns {Object|Array|undefined} the parsed JSON object or undefined, in case parsing failed
+	 *
+	 * @example
+	 * (new UrisonParser()).parse('(key1:value,key2:!t,key3:!(!f,42,!n))')
+	 * => {key1 : 'value', key2 : true, key3 : [false, 42, null]}
+	 */
+	parse(risonString){
+		this.#string = `${risonString}`;
+		this.#index = 0;
+		this.#message = null;
+
+		let value = this.#readValue();
+
+		const trailingChar = this.#next();
+		if( !this.#message && (trailingChar !== undefined) ){
+			let detailMessage;
+			if( /\s/.test(trailingChar) ){
+				detailMessage = 'whitespace detected';
+			} else {
+				detailMessage = `trailing char "${trailingChar}"`;
+			}
+			value = this.#error(`unable to parse string "${risonString}", ${detailMessage}`);
+		}
+
+		if( this.#message && this.#errorHandler ){
+			this.#errorHandler(this.#message, this.#index);
+		}
+
+		return value;
+	}
+
+
+
+	/**
+	 * Parses the structure of an array. Is a helper function for #parse/#readValue.
+	 * Works with previously set internal parsing info such as string and parsing index.
+	 *
+	 * @returns {Array|undefined} the parsed array or undefined, in case parsing failed
+	 *
+	 * @private
+	 * @example
+	 * this.#parseArray()
+	 * => [true, null, 'value']
+	 */
+	#parseArray(){
+		const res = [];
+		let char;
+
+		while( (char = this.#next()) !== ')' ){
+			if( char === '' ) return this.#error('unmatched "!("');
+
+			if( !isEmpty(res) ){
+				if( char !== ',' ){
+					return this.#error('missing ","');
+				}
+			} else if( char === ',' ){
+				return this.#error('extra ","');
+			} else {
+				this.#index--;
+			}
+
+			const value = this.#readValue();
+			if( value === undefined ) return undefined;
+			res.push(value);
+		}
+
+		return res;
+	}
+
+
+
+	/**
+	 * Either reads the next value or key in the current parser string or triggers recursive handling of syntax tokens.
+	 * Progresses parsing to the next section so to speak.
+	 *
+	 * @returns {Object|Array|String|Number|Boolean|null|undefined} the parsed value or undefined if parsing failed
+	 *
+	 * @private
+	 * @example
+	 * this.#readValue()
+	 * => 'valueorkeyorstructure'
+	 */
+	#readValue(){
+		const
+			char = this.#next(),
+			mapper = this.#tokenMap[char]
+		;
+
+		if( isFunction(mapper) ) return mapper.apply(this);
+
+		const i = this.#index - 1;
+		URISON_NEXT_VALUE_REX.lastIndex = i;
+		const matches = URISON_NEXT_VALUE_REX.exec(this.#string);
+		if( !isEmpty(matches) ){
+			const id = matches[0];
+			this.#index = i + id.length;
+			return id;
+		}
+
+		if( hasValue(char) && (char !== '') ) return this.#error(`invalid character "${char}"`);
+		return this.#error('empty expression');
+	}
+
+
+
+	/**
+	 * Reads the next character of the currently given Rison string, increments the index
+	 * and returns the character.
+	 *
+	 * @returns {String|undefined} the next character or undefined if there is none
+	 *
+	 * @private
+	 * @example
+	 * this.#next()
+	 * => '!'
+	 */
+	#next(){
+		let
+			i = this.#index,
+			char
+		;
+
+		if( i >= this.#string.length ) return undefined;
+		char = this.#string.charAt(i++);
+		this.#index = i;
+
+		return char;
+	}
+
+
+
+	/**
+	 * Sets the error message and writes it to `console.error()` for info purposes.
+	 * This method does _not_ throw an exception, for this, please set an error handler
+	 * in the constructor and throw it externally.
+	 *
+	 * @param {String} message - the error message
+	 * @returns {undefined} is always undefined to be uniform return value for failed value parsing in case of error
+	 *
+	 * @private
+	 * @example
+	 * this.#error('oh noez')
+	 * => undefined
+	 */
+	#error(message){
+		console.error(`${this.#__className__} error: `, message);
+		this.#message = message;
+		return undefined;
+	}
+
+}
 
 
 
@@ -354,3 +701,310 @@ export function evaluateBaseDomain(domain, additionalTopLevelDomains=null){
 
 	return baseDomain;
 }
+
+
+
+/**
+ * @namespace Urls:Urison
+ */
+
+/**
+ * A class, which (re)implements the "Rison" standard of en- and decoding JSON structures to and from URL-safe strings,
+ * which can be used as parameter or hash values, while staying readable and avoiding characters, which are not meant
+ * to be used inside a URL.
+ *
+ * This is a renamed reimplementation of ES5 Rison, which has not gotten an update for years and should be fully
+ * compatible with other available parsers for that standard.
+ *
+ * The basic idea is this:
+ * We have some kind of complex data structure we want to serialize to a URL, to represent a current search and filter
+ * setup for example. This structure should also be retrievable easily after a reload, to be able to use that config
+ * as a starting point again for the page's search and filter widgets. A big plus here would be readability, which,
+ * for instance, gets lost, if we just were to url-encode JSON as-is.
+ *
+ * This class provides the means to en- and decode JSON structures for usage in URLs. Additionally, it provides methods
+ * to explicitly work with objects and array, for the en- and decoding process, removing the necessity to include
+ * brackets into the result, making the string even leaner.
+ *
+ * See class documentation below for details.
+ *
+ * @memberof Urls:Urison
+ * @name Urison
+ *
+ * @see Urison
+ * @see https://github.com/Nanonid/rison
+ * @example
+ * (new Urison()).encode({key1 : 'value', key2 : true, key3 : [false, 42, null]})
+ * => '(key1:value,key2:!t,key3:!(!f,42,!n))'
+ * (new Urison()).decode('(key1:value,key2:!t,key3:!(!f,42,!n))')
+ * => {key1 : 'value', key2 : true, key3 : [false, 42, null]}
+ * (new Urison()).encodeObject({key1 : 'value', key2 : true, key3 : [false, 42, null]})
+ * => 'key1:value,key2:!t,key3:!(!f,42,!n)'
+ * (new Urison()).decodeObject('key1:value,key2:!t,key3:!(!f,42,!n)')
+ * => {key1 : 'value', key2 : true, key3 : [false, 42, null]}
+ * (new Urison()).encodeArray([false, 42, null])
+ * => '!f,42,!n'
+ * (new Urison()).decodeArray('!f,42,!n')
+ * => [false, 42, null]
+ */
+class Urison {
+
+	#__className__ = 'Urison';
+	#autoEscape;
+	#autoUnescape;
+	#encoders;
+	#parser;
+
+	/**
+	 * Creates a new Urison en- and decoder.
+	 *
+	 * @param {Boolean} [autoEscape=true] - if true, all keys and values are automatically uri-encoded and decoded if necessary, set this to false to keep values as is
+	 */
+	constructor(autoEscape=true){
+		const instance = this;
+
+		autoEscape = orDefault(autoEscape, true, 'bool');
+		this.#autoEscape = autoEscape ? this.escape : val => val;
+		this.#autoUnescape = autoEscape ? decodeURIComponent : val => val;
+
+		// procedure map, defining how data types are string-represented in Rison
+		this.#encoders = {
+			array(value){
+				const res = [];
+
+				for( let v of value ){
+					const encodedValue = instance.encode(v);
+					if( isString(encodedValue) ){
+						res.push(encodedValue);
+					}
+				}
+
+				return `!(${res.join(',')})`;
+			},
+
+			boolean(value){
+				return !!value ? '!t' : '!f';
+			},
+
+			null(){
+				return '!n';
+			},
+
+			number(value){
+				if( !isFinite(value) ) return '!n';
+				return `${value}`.replace(/\+/, '');
+			},
+
+			object(value){
+				if( hasValue(value) ){
+					if( isArray(value) ){
+						return this.array(value);
+					}
+
+					const keys = Object.keys(value);
+					keys.sort();
+
+					const res = [];
+					for( let key of keys ){
+						const v = instance.encode(value[key]);
+						if( isString(v) ){
+							const k = isNaN(parseInt(key, 10)) ? this.string(key) : this.number(key);
+							res.push(`${k}:${v}`);
+						}
+					}
+
+					return `(${res.join(',')})`;
+				}
+
+				return '!n';
+			},
+
+			string(value){
+				if( value === '' ) return "''";
+				if( URISON_VALUE_REX.test(value) ) return value;
+
+				value = value.replace(/(['!])/g, function(_, quotedChar){
+					return `!${quotedChar}`;
+				});
+
+				return `'${value}'`;
+			}
+		};
+
+		this.#parser = (new UrisonParser((error, index) => {
+			throw Error(`decoding error [${error}] at string index ${index}`);
+		}));
+	}
+
+
+
+	/**
+	 * Encodes a JSON value to a Rison string.
+	 *
+	 * @param {Array|Object|String|Number|Boolean|null} value - the value to encode
+	 * @throws error if encoding fails or value is not usable JSON
+	 * @returns {String|undefined} the encoded Rison string or undefined if value cannot be encoded
+	 *
+	 * @example
+	 * (new Urison()).encode({key1 : 'value', key2 : true, key3 : [false, 42, null]})
+	 * => '(key1:value,key2:!t,key3:!(!f,42,!n))'
+	 */
+	encode(value){
+		const __methodName__ = 'encode';
+
+		if( isFunction(value?.toJson) ){
+			value = value.toJson();
+		}
+
+		if( isFunction(value?.toJSON) ){
+			value = value.toJSON();
+		}
+
+		const encoder = this.#encoders[typeof value];
+		if( !isFunction(encoder) ){
+			throw new Error(`${this.#__className__}.${__methodName__} | invalid data type`);
+		}
+
+		let res;
+		try {
+			res = encoder.call(this.#encoders, value);
+		} catch(ex){
+			throw new Error(`${this.#__className__}.${__methodName__} | encoding error [${ex}]`);
+		}
+
+		return this.#autoEscape(this.#autoUnescape(res));
+	}
+
+
+
+	/**
+	 * Encodes a JSON value to a Rison string.
+	 *
+	 * @param {Object} value - the object to encode
+	 * @returns {String|undefined} the encoded Rison string or undefined if value cannot be encoded
+	 * @throws error if value is not an object
+	 *
+	 * @example
+	 * (new Urison()).encodeObject({key1 : 'value', key2 : true, key3 : [false, 42, null]})
+	 * => 'key1:value,key2:!t,key3:!(!f,42,!n)'
+	 */
+	encodeObject(value){
+		const __methodName__ = 'encodeObject';
+
+		if( !isObject(value) ){
+			throw new Error(`${this.#__className__}.${__methodName__} | value is not an object`);
+		}
+
+		const res = this.#encoders.object(value);
+		return this.#autoEscape(this.#autoUnescape(res.substring(1, res.length - 1)));
+	}
+
+
+
+	/**
+	 * Encodes a JSON array to a Rison string.
+	 *
+	 * @param {Array} value - the array to encode
+	 * @returns {String|undefined} the encoded Rison string or undefined if value cannot be encoded
+	 * @throws error if value is not an array
+	 *
+	 * @example
+	 * (new Urison()).encodeArray([false, 42, null])
+	 * => '!f,42,!n'
+	 */
+	encodeArray(value){
+		const __methodName__ = 'encodeArray';
+
+		if( !isArray(value) ){
+			throw new Error(`${this.#__className__}.${__methodName__} | value is not an array`);
+		}
+
+		const res = this.#encoders.array(value);
+		return this.#autoEscape(this.#autoUnescape(res.substring(2, res.length - 1)));
+	}
+
+
+
+	/**
+	 * Decodes a Rison string to a JSON value.
+	 *
+	 * @param {String} risonString - the Rison string to decode
+	 * @returns {Object|Array|String|Number|Boolean|null} the decoded JSON value
+	 * @throws error if decoding fails
+	 *
+	 * @example
+	 * (new Urison()).decode('(key1:value,key2:!t,key3:!(!f,42,!n))')
+	 * => {key1 : 'value', key2 : true, key3 : [false, 42, null]}
+	 */
+	decode(risonString){
+		return this.#parser.parse(this.#autoUnescape(risonString));
+	}
+
+
+
+	/**
+	 * Decodes a shortened Rison object string to a JSON object.
+	 *
+	 * @param {String} risonString - the Rison object string to decode
+	 * @returns {Object} the decoded JSON object
+	 * @throws error if decoding fails
+	 *
+	 * @example
+	 * (new Urison()).decodeObject('key1:value,key2:!t,key3:!(!f,42,!n)')
+	 * => {key1 : 'value', key2 : true, key3 : [false, 42, null]}
+	 */
+	decodeObject(risonString){
+		return this.decode(`(${risonString})`);
+	}
+
+
+
+	/**
+	 * Decodes a shortened Rison array string to a JSON array.
+	 *
+	 * @param {String} risonString - the Rison array string to decode
+	 * @returns {Array} the decoded JSON array
+	 * @throws error if decoding fails
+	 *
+	 * @example
+	 * (new Urison()).decodeArray('!f,42,!n')
+	 * => [false, 42, null]
+	 */
+	decodeArray(risonString){
+		return this.decode(`!(${risonString})`);
+	}
+
+
+
+	/**
+	 * URI-Escapes a value, if necessary, according to the rules of Rison, which is a little bit
+	 * more lax than native uri encoding (allows [,:@$/+]).
+	 *
+	 * This method has one difference to the reference implementation:
+	 * We do _not_ encode whitespace as "+", but as "%20". This is done, because "+"-encoding is not
+	 * compatible with `decodeURIComponent` and makes working with URL-encoded values manually painful.
+	 * So here, "+" is just a normal, allowed URL-safe character and whitespace becomes "%20".
+	 * Since `encode_uri` was never automatically applied in Rison, this should not break anything.
+	 *
+	 * @param {String} value - the value to escape problematic chars in
+	 * @returns {String} uri-encoded string
+	 *
+	 * @example
+	 * (new Urison()).escape('abc,:@')
+	 * => 'abc%2C%3A%40'
+	 */
+	escape(value){
+		value = `${value}`;
+
+		if( /^[\-A-Za-z0-9~!*()_.',:@$\/+]*$/.test(value) ) return value;
+
+		return replace(
+			encodeURIComponent(value),
+			['%2C', '%3A', '%40', '%24', '%2F', '%2B'],
+			[',', ':', '@', '$', '/', '+']
+		)
+	}
+
+}
+
+export {Urison};

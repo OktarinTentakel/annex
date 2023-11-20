@@ -90,6 +90,7 @@ function getBoundingClientRect(element){
  * @protected
  * @memberof Viewport
  * @name SimplePollingObserver
+ *
  * @example
  * new SimplePollingObserver(entries => { ... , {targetFps : 60}});
  */

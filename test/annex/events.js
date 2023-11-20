@@ -203,7 +203,7 @@ test.serial('off', assert => {
 		createScenario = () => {
 			eventsFiredCount = 0;
 			handlersRemoved = 0;
-			on(foo, 'Cra_:_sh.test.dümmy', handler1);
+			on(foo, 'Cra_:_sh.test.dûmmy', handler1);
 			on(foo, ['CRA_:_SH.test', 'crA_:_sh.site', 'cra_:_sh.dÚmmy'], handler1);
 			on([foo, 'a', foo, '.btn[data-foobar="test"]'], 'click.delegated', handler2);
 			on([bar, baz], 'click', handler2);
@@ -253,7 +253,7 @@ test.serial('pause', assert => {
 		createScenario = () => {
 			eventsFiredCount = 0;
 			handlersPaused = 0;
-			on(foo, 'Crash.test.dümmy', handler1);
+			on(foo, 'Crash.test.dûmmy', handler1);
 			on(foo, ['CRASH.test', 'crAsh.site', 'crash.dÚmmy'], handler1);
 			on([foo, 'a', foo, '.btn[data-foobar="test"]'], 'click.delegated', handler2);
 			on([bar, baz], 'click', handler2);
@@ -288,7 +288,7 @@ test.serial('resume', assert => {
 		createScenario = () => {
 			eventsFiredCount = 0;
 			handlersPaused = 0;
-			on(foo, 'Crash.test.dümmy', handler1);
+			on(foo, 'Crash.test.dûmmy', handler1);
 			on(foo, ['CRASH.test', 'crAsh.site', 'crash.dÚmmy'], handler1);
 			on([foo, 'a', foo, '.btn[data-foobar="test"]'], 'click.delegated', handler2);
 			on([bar, baz], 'click', handler2);
@@ -342,7 +342,7 @@ test.serial('fire', assert => {
 			eventsFiredCount = 0;
 			handlersFired = 0;
 			payloadsReceived = 0;
-			on(foo, 'Crash.test.dümmy', handler1);
+			on(foo, 'Crash.test.dûmmy', handler1);
 			on(foo, ['CRASH.test', 'crAsh.site', 'crash.dÚmmy'], handler1);
 			on([foo, 'a', foo, '.btn[data-foobar="test"]'], 'click.delegated', handler2);
 			on([bar, baz], 'click', handler2);

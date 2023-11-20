@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Basic:isFunction</title>
+    <title>JSDoc: Namespace: Urls:Urison</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Basic:isFunction</h1>
+    <h1 class="page-title">Namespace: Urls:Urison</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Basic:isFunction</h2>
+        <h2>Urls:Urison</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="basic.js.html">basic.js</a>, <a href="basic.js.html#line693">line 693</a>
+        <a href="urls.js.html">urls.js</a>, <a href="urls.js.html#line707">line 707</a>
     </li></ul></dd>
     
 
@@ -97,80 +97,32 @@
     
 
     
-
-    
-        <h3 class="subsection-title">Methods</h3>
+        <h3 class="subsection-title">Members</h3>
 
         
             
+<h4 class="name" id=".Urison"><span class="type-signature">(static) </span>Urison<span class="type-signature"></span></h4>
 
-    
-
-    <h4 class="name" id="isFunction"><span class="type-signature"></span>isFunction<span class="signature">(value)</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
-
-    
 
 
 
 <div class="description">
-    <p>Returns if a value is a function.</p>
+    <p>A class, which (re)implements the &quot;Rison&quot; standard of en- and decoding JSON structures to and from URL-safe strings,
+which can be used as parameter or hash values, while staying readable and avoiding characters, which are not meant
+to be used inside a URL.</p>
+<p>This is a renamed reimplementation of ES5 Rison, which has not gotten an update for years and should be fully
+compatible with other available parsers for that standard.</p>
+<p>The basic idea is this:
+We have some kind of complex data structure we want to serialize to a URL, to represent a current search and filter
+setup for example. This structure should also be retrievable easily after a reload, to be able to use that config
+as a starting point again for the page's search and filter widgets. A big plus here would be readability, which,
+for instance, gets lost, if we just were to url-encode JSON as-is.</p>
+<p>This class provides the means to en- and decode JSON structures for usage in URLs. Additionally, it provides methods
+to explicitly work with objects and array, for the en- and decoding process, removing the necessity to include
+brackets into the result, making the string even leaner.</p>
+<p>See class documentation below for details.</p>
 </div>
 
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>value</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">*</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the value to check</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
 
 
 
@@ -206,62 +158,50 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="basic.js.html">basic.js</a>, <a href="basic.js.html#line710">line 710</a>
+        <a href="urls.js.html">urls.js</a>, <a href="urls.js.html#line711">line 711</a>
     </li></ul></dd>
     
 
     
 
     
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Urison.html">Urison</a></li>
         
-<div class="param-desc">
-    true if value is a function
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Boolean</span>
-
-
+            <li><a href="https://github.com/Nanonid/rison">https://github.com/Nanonid/rison</a></li>
+        </ul>
     </dd>
-</dl>
+    
 
     
+</dl>
+
+
+
 
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>if( isFunction(val) ){
-  val();
-}</code></pre>
+    <pre class="prettyprint"><code>(new Urison()).encode({key1 : 'value', key2 : true, key3 : [false, 42, null]})
+=> '(key1:value,key2:!t,key3:!(!f,42,!n))'
+(new Urison()).decode('(key1:value,key2:!t,key3:!(!f,42,!n))')
+=> {key1 : 'value', key2 : true, key3 : [false, 42, null]}
+(new Urison()).encodeObject({key1 : 'value', key2 : true, key3 : [false, 42, null]})
+=> 'key1:value,key2:!t,key3:!(!f,42,!n)'
+(new Urison()).decodeObject('key1:value,key2:!t,key3:!(!f,42,!n)')
+=> {key1 : 'value', key2 : true, key3 : [false, 42, null]}
+(new Urison()).encodeArray([false, 42, null])
+=> '!f,42,!n'
+(new Urison()).decodeArray('!f,42,!n')
+=> [false, 42, null]</code></pre>
 
 
 
         
+    
+
     
 
     

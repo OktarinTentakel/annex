@@ -163,7 +163,7 @@ test('format', assert => {
 test('slugify', assert => {
 	assert.is(
 		slugify('---This is a cömplicated ßtring for URLs!---'),
-		'this-is-a-complicated-sstring-for-urls'
+		'this-is-a-coemplicated-sstring-for-urls'
 	);
 	assert.is(
 		slugify('Ꝼ__ __ꝽꞂ__ __Ꞅ'),
@@ -173,9 +173,7 @@ test('slugify', assert => {
 		slugify(
 			'__Önly_jüüü [test foobar 123]-666-999__',
 			{
-				'ä' : 'ae',
-				'ö' : 'oe',
-				'ü' : 'ue',
+				'ü' : 'ueueue',
 				'0' : '',
 				'1' : '',
 				'2' : '',
@@ -188,7 +186,7 @@ test('slugify', assert => {
 				'9' : '',
 			}
 		),
-		'oenly-jueueue-test-foobar'
+		'oenly-jueueueueueueueueue-test-foobar'
 	);
 });
 

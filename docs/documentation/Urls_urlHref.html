@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: CSS</title>
+    <title>JSDoc: Namespace: Urls:urlHref</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: CSS</h1>
+    <h1 class="page-title">Namespace: Urls:urlHref</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>CSS</h2>
+        <h2>Urls:urlHref</h2>
         
     
 </header>
@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="css.js.html">css.js</a>, <a href="css.js.html#line5">line 5</a>
+        <a href="urls.js.html">urls.js</a>, <a href="urls.js.html#line392">line 392</a>
     </li></ul></dd>
     
 
@@ -99,6 +99,402 @@
     
 
     
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="urlHref"><span class="type-signature"></span>urlHref<span class="signature">(url<span class="signature-attributes">opt</span>, params<span class="signature-attributes">opt, nullable</span>, anchor<span class="signature-attributes">opt, nullable</span>, markListParams<span class="signature-attributes">opt, nullable</span>, keepEncodedUrlSafeChars<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {String}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Will return a fully qualified URL based on the given URL base string for use as a href/source-value
+or navigation target.</p>
+<p>Provide a base URL or leave the URL out, to use the current URL.
+Add GET-parameters (adding to those already present in the URL), define an anchor (or automatically get the one
+defined in the URL).</p>
+<p>Provided URLs are handled with some automagic:</p>
+<ul>
+<li>a URL starting with &quot;//&quot; will receive the current page protocol</li>
+<li>a URL starting with a single &quot;/&quot; will be seen as relative and will be expanded to an absolute URL, based
+on the current URL</li>
+<li>a URL starting with &quot;?&quot; will be treated as a singular query string, resulting in the query being added to the
+current URL, replacing any present query</li>
+<li>a URL starting with &quot;#&quot; will be treated as a singular hash string, resulting in the hash being added to the
+current URL, replacing any present hash</li>
+<li>if, after all automagic applied, the URL still does not start with a http-protocol, the current page's protocol
+will be added</li>
+</ul>
+<p>Provided params have to be a flat plain object, with ordinal values or arrays of ordinal values on the first level.
+Everything else will be stringified and url-encoded as is. Usually, parameters defined here add to present
+parameters in the URL. To force-override present values, declare the param name with a &quot;!&quot; prefix
+(<code>{'!presentparam' : 'new'}</code>).</p>
+<p>This method implements some quality-of-life improvements, that differ from the native result of <code>new URL().href</code>:</p>
+<ul>
+<li><code>+</code>-encoding for whitespace is replaced with <code>%20</code>, while <code>+</code> will stay what it is, a verbatim URL-safe character
+with repeating keys (<code>tags=1&amp;tags=2&amp;tags=3</code>)</li>
+<li>empty parameters are rendered without &quot;=&quot;. So, &quot;?test=&amp;foo&quot; will be &quot;?test&amp;foo&quot;</li>
+<li><code>path/?</code> will become just <code>path?</code></li>
+<li><code>path/#</code> will become just <code>path#</code></li>
+<li>trailing slashes will be removed</li>
+<li>parameters will be sorted alphabetically by keys
+(value order will be kept if possible, might change, when using markListParams)</li>
+<li>identical key/value pairs will be reduced to one occurrence, so <code>?q=a&amp;q=a</code> will become <code>?q=a</code></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+|
+
+<span class="param-type">URL</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>the base URL to use, if nullish current location is used</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>params</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>plain object of GET-parameters to add to the url</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>anchor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>anchor/hash to set, has precedence over URL hash</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>markListParams</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>if true, params with more than one value will be marked with &quot;[]&quot; preceding the param name</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>keepEncodedUrlSafeChars</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>if true, encoded chars, which are URL-safe, are kept encoded, instead of being returned raw</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="urls.js.html">urls.js</a>, <a href="urls.js.html#line447">line 447</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+    <div class="param-desc">
+    
+        <p>error if url is not usable</p>
+    
+    </div>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    the created URL including parameters and anchor
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">String</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>buildUrl('https://test.com', {search : 'kittens', order : 'asc'}, 'fluffykittens');
+=> 'https://test.com?search=kittens&amp;order=asc#fluffykittens'
+buildUrl(null, {order : 'desc'});
+=> 'https://current.url?order=desc'</code></pre>
+
+
+
+        
+    
 
     
 
@@ -119,7 +515,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Wed Nov 22 2023 16:09:21 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Wed Nov 22 2023 16:09:22 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

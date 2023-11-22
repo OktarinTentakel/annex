@@ -13,9 +13,10 @@ const MODULE_NAME = 'Navigation';
 //###[ IMPORTS ]########################################################################################################
 
 import {warn} from './logging.js';
-import {hasValue, orDefault, isPlainObject, isEmpty, isArray, isWindow, isFunction, assert} from './basic.js';
+import {hasValue, orDefault, isPlainObject, isArray, isWindow, isFunction, assert} from './basic.js';
 import {createNode} from './elements.js';
 import {browserSupportsHistoryManipulation} from './context.js';
+import {urlHref} from './urls.js';
 
 
 
@@ -77,10 +78,17 @@ function getHostAndPathname(){
 
 /**
  * Everything you need to do basic navigation without history API.
- * Provide a URL to navigate to or leave the URL out, to use the current full URL.
+ *
+ * Provide a URL to navigate to or leave the URL out, to use the current full URL. See `urlHref` for details.
+ *
  * Add GET-parameters (adding to those already present in the URL), define an anchor (or automatically get the one
  * defined in the URL), set a target to define a window to navigate to (or open a new one) and even
  * define POST-parameters to navigate while providing POST-data.
+ *
+ * Provided params have to be a flat plain object, with ordinal values or arrays of ordinal values on the first level.
+ * Everything else will be stringified and url-encoded as is. Usually, parameters defined here add to present
+ * parameters in the URL. To force-override present values, declare the param name with a "!" prefix
+ * (`{'!presentparam' : 'new'}`).
  *
  * If you define POST-params to navigate to a URL providing POST-data we internally build a custom form element,
  * with type "post", filled with hidden fields adding the form data, which we submit to navigate to the action, which
@@ -93,80 +101,29 @@ function getHostAndPathname(){
  * If you define a target and open an external URL, repeated calls to the same target will open multiple windows
  * due to the security settings.
  *
- * @param {?String} [url] - the location to load, if null current location is reloaded/used
- * @param {?Object} [params=null] - plain object of GET-parameters to add to the url, adds to existing ones in the URL and overwrites existing ones with same name
+ * @param {?String|URL} [url=null] - the location to load, if null current location is reloaded/used
+ * @param {?Object} [params=null] - plain object of GET-parameters to add to the url
  * @param {?String} [anchor=null] - anchor/hash to set for called url, has precedence over URL hash
  * @param {?String} [target=null] - name of the window to perform the redirect to/in, use "_blank" to open a new window/tab
  * @param {?Object} [postParams=null] - plain object of postParameters to send with the redirect, solved with a hidden form
+ * @param {?Boolean} [markListParams=false] - if true, params with more than one value will be marked with "[]" preceding the param name
+ * @throws error if url is not usable
  *
  * @memberof Navigation:redirect
  * @alias redirect
+ * @see Urls.urlHref
  * @example
  * redirect('https://test.com', {search : 'kittens', order : 'asc'}, 'fluffykittens');
  * redirect(null, {order : 'desc'});
  */
-export function redirect(url, params=null, anchor=null, target=null, postParams=null){
-	url = orDefault(url, null, 'str');
-	params = isPlainObject(params) ? params : null;
-	anchor = orDefault(anchor, null, 'str');
-	postParams = isPlainObject(postParams) ? postParams : null;
+export function redirect(url=null, params=null, anchor=null, target=null, postParams=null, markListParams=false){
+	url = urlHref(url, params, anchor, markListParams);
 	target = orDefault(target, null, 'str');
+	postParams = isPlainObject(postParams) ? postParams : null;
 
-	if( !hasValue(url) ){
-		url = window.location.href;
-
-		if( !isEmpty(window.location.hash) ){
-			anchor = orDefault(anchor, window.location.hash.replace('#', ''), 'str');
-			url = url.replace(/#.+$/, '');
-		}
-	} else {
-		const anchorFromUrlParts = url.split('#', 2);
-
-		if( anchorFromUrlParts.length > 1 ){
-			anchor = orDefault(anchor, anchorFromUrlParts[1], 'str');
-			url = url.replace(/#.+$/, '');
-		}
-	}
-
-	const urlParts = url.split('?', 2);
-	url = urlParts[0];
-
-	const
-		presentParamString = orDefault(urlParts[1], ''),
-		presentParams = {},
-		paramArray = []
-	;
-
-	if( presentParamString.length > 0 ){
-		presentParamString.split('&').forEach(presentParam => {
-			presentParam = presentParam.split('=', 2);
-			if( presentParam.length === 2 ){
-				presentParams[presentParam[0]] = presentParam[1];
-			} else {
-				presentParams[presentParam[0]] = null;
-			}
-		});
-	}
-
-	params = hasValue(params) ? {...presentParams, ...params} : presentParams;
-
-	for( let paramName in params ){
-		if( hasValue(params[paramName]) ){
-			paramArray.push(`${paramName}=${encodeURIComponent(decodeURIComponent(params[paramName]))}`);
-		} else {
-			paramArray.push(paramName);
-		}
-	}
-
-	const finalUrl = `${url}${
-			(paramArray.length > 0)
-			? `${(url.indexOf('?') === -1) ? '?' : '&'}${paramArray.join('&')}`
-			: ''
-		}${hasValue(anchor) ? `#${anchor}` : ''}`
-	;
 
 	if( hasValue(postParams) ){
-		const formAttributes = {method : 'post', action : finalUrl, 'data-ajax' : 'false'};
+		const formAttributes = {method : 'post', action : url, 'data-ajax' : 'false'};
 		if( hasValue(target) ){
 			formAttributes.target = target;
 		}
@@ -192,30 +149,24 @@ export function redirect(url, params=null, anchor=null, target=null, postParams=
 		redirectForm.submit();
 		document.body.removeChild(redirectForm);
 	} else if( hasValue(target) ){
-		let parsedUrl;
-
-		try {
-			parsedUrl = new URL(url);
-		} catch(ex) {
-			parsedUrl = new URL(url, window.location);
-		}
+		const parsedUrl = new URL(url);
 
 		if( parsedUrl.origin !== window.location.origin ){
 			// we have to jump through hoops here, since adding security features to window.open
 			// forces popup windows in some browsers and although we can set opener via the created
 			// window, we cannot reliably set the referrer that way
 			const eLink = document.createElement('a');
-			eLink.href = finalUrl;
+			eLink.href = url;
 			eLink.target = target;
 			eLink.rel = 'noopener noreferrer';
 			document.body.appendChild(eLink);
 			eLink.click();
 			eLink.parentNode.removeChild(eLink);
 		} else {
-			window.open(finalUrl, target);
+			window.open(url, target);
 		}
 	} else {
-		window.location.assign(finalUrl);
+		window.location.assign(url);
 	}
 }
 
@@ -268,20 +219,22 @@ export function openTab(url, params=null, anchor=null, postParams=null){
  * window. If you want to circumvent this, you'll have to drop the "noreferrer" and settle for "noopener", by
  * setting opener to null on the returned window like this: `openWindow('url').opener = null;`
  *
- * @param {String} url - the URL to load in the new window
+ * @param {?String|URL} [url=null] - the URL to load in the new window, if nullish, the current URL is used
  * @param {?Object} [options=null] - parameters for the new window according to the definitions of window.open & "name" for the window name
  * @param {?Window} [parentWindow=null] - parent window for the new window, current if not defined
  * @param {?Boolean} [tryAsPopup=false] - defines if it should be tried to force a real new window instead of a tab
+ * @throws error if url is not usable
  * @returns {Window} the newly opened window/tab
  *
  * @memberof Navigation:openWindow
  * @alias openWindow
+ * @see Urls.urlHref
  * @example
  * openWindow('/img/gallery.html');
  * openWindow('http://www.kittens.com', {name : 'kitten_popup'}, parent);
  */
-export function openWindow(url, options=null, parentWindow=null, tryAsPopup=false){
-	url = `${url}`;
+export function openWindow(url=null, options=null, parentWindow=null, tryAsPopup=false){
+	url = urlHref(url);
 	options = isPlainObject(options) ? options : null;
 	parentWindow = isWindow(parentWindow) ? parentWindow : window;
 	tryAsPopup = orDefault(tryAsPopup, false, 'bool');
@@ -369,7 +322,7 @@ export function reload(cached=true, postUsable=true){
  * For more details on the history API see:
  * https://developer.mozilla.org/en-US/docs/Web/API/History
  *
- * @param {String} url - an absolute or relative url to change the current address to on the same origin
+ * @param {?String|URL} [url=null] - a url to change the current address to on the same origin, will use current URL if nullish
  * @param {?Boolean} [usePushState=false] - push new state instead of replacing current
  * @param {?*} [state=null] - a serializable object to append to the history state (gets retrieved on popState-event)
  * @param {?String} [title=null] - a name/title for the new state (as of yet, only Safari uses this, other browser will return undefined)
@@ -378,11 +331,12 @@ export function reload(cached=true, postUsable=true){
  * @memberof Navigation:changeCurrentUrl
  * @alias changeCurrentUrl
  * @see onHistoryChange
+ * @see Urls.urlHref
  * @example
  * changeCurrentUrl('/article/important-stuff', false, {id : 666});
  */
-export function changeCurrentUrl(url, usePushState=false, state=null, title=null){
-	url = orDefault(url, '', 'str');
+export function changeCurrentUrl(url=null, usePushState=false, state=null, title=null){
+	url = urlHref(url);
 	usePushState = orDefault(usePushState, false, 'bool');
 	title = orDefault(title, '', 'str');
 

@@ -1,6 +1,6 @@
 {
 	"name" : "@oktarintentakel/annex",
-	"version" : "0.1.16-beta",
+	"version" : "0.1.17-beta",
 	"author" : "Sebastian Schlapkohl",
 	"description" : "Unit-tested and semantically packaged standard solutions for everyday frontend tasks and syntax streamlining for those ugly darks corners of JS.",
 	"license" : "MIT",

@@ -13,6 +13,7 @@ const {
 	urlParameter,
 	urlParameters,
 	urlAnchor,
+	urlHref,
 	addNextParameter,
 	addCacheBuster,
 	evaluateBaseDomain,
@@ -105,21 +106,83 @@ test('urlAnchor', assert => {
 
 
 
+test('urlHref', assert => {
+	assert.is(
+		urlHref(),
+		'https://devtest.ifschleife.de'
+	);
+
+	assert.is(
+		urlHref('http://www.ifschleife.de'),
+		'http://www.ifschleife.de'
+	);
+
+	assert.is(
+		urlHref('/'),
+		'https://devtest.ifschleife.de'
+	);
+
+	assert.is(
+		urlHref('//google.com'),
+		'https://google.com'
+	);
+
+	assert.throws(() => { urlHref('<///iam/not-a?url///>'); });
+
+	assert.is(
+		urlHref(
+			'https://ifschleife.de',
+			{search : 'lorem ipsum + dolor sit amet', tags : [1, 2, 3, true, false, 'as,d']}
+		),
+		'https://ifschleife.de?search=lorem%20ipsum%20+%20dolor%20sit%20amet&tags=1&tags=2&tags=3&tags=true&tags=false&tags=as,d'
+	);
+
+	assert.is(
+		urlHref(
+			new URL('https://ifschleife.de?tags=42&foobar=&query=dies%20das%20ana,nas&baz=true&barfoo&barfoo='),
+			{search : 'lorem ipsum dolor sit amet', tags : [1, 2, 3, 42, true, false, 'asd'], baz : ''},
+			'anchor'
+		),
+		'https://ifschleife.de?barfoo&baz=true&baz&foobar&query=dies%20das%20ana,nas&search=lorem%20ipsum%20dolor%20sit%20amet&tags=42&tags=1&tags=2&tags=3&tags=true&tags=false&tags=asd#anchor'
+	);
+
+	assert.is(
+		urlHref(
+			'https://ifschleife.de/?tags[]=42&tags=43&foobar=&query=dies%20das%20ana,nas&baz=true&barfoo=',
+			{search : 'lorem ipsum dolor sit amet', date : new Date('2023-01-01T12:00:00Z'), tags : [1, 2, 3, true, false, 'asd', {a : 'b'}], '!baz' : ''},
+			'/i/am/a/pseudo/path',
+			true
+		),
+		'https://ifschleife.de?barfoo&baz&date=Sun%20Jan%2001%202023%2021:30:00%20GMT+0930%20%28Australian%20Central%20Standard%20Time%29&foobar&query=dies%20das%20ana,nas&search=lorem%20ipsum%20dolor%20sit%20amet&tags[]=42&tags[]=43&tags[]=1&tags[]=2&tags[]=3&tags[]=true&tags[]=false&tags[]=asd&tags[]=[object%20Object]#/i/am/a/pseudo/path'
+	);
+
+	assert.is(
+		urlHref(
+			new URL(window.location.href),
+			null,
+			'(a:b,c:d,!(1,2,3,!t,!f,!n))'
+		),
+		'https://devtest.ifschleife.de#(a:b,c:d,!(1,2,3,!t,!f,!n))'
+	);
+});
+
+
+
 test('addNextParameter', assert => {
 	assert.is(
 		addNextParameter('https://foobar.com', 'https://foo.bar', 'redirect'),
-		'https://foobar.com/?redirect=https%3A%2F%2Ffoo.bar%2F'
+		'https://foobar.com?redirect=https://foo.bar'
 	);
 	assert.throws(() => {
 		addNextParameter('https://foobar.com', 'https://foo.bar', 'redirect', true);
 	});
 	assert.is(
 		addNextParameter('https://lol.foobar.lol', 'https://rofl.foobar.lol', null, true, ['lol']),
-		'https://lol.foobar.lol/?next=https%3A%2F%2Frofl.foobar.lol%2F'
+		'https://lol.foobar.lol?next=https://rofl.foobar.lol'
 	);
 	assert.is(
 		addNextParameter('https://foobar.com?next=https%3A%2F%2Ffoo.bar', 'https://kittens.com'),
-		'https://foobar.com/?next=https%3A%2F%2Fkittens.com%2F'
+		'https://foobar.com?next=https://kittens.com'
 	);
 });
 
@@ -128,15 +191,15 @@ test('addNextParameter', assert => {
 test('addCacheBuster', assert => {
 	assert.regex(
 		addCacheBuster('https://foobar.com'),
-		/^https:\/\/foobar\.com\/\?_=[0-9]+$/
+		/^https:\/\/foobar\.com\?_=[0-9]+$/
 	);
 	assert.regex(
 		addCacheBuster('https://foobar.com?_=foobar'),
-		/^https:\/\/foobar\.com\/\?_=[0-9]+$/
+		/^https:\/\/foobar\.com\?_=[0-9]+$/
 	);
 	assert.regex(
 		addCacheBuster('https://foobar.com?next=https%3A%2F%2Ffoo.bar', 'nocache'),
-		/^https:\/\/foobar.com\/\?next=https%3A%2F%2Ffoo\.bar&nocache=[0-9]+$/
+		/^https:\/\/foobar\.com\?next=https:\/\/foo\.bar&nocache=[0-9]+$/
 	);
 });
 

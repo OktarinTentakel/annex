@@ -21,6 +21,7 @@ import {
 	isString,
 	isArray,
 	isObject,
+	isPlainObject,
 	isNaN,
 	isEmpty
 } from './basic.js';
@@ -389,6 +390,187 @@ class UrisonParser {
 //###[ EXPORTS ]########################################################################################################
 
 /**
+ * @namespace Urls:urlHref
+ */
+
+/**
+ * Will return a fully qualified URL based on the given URL base string for use as a href/source-value
+ * or navigation target.
+ *
+ * Provide a base URL or leave the URL out, to use the current URL.
+ * Add GET-parameters (adding to those already present in the URL), define an anchor (or automatically get the one
+ * defined in the URL).
+ *
+ * Provided URLs are handled with some automagic:
+ * - a URL starting with "//" will receive the current page protocol
+ * - a URL starting with a single "/" will be seen as relative and will be expanded to an absolute URL, based
+ *   on the current URL
+ * - a URL starting with "?" will be treated as a singular query string, resulting in the query being added to the
+ *   current URL, replacing any present query
+ * - a URL starting with "#" will be treated as a singular hash string, resulting in the hash being added to the
+ *   current URL, replacing any present hash
+ * - if, after all automagic applied, the URL still does not start with a http-protocol, the current page's protocol
+ *   will be added
+ *
+ * Provided params have to be a flat plain object, with ordinal values or arrays of ordinal values on the first level.
+ * Everything else will be stringified and url-encoded as is. Usually, parameters defined here add to present
+ * parameters in the URL. To force-override present values, declare the param name with a "!" prefix
+ * (`{'!presentparam' : 'new'}`).
+ *
+ * This method implements some quality-of-life improvements, that differ from the native result of `new URL().href`:
+ * - `+`-encoding for whitespace is replaced with `%20`, while `+` will stay what it is, a verbatim URL-safe character
+ *   with repeating keys (`tags=1&tags=2&tags=3`)
+ * - empty parameters are rendered without "=". So, "?test=&foo" will be "?test&foo"
+ * - `path/?` will become just `path?`
+ * - `path/#` will become just `path#`
+ * - trailing slashes will be removed
+ * - parameters will be sorted alphabetically by keys
+ *   (value order will be kept if possible, might change, when using markListParams)
+ * - identical key/value pairs will be reduced to one occurrence, so `?q=a&q=a` will become `?q=a`
+ *
+ * @param {?String|URL} [url=null] - the base URL to use, if nullish current location is used
+ * @param {?Object} [params=null] - plain object of GET-parameters to add to the url
+ * @param {?String} [anchor=null] - anchor/hash to set, has precedence over URL hash
+ * @param {?Boolean} [markListParams=false] - if true, params with more than one value will be marked with "[]" preceding the param name
+ * @param {?Boolean} [keepEncodedUrlSafeChars=false] - if true, encoded chars, which are URL-safe, are kept encoded, instead of being returned raw
+ * @throws error if url is not usable
+ * @returns {String} the created URL including parameters and anchor
+ *
+ * @memberof Urls:urlHref
+ * @alias urlHref
+ * @example
+ * buildUrl('https://test.com', {search : 'kittens', order : 'asc'}, 'fluffykittens');
+ * => 'https://test.com?search=kittens&order=asc#fluffykittens'
+ * buildUrl(null, {order : 'desc'});
+ * => 'https://current.url?order=desc'
+ */
+export function urlHref(url=null, params=null, anchor=null, markListParams=false, keepEncodedUrlSafeChars=false){
+	const __methodName__ = 'urlHref';
+
+	url = orDefault(url, window.location.href, 'str');
+	params = isPlainObject(params) ? params : null;
+	anchor = orDefault(anchor, null, 'str');
+	markListParams = orDefault(markListParams, false, 'bool');
+
+	if( url === 'about:blank' ) return url;
+	if( url.trim() === '' ){
+		url = window.location.href;
+	}
+	if( url.startsWith('//') ){
+		url = `${window.location.protocol}${url}`;
+	} else if( url.startsWith('/') ){
+		url = `${window.location.origin}${url}`;
+	} else if( url.startsWith('?') ){
+		const anchorPart = !url.includes('#') ? window.location.href.split('#')[1] : null;
+		url = `${window.location.href.split('?')[0]}${url}${hasValue(anchorPart) ? '#'+anchorPart : ''}`;
+	} else if( url.startsWith('#') ){
+		url = `${window.location.href.split('#')[0]}${url}`;
+	}
+	if( !(/^https?:\/\//.test(url)) ){
+		url = `${window.location.protocol}//${url}`;
+	}
+
+	let urlObj;
+	try {
+		urlObj = new URL(url);
+	} catch(ex){
+		throw new Error(`${MODULE_NAME}:${__methodName__} | unusable URL "${url}" [${ex}]`);
+	}
+
+	if( hasValue(anchor) ){
+		urlObj.hash = anchor.startsWith('#') ? anchor : `#${anchor}`;
+	}
+
+	const urlParams = urlObj.searchParams;
+
+	if( hasValue(params) ){
+		for( let paramName in params ){
+			let overrideName = paramName;
+			if( paramName.startsWith('!') ){
+				overrideName = paramName.slice(1);
+			}
+
+			if( overrideName !== paramName ){
+				urlParams.delete(overrideName);
+			}
+
+			[].concat(params[paramName]).forEach(paramValue => {
+				urlParams.append(overrideName, `${paramValue}`);
+			});
+		}
+	}
+
+	if( markListParams ){
+		for( let k of urlParams.keys() ){
+			const cleanKey = k.replace(/\[]$/, '');
+
+			let presentValues = [].concat(urlParams.getAll(k));
+			if( k.endsWith('[]') ){
+				presentValues = presentValues.concat(urlParams.getAll(cleanKey));
+			}
+
+			if( (presentValues.length > 1) ){
+				urlParams.delete(k);
+				urlParams.delete(cleanKey);
+				presentValues.forEach(v => {
+					urlParams.append(`${cleanKey}[]`, v);
+				});
+			}
+		}
+	}
+
+	let	query = urlObj.search
+		.replace(/\+/g, '%20')
+		.replace(/=&/g, '&')
+		.replace(/=$/g, '')
+	;
+
+	if( !keepEncodedUrlSafeChars ){
+		query = query
+			.replaceAll('%2B', '+')
+			.replaceAll('%5B', '[')
+			.replaceAll('%5D', ']')
+		;
+	}
+
+	let queryParts = query.startsWith('?') ? query.slice(1).split('&') : []
+	if( !isEmpty(queryParts) ){
+		queryParts.sort((a, b) => {
+			const
+				aKey = a.split('=')[0],
+				bKey = b.split('=')[0]
+			;
+			return (aKey < bKey) ? -1 : ((aKey > bKey) ? 1 : 0 );
+		});
+		queryParts = queryParts.filter((part, index) => {
+			if( index >= 1 ){
+				return queryParts.indexOf(part) === index;
+			} else {
+				return true;
+			}
+		});
+		query = `?${queryParts.join('&')}`;
+	}
+
+	let finalUrl;
+	if( !isEmpty(query) ){
+		finalUrl = `${urlObj.href.split('?')[0]}${query}${urlObj.hash}`.replace('/?', '?');
+	} else if( !isEmpty(urlObj.hash) && isEmpty(query) ){
+		finalUrl = `${urlObj.href.split('#')[0]}${urlObj.hash}`.replace('/#', '#');
+	} else {
+		finalUrl = urlObj.href.replace(/\/$/, '');
+	}
+
+	return keepEncodedUrlSafeChars ? finalUrl : replace(
+		finalUrl,
+		['%2C', '%3A', '%40', '%24', '%2F', '%2B'],
+		[',', ':', '@', '$', '/', '+']
+	);
+}
+
+
+
+/**
  * @namespace Urls:urlParameter
  */
 
@@ -407,13 +589,14 @@ class UrisonParser {
  * If a parameter is set, but has no defined value (name present, but no = before next param)
  * the value is returned as boolean true.
  *
- * @param {String} url - the url containing the parameter string, is expected to be url-encoded (at least stuff like [+?&=]), may also be only the query string (_must_ begin with ?)
+ * @param {?String|URL} [url=null] - the url containing the parameter string, will use current URL if nullish
  * @param {?String} [parameter=null] - the name of the parameter to extract
  * @throws error if given url is not usable
  * @returns {null|true|String|Array|Object} null in case the parameter doesn't exist, true in case it exists but has no value, a string in case the parameter has one value, or an array of values, or a dictionary object of all available parameters with corresponding values
  *
  * @memberof Urls:urlParameter
  * @alias urlParameter
+ * @see urlHref
  * @example
  * const hasKittens = urlParameter('//foobar.com/bar?has_kittens', 'has_kittens');
  * => true
@@ -422,29 +605,14 @@ class UrisonParser {
  * const allTheData = urlParameter('?foo=foo&bar=bar&bar=barbar&bar');
  * => {foo : 'foo', bar : ['bar', 'barbar', true]}
  */
-export function urlParameter(url, parameter=null){
-	const __methodName__ = 'urlParameter';
-
-	url = orDefault(url, '', 'str');
+export function urlParameter(url=null, parameter=null){
+	url = urlHref(url, null, null, false, true);
 	parameter = orDefault(parameter, null, 'str');
 
-	let searchParams;
-	if( !url.startsWith('?') ){
-		if(	!url.startsWith('http://') && !url.startsWith('https://') ){
-			const protocol = window.location.protocol;
-			url = `${url.startsWith('//') ? protocol : protocol+'//'}${url}`;
-		}
-
-		try {
-			searchParams = new URL(url).searchParams;
-		} catch {
-			throw new Error(`${MODULE_NAME}:${__methodName__} | invalid url "${url}"`);
-		}
-	} else {
-		searchParams = new URLSearchParams(url);
-	}
-
-	const fMapParameterValue = parameterValue => ((parameterValue === '') ? true : parameterValue);
+	const
+		searchParams = new URL(url).searchParams,
+		fMapParameterValue = parameterValue => ((parameterValue === '') ? true : parameterValue)
+	;
 
 	if( hasValue(parameter) ){
 		const parameterValues = searchParams.getAll(parameter);
@@ -482,7 +650,7 @@ export function urlParameter(url, parameter=null){
  *
  * Semantic shortcut version of urlParameter without any given parameter.
  *
- * @param {String} url - the url containing the parameter string, is expected to be url-encoded (at least stuff like [+?&=]), may also be only the query string (_must_ begin with ?)
+ * @param {?String|URL} [url=null] - the url containing the parameter string, will use current URL if nullish
  * @throws error if given url is not usable
  * @returns {Object|null} dictionary object of all parameters or null if url has no parameters
  *
@@ -493,7 +661,7 @@ export function urlParameter(url, parameter=null){
  * const allParams = urlParameters('http://www.foobar.com?foo=foo&bar=bar&bar=barbar&bar');
  * => {foo : 'foo', bar : ['bar', 'barbar', true]}
  */
-export function urlParameters(url){
+export function urlParameters(url=null){
 	return urlParameter(url);
 }
 
@@ -511,8 +679,9 @@ export function urlParameters(url){
  *
  * In comparison to "location.hash", this function actually decodes the hash automatically.
  *
- * @param {String} url - the url, in which to search for a hash
+ * @param {?String|URL} [url=null] - the url, in which to search for a hash, uses current url if nullish
  * @param {?Boolean} [withCaret=false] - defines if the returned anchor value should contain leading "#"
+ * @throws error if given url is not usable
  * @returns {String|null} current anchor value or null if no anchor was found
  *
  * @memberof Urls:urlAnchor
@@ -524,8 +693,8 @@ export function urlParameters(url){
  * => '#test'
  * const decodedAnchorFromLocation = urlAnchor(window.location.hash);
  */
-export function urlAnchor(url, withCaret=false){
-	url = orDefault(url, '', 'str');
+export function urlAnchor(url=null, withCaret=false){
+	url = urlHref(url);
 	withCaret = orDefault(withCaret, false, 'bool');
 
 	const urlParts = url.split('#');
@@ -558,11 +727,13 @@ export function urlAnchor(url, withCaret=false){
  * @param {?String} [paramName='next'] - the name of the next parameter
  * @param {?Boolean} [assertSameBaseDomain=false] - if true, url and next must have the same base domain (ignoring subdomains), to prevent injections
  * @param {?Array<String>} [additionalTopLevelDomains=null] - this function uses a list of common TLDs (if assertSameBaseDomain is true), if yours is missing, you may provide it, using this parameter
+ * @throws error if url or next are not usable URLs
  * @throws error if assertBaseDomain is true an the base domains of url and next differ
  * @returns {String} the transformed URL with the added next parameter
  *
  * @memberof Urls:addNextParameter
  * @alias addNextParameter
+ * @see urlHref
  * @example
  * addNextParameter('https://foobar.com', 'https://foo.bar', 'redirect');
  * => 'https://foobar.com?redirect=https%3A%2F%2Ffoo.bar'
@@ -572,27 +743,24 @@ export function urlAnchor(url, withCaret=false){
 export function addNextParameter(url, next, paramName='next', assertSameBaseDomain=false, additionalTopLevelDomains=null){
 	const __methodName__ = 'addNextParameter';
 
-	url = new URL(orDefault(url, '', 'str'));
-	next = new URL(orDefault(next, '', 'str'));
+	url = urlHref(url);
+	next = urlHref(next);
 	paramName = orDefault(paramName, 'next', 'str');
 	assertSameBaseDomain = orDefault(assertSameBaseDomain, true, 'bool');
 
 	if( assertSameBaseDomain ){
 		assert(
-			evaluateBaseDomain(url.hostname, additionalTopLevelDomains) === evaluateBaseDomain(next.hostname, additionalTopLevelDomains),
+			evaluateBaseDomain(new URL(url).hostname, additionalTopLevelDomains) === evaluateBaseDomain(new URL(next).hostname, additionalTopLevelDomains),
 			`${MODULE_NAME}:${__methodName__} | different base domains in url and next`
 		);
 	}
 
-	const urlParams = new URLSearchParams(url.search);
-
-	if( urlParams.has(paramName) ){
-		log().info(`${MODULE_NAME}:${__methodName__} | replaced "${paramName}" value "${urlParams.get(paramName)}" with "${next.href}"`);
+	const params = new URL(url).searchParams;
+	if( params.has(paramName) ){
+		log().info(`${MODULE_NAME}:${__methodName__} | replaced "${paramName}" value "${params.get(paramName)}" with "${next}"`);
 	}
 
-	urlParams.set(paramName, next.href);
-
-	return `${url.origin}${url.pathname}?${urlParams.toString().replaceAll('+', '%20')}${url.hash}`;
+	return urlHref(url, {[`!${paramName}`] : next});
 }
 
 
@@ -605,35 +773,35 @@ export function addNextParameter(url, next, paramName='next', assertSameBaseDoma
  * Adds a cache busting parameter to a given URL. If there is already a parameter of that name, it will be replaced.
  * This prevents legacy browsers from caching requests by changing the request URL dynamically, based on current time.
  *
- * @param {?String} [url=''] - the URL to add the cache busting parameter to, if left empty, will be "", which is synonymous with the current URL
+ * @param {?String|URL} [url=null] - the URL to add the cache busting parameter to, if nullish, the current URL will be used
  * @param {?String} [paramName='_'] - the name of the cache busting parameter
+ * @throws error if url is not a usable URL
  * @returns {String} the transformed URL with the added cache busting parameter
  *
  * @memberof Urls:addCacheBuster
  * @alias addCacheBuster
+ * @see urlHref
  * @example
  * addCacheBuster('https://foobar.com');
  * => 'https://foobar.com?_=1648121948009'
  * addCacheBuster('https://foobar.com?next=https%3A%2F%2Ffoo.bar', 'nocache');
  * => 'https://foobar.com?next=https%3A%2F%2Ffoo.bar&nocache=1648121948009'
  */
-export function addCacheBuster(url, paramName='_'){
+export function addCacheBuster(url=null, paramName='_'){
 	const __methodName__ = 'addCacheBuster';
 
-	url = new URL(orDefault(url, '', 'str'));
+	url = urlHref(url);
 
 	const
-		urlParams = new URLSearchParams(url.search),
+		params = new URL(url).searchParams,
 		buster = Date.now()
 	;
 
-	if( urlParams.has(paramName) ){
-		log().info(`${MODULE_NAME}:${__methodName__} | replaced "${paramName}" value "${urlParams.get(paramName)}" with "${buster}"`);
+	if( params.has(paramName) ){
+		log().info(`${MODULE_NAME}:${__methodName__} | replaced "${paramName}" value "${params.get(paramName)}" with "${buster}"`);
 	}
 
-	urlParams.set(paramName, buster);
-
-	return `${url.origin}${url.pathname}?${urlParams}${url.hash}`;
+	return urlHref(url, {[`!${paramName}`] : buster})
 }
 
 
@@ -1002,7 +1170,7 @@ class Urison {
 			encodeURIComponent(value),
 			['%2C', '%3A', '%40', '%24', '%2F', '%2B'],
 			[',', ':', '@', '$', '/', '+']
-		)
+		);
 	}
 
 }

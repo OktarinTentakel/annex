@@ -11,7 +11,8 @@ if( global.__AVA_SOURCE__ === 'es5-monolith' ){
 
 const {
 	randomNumber,
-	randomUuid
+	randomUuid,
+	randomUserCode
 } = pkg;
 
 
@@ -118,8 +119,8 @@ test('randomNumber', assert => {
 
 import crypto from 'crypto';
 function getRandomValues(buf){
-	if( !(buf instanceof Uint8Array) ){
-		throw new TypeError('expected Uint8Array');
+	if( !(buf instanceof Uint8Array) && !(buf instanceof Uint16Array) ){
+		throw new TypeError('expected Uint8Array/Uint16Array');
 	}
 
 	if( buf.length > 65536 ){
@@ -137,28 +138,36 @@ function getRandomValues(buf){
 }
 
 test('randomUuid', assert => {
-	let implementations, i, check, foo;
+	let implementations, i;
 
 	for( implementations = 0; implementations < 2; implementations++ ){
-		check = true;
 		for( i = 0; i < 100; i++ ){
-			foo = randomUuid();
-			check = check && (foo.length === 36) && /[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}/.test(foo);
-			if( !check ){
-				break;
-			}
+			assert.regex(randomUuid(), /[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}/);
 		}
-		assert.true(check);
 
-		check = true;
 		for( i = 0; i < 100; i++ ){
-			foo = randomUuid(false);
-			check = check && (foo.length === 32) && /[0-9a-f]{32}/.test(foo);
-			if( !check ){
-				break;
-			}
+			assert.regex(randomUuid(false), /[0-9a-f]{32}/);
 		}
-		assert.true(check);
+
+		window.crypto = {getRandomValues};
+	}
+
+	window.crypto = undefined;
+});
+
+
+
+test('randomUserCode', assert => {
+	let implementations, i;
+
+	for( implementations = 0; implementations < 2; implementations++ ){
+		for( i = 0; i < 100; i++ ){
+			assert.regex(randomUserCode(), /[ACDEFGHKLMNPQRSTUVWXYZ23456789]{8,12}/);
+		}
+
+		for( i = 0; i < 100; i++ ){
+			assert.regex(randomUserCode('0123456789ABCDEF', 10, 10, '='), /[0-9A-F=]{10}/);
+		}
 
 		window.crypto = {getRandomValues};
 	}

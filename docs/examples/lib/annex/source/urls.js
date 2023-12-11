@@ -519,8 +519,6 @@ export function urlHref(url=null, params=null, anchor=null, markListParams=false
 		}
 	}
 
-
-
 	let	query = urlObj.search
 		.replace(/\+/g, '%20')
 		.replace(/=&/g, '&')
@@ -542,14 +540,7 @@ export function urlHref(url=null, params=null, anchor=null, markListParams=false
 				aKey = a.split('=')[0],
 				bKey = b.split('=')[0]
 			;
-			return (aKey < bKey)
-				? -1
-				: (
-					(aKey > bKey)
-					? 1
-					: 0
-				)
-			;
+			return (aKey < bKey) ? -1 : ((aKey > bKey) ? 1 : 0 );
 		});
 		queryParts = queryParts.filter((part, index) => {
 			if( index >= 1 ){

@@ -16,6 +16,9 @@ export const arrays = _arrays;
 import * as _objects from './objects.js';
 export const objects = _objects;
 
+import * as _conversion from './conversion.js';
+export const conversion = _conversion;
+
 import * as _random from './random.js';
 export const random = _random;
 

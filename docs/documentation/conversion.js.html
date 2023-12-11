@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: conversion.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: conversion.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*!
+ * Module Conversion
+ */
+
+/**
+ * @namespace Conversion
+ */
+
+const MODULE_NAME = 'Conversion';
+
+
+
+//###[ IMPORTS ]########################################################################################################
+
+import {isInt, isArray, orDefault} from './basic.js';
+import {pad, trim} from './strings.js';
+
+
+
+//###[ DATA ]###########################################################################################################
+
+const
+	UPPER_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+	LOWER_CHARS = 'abcdefghijklmnopqrstuvwxyz',
+	NUMBERS = '0123456789',
+	BASE_ALPHABETS = {
+		'64' : `${UPPER_CHARS}${LOWER_CHARS}${NUMBERS}+/`,
+		'63' : `${NUMBERS}${UPPER_CHARS}${LOWER_CHARS}_`,
+		'36' : `${NUMBERS}${UPPER_CHARS}`,
+		'26' : UPPER_CHARS,
+		'16' : `${NUMBERS}${UPPER_CHARS.slice(0, 6)}`,
+		'10' : NUMBERS,
+		'8' : NUMBERS.slice(0, 8),
+		'2' : NUMBERS.slice(0, 2)
+	},
+	BASE64_ALPHABET = BASE_ALPHABETS['64']
+;
+
+
+
+//###[ HELPERS ]########################################################################################################
+
+/**
+ * Builds an alphabet string, based on an integer, an alphabet string or an array of strings containing the alphabet's
+ * chars. An integer uses BASE_ALPHABETS to select a base alphabet to slice the alphabet from. The first base alphabet
+ * having enough chars is going be used. The configurations of the base alphabets are according to current base
+ * practices.
+ *
+ * Characters in custom alphabets are sorted according to base64 definition, with additional chars appended at the end,
+ * sorted ascending based on char value.
+ *
+ * @private
+ */
+function buildAlphabet(__methodName__='buildAlphabet', baseOrAlphabet=64, useChunks=false){
+	baseOrAlphabet = orDefault(baseOrAlphabet, 64);
+
+	let alphabet;
+
+	if( isInt(baseOrAlphabet) ){
+		if( (baseOrAlphabet &lt; 2) || (baseOrAlphabet > 64) ){
+			throw new Error(`${MODULE_NAME}:${__methodName__} | base not usable, smaller than 2 or larger than 64`);
+		}
+
+		if( useChunks &amp;&amp; (baseOrAlphabet &lt; 3) ){
+			throw new Error(`${MODULE_NAME}:${__methodName__} | base not usable for chunks, smaller than 3`);
+		}
+
+		for( let baseAlphabetKey of Object.keys(BASE_ALPHABETS).sort() ){
+			if( Number(baseAlphabetKey) >= baseOrAlphabet ){
+				alphabet = BASE_ALPHABETS[baseAlphabetKey].slice(0, baseOrAlphabet);
+				break;
+			}
+		}
+	} else {
+		alphabet = [];
+
+		if( !isArray(baseOrAlphabet) ){
+			baseOrAlphabet = `${baseOrAlphabet}`.split('');
+		}
+
+		baseOrAlphabet.forEach(char => {
+			alphabet = alphabet.concat(`${char}`.split(''));
+		});
+
+		alphabet = Array.from(new Set(alphabet));
+		alphabet.sort((a, b) => {
+			const
+				aBase64Index = BASE64_ALPHABET.indexOf(a),
+				bBase64Index = BASE64_ALPHABET.indexOf(b)
+			;
+
+			if( (aBase64Index &lt; 0) &amp;&amp; (bBase64Index &lt; 0) ){
+				return (a === b) ? 0 : ((a &lt; b) ? -1 : 1);
+			} else if( aBase64Index &lt; 0 ){
+				return 1;
+			} else if( bBase64Index &lt; 0 ){
+				return -1;
+			} else {
+				return (aBase64Index === bBase64Index) ? 0 : ((aBase64Index &lt; bBase64Index) ? -1 : 1);
+			}
+		});
+
+		alphabet = alphabet.join('');
+	}
+
+	if( (alphabet.length &lt; 2) || (alphabet.length > 64) ){
+		throw new Error(`${MODULE_NAME}:${__methodName__} | alphabet not usable, must have between two and 64 chars`);
+	}
+
+	if( useChunks &amp;&amp; (alphabet.length &lt; 3) ){
+		throw new Error(`${MODULE_NAME}:${__methodName__} | alphabet not usable for chunks, less than 3 chars`);
+	}
+
+	return alphabet;
+}
+
+
+
+/**
+ * Calculates how many character mapping pages/page characters we need for a specific alphabet,
+ * defined by its length/base.
+ *
+ * @private
+ */
+function calculateNeededPages(base){
+	const availablePages = Math.floor(base / 2);
+	let
+		neededPages = 0,
+		charPoolSize = base,
+		combinations = charPoolSize
+	;
+
+	while( combinations &lt; 64 ){
+		neededPages++;
+		if( neededPages &lt;= availablePages ){
+			charPoolSize--;
+		}
+		combinations = (neededPages + 1) * charPoolSize;
+	}
+
+	return neededPages;
+}
+
+
+
+/**
+ * Returns an array of value prefixes used to map characters to different code pages, in cases where we need to encode
+ * a base64 character above the base of our target alphabet, which means, that we have to repeat character usage, but
+ * with a page prefix to multiply the value set by reducing the base alphabet for that purpose.
+ *
+ * @private
+ */
+function buildPageMap(alphabet){
+	const
+		base = alphabet.length,
+		neededPages = calculateNeededPages(base),
+		availablePages = Math.floor(base / 2),
+		pageMap = ['']
+	;
+
+	let remainder, quotient;
+	for( let i = 1; i &lt;= neededPages; i++ ){
+		remainder = i % availablePages;
+		quotient = Math.ceil(i / availablePages);
+		pageMap.push(pad('', alphabet[(remainder > 0) ? (remainder - 1) : (availablePages - 1)], quotient));
+	}
+
+	return pageMap;
+}
+
+
+
+/**
+ * Returns a dictionary, mapping each base64 character to one or more characters of the target alphabet.
+ * In cases, where the character to encode is beyond the target alphabet, page prefixes are prepended to
+ * cover all characters by increasing length.
+ *
+ * @private
+ */
+function buildCharMap(pageMap, alphabet){
+	const
+		base = alphabet.length,
+		neededPages = calculateNeededPages(base),
+		availablePages = Math.floor(base / 2),
+		pagedAlphabet = alphabet.slice(Math.min(neededPages, availablePages)),
+		pagedBase = pagedAlphabet.length,
+		charMap = {}
+	;
+
+	let remainder, quotient;
+	for( let i in BASE64_ALPHABET.split('') ){
+		remainder = i % pagedBase;
+		quotient = Math.floor(i / pagedBase);
+		charMap[BASE64_ALPHABET[i]] = `${pageMap[quotient]}${pagedAlphabet[remainder]}`
+	}
+
+	return charMap;
+}
+
+
+
+/**
+ * Converts a string to base64, while handling unicode characters correctly.
+ * Be advised, that the result needs to be decoded with base64ToString() again, since
+ * we also need to correctly handle unicode on the way back.
+ *
+ * @private
+ */
+function stringToBase64(value){
+	return btoa(String.fromCodePoint(...((new TextEncoder()).encode(`${value}`)))).replaceAll('=', '');
+}
+
+
+
+/**
+ * Decodes a base64-encoded string to its original value.
+ * Be advised, that the base64 value has to be encoded using stringToBase64(), since unicode characters need
+ * special handling during en/decoding.
+ *
+ * This function will fail with an error, if the given value is not actually decodable with base64.
+ *
+ * @private
+ */
+function base64ToString(value, __methodName__='base64ToString'){
+	let res = null;
+
+	try {
+		res = (new TextDecoder()).decode(Uint8Array.from(atob(`${value}`), char => char.codePointAt(0)))
+	} catch(ex){
+		throw new Error(`${MODULE_NAME}:${__methodName__} | cannot decode "${value}"`);
+	}
+
+	return res;
+}
+
+
+
+/**
+ * Converts a decimal/base10 value to a different base numerically.
+ * Be aware that this needs the value to be a safe integer.
+ * This function does not deal with negative numbers by itself.
+ *
+ * @private
+ */
+function base10toBaseX(value, alphabet){
+	const base = alphabet.length;
+	let
+		baseXValue = '',
+		quotient = value,
+		remainder
+	;
+
+	if( quotient !== 0){
+		while( quotient !== 0 ){
+			remainder = quotient % base;
+			quotient = Math.floor(quotient / base);
+			baseXValue = `${alphabet[remainder]}${baseXValue}`;
+		}
+	} else {
+		baseXValue = `${alphabet[0]}`;
+	}
+
+	return baseXValue;
+}
+
+
+
+/**
+ * Converts a value, based on a defined alphabet, to its decimal/base10 representation.
+ * Be aware that this needs the result to be a safe integer.
+ * This function does not deal with negative numbers by itself.
+ *
+ * @private
+ */
+function baseXToBase10(value, alphabet){
+	value = `${value}`.split('').reverse().join('');
+
+	const base = alphabet.length;
+	let base10Value = 0;
+
+	for( let i = 0; i &lt; value.length; i++ ){
+		base10Value += Math.pow(base, i) * alphabet.indexOf(value[i]);
+	}
+
+	return base10Value;
+}
+
+
+
+//###[ EXPORTS ]########################################################################################################
+
+/**
+ * @namespace Conversion:toBaseX
+ */
+
+/**
+ * This function converts a value to a representation in a defined base between 2 and 64.
+ * So this covers common use cases like binary, octal, hexadecimal, alphabetical, alphanumeric and of course base64.
+ *
+ * The result of this function is always either a decimal number or a string, just as the input value. All numbers
+ * apart from decimal ones are returned as strings without prefix. So, decimal 5 will be the number 5, but the binary
+ * version will be the string "101". Positive and negative decimal integers are valid numbers here, but this
+ * implementation does not support floats (multiply and divide if needed). Only numerical bases above 36 contain
+ * lower case characters, so decimal 255 is "FF" in base 16 and not "ff".
+ *
+ * This function is unicode safe, by using byte conversion
+ * (see: https://developer.mozilla.org/en-US/docs/Glossary/Base64#the_unicode_problem).
+ * Be aware, that this also means, that results of `btoa/atob()` and `toBaseX/fromBaseX()` are _not_ interchangeable,
+ * since they work with different values internally.
+ *
+ * There are three approaches to changing the base of a value in JavaScript:
+ *
+ * 1. Either you are taking the numerical/mathematical road, treating a value as a number in its alphabet being
+ * interpreted as a number, where each character, counting from the back is the base to the power of the
+ * character index. This is the approach you'd expect, when, for instance, you'd want to convert the decimal number 5
+ * to binary 101. The downside of this approach is, that the relatively small max safe integer in JavaScript makes
+ * converting large numbers, such as longer strings, impossible.
+ *
+ * 2. Therefore, the second approach takes the numeric approach, but combines it with chunking, splitting the value into
+ * pieces, which are, by themselves, safely convertible. The downside is, that we need an extra character to delimit
+ * chunks in the result, since values have non-uniform lengths. This means, that this does not work with the basic
+ * binary base, and we need at least 3 alphabet characters.
+ *
+ * 3. The last approach uses the native base64 string encoding with `btoa()` as a safe translation layer, mapping the
+ * resulting string to the target base, using a generated (and possibly paged) character map. This way treats all
+ * values as strings and is not compatible to numerical conversion anymore, but uses the same characters. The result
+ * of this approach can encode every string of every length without structural tricks, but has the longest results.
+ *
+ * This function is capable of all three approaches, which are equally safe for unicode values. The numerical
+ * approach is the default. If you want to encode large numbers or strings longer than ~6 characters, select
+ * a different approach using the `useCharacterMap` or `useChunks` parameters. Character mapping has preference, while
+ * chunks have no effect in character mapping.
+ *
+ * Each encoding process ends with a self-test, checking if the result is actually decodable using
+ * `fromBaseX()`, using the same settings again. This ensures, that every result is valid and retrievable in the future,
+ * preventing any undiscovered errors, which would make it impossible to work with the original value again.
+ *
+ * You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer based
+ * alphabets are generated using defined base alphabets, which are sliced if necessary. Custom alphabets are
+ * automatically sorted to match base64 are far as possible, pushing additional characters to the end, which are then
+ * sorted ascending by character value.
+ *
+ * "{" and "}" are the only forbidden characters in a custom alphabet, since we need these to mark number values in
+ * `fromBaseX()`.
+ *
+ * Numerical conversion keeps negative numbers negative and marks the result with a preceding "-".
+ *
+ * Hint: if you want to genrate codes to be presented to the user, see `Random:randomUserCode`.
+ *
+ * @param {Number|String} value - value to be encoded
+ * @param {?Number|String|Array&lt;String>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...) or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)
+ * @param {?Boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(), instead of numerical conversion
+ * @param {?Boolean} [useChunks=false] - set to true, to add chunking to the numerical approach, converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet
+ * @param {?Number} [chunkSize=6] - define a different chunks size; only change this, if 6 seems too big in your context, going higher is not advisable
+ * @throws error if baseOrAlphabet is not usable
+ * @throws error if result is not decodable again using the same settings
+ * @returns {String} the encoded value
+ *
+ * @memberof Conversion:toBaseX
+ * @alias toBaseX
+ * @see fromBaseX
+ * @see https://developer.mozilla.org/en-US/docs/Glossary/Base64#the_unicode_problem
+ * @see Random:randomUserCode
+ * @example
+ * toBaseX('foobar')
+ * => 'Zm9vYmFy'
+ * toBaseX(-5, 2)
+ * => '-101'
+ * toBaseX(42, 'abcdefghij')
+ * => 'ec'
+ * toBaseX('too-long-for-number-conversion', 36, true)
+ * => 'U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C'
+ * toBaseX('too-long-for-number-conversion', 16, false, true)
+ * => 'D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C'
+ */
+export function toBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChunks=false, chunkSize=6){
+	const __methodName__ = 'toBaseX';
+
+	const
+		valueIsNumber = isInt(value),
+		valueIsNegativeNumber = valueIsNumber &amp;&amp; (value &lt; 0)
+	;
+
+	value = valueIsNumber ? `${Math.abs(value)}` : `${value}`;
+	useCharacterMap = orDefault(useCharacterMap, false, 'bool');
+	useChunks = orDefault(useChunks, false, 'bool');
+	chunkSize = orDefault(chunkSize, 10, 'int');
+
+	const alphabet = buildAlphabet(__methodName__, baseOrAlphabet, useChunks);
+	if( alphabet.includes('{') || alphabet.includes('}') ){
+		throw new Error(`${MODULE_NAME}:${__methodName__} | invalid alphabet, must not contain "{" or "}"`)
+	}
+
+	let
+		base64Value = '',
+		base10Value = 0,
+		baseXValue = ''
+	;
+
+	if( useCharacterMap ){
+		base64Value = stringToBase64(value);
+		if( baseOrAlphabet === 64 ) return base64Value;
+
+		const
+			pageMap = buildPageMap(alphabet),
+			charMap = buildCharMap(pageMap, alphabet)
+		;
+
+		for( let char of base64Value ){
+			baseXValue += charMap[char];
+		}
+	} else {
+		if( valueIsNumber ){
+			base64Value = base10toBaseX(value, BASE64_ALPHABET);
+		} else {
+			base64Value = stringToBase64(value);
+		}
+
+		const
+			chunks = [],
+			chunkAlphabet = useChunks ? alphabet.slice(1) : alphabet,
+			chunkSeparator = useChunks ? alphabet[0] : ''
+		;
+
+		if( useChunks ){
+			let chunkStart = 0;
+			while( chunkStart &lt; base64Value.length ){
+				chunks.push(base64Value.slice(chunkStart, chunkStart + chunkSize));
+				chunkStart += chunkSize;
+			}
+		} else {
+			chunks.push(base64Value);
+		}
+
+		for( let chunk of chunks ){
+			base10Value = baseXToBase10(chunk, BASE64_ALPHABET);
+
+			if( !useChunks &amp;&amp; (baseOrAlphabet === 10) ){
+				baseXValue += base10Value;
+				break;
+			}
+
+			baseXValue += `${chunkSeparator}${base10toBaseX(base10Value, chunkAlphabet)}`;
+		}
+
+		if( chunkSeparator !== '' ){
+			baseXValue = baseXValue.slice(1);
+		}
+	}
+
+	baseXValue = `${valueIsNegativeNumber ? '-' : ''}${baseXValue}`;
+	const decodedValue = `${fromBaseX(baseXValue, baseOrAlphabet, useCharacterMap, useChunks, valueIsNumber)}`;
+	if( decodedValue !== `${valueIsNegativeNumber ? '-' : ''}${value}` ){
+		throw new Error(
+			`${MODULE_NAME}:${__methodName__} | critical error, encoded value "${baseXValue}" `
+			+`not decodable to "${value}", is "${decodedValue}" instead; `
+			+`if this looks "cut off", this may be a problem with JS max safe integer size `
+			+`(safe value length for number-based conversion is just ~8 chars), `
+			+`try using character mapping or chunks to circumvent this problem`
+		);
+	}
+	return baseXValue;
+}
+
+
+
+/**
+ * @namespace Conversion:fromBaseX
+ */
+
+/**
+ * This function converts a based representation back to its original number or string value.
+ * This is the mirror function to `toBaseX()` and expects a value encoded with that function. See that function
+ * for implementation details, modes and restrictions.
+ *
+ * The result of this function is always either a decimal number or a string, just as the input value. All numbers
+ * apart from decimal ones are returned as strings without prefix. So, decimal 5 will be the number 5, but the binary
+ * version will be the string "101".
+ *
+ * You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer based
+ * alphabets are generated using defined base alphabets, which are sliced if necessary. Custom alphabets are
+ * automatically sorted to match base64 are far as possible, pushing additional characters to the end, which are then
+ * sorted ascending by character value.
+ *
+ * "{" and "}" are the only forbidden characters in a custom alphabet, since we need these to mark number values in
+ * `fromBaseX()`.
+ *
+ * Numerical conversion keeps negative numbers negative and marks the result with a preceding "-".
+ *
+ * @param {Number|String} value - value to be decoded
+ * @param {?Number|String|Array&lt;String>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...) or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)
+ * @param {?Boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(), instead of numerical conversion
+ * @param {?Boolean} [useChunks=false] - set to true, to add chunking to the numerical approach, converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet
+ * @param {?Boolean} [valueIsNumber=false] - if true, the given value is treated as a number for numerical conversion; this is necessary, since numbers such as binaries are defined as strings and are therefore not auto-detectable
+ * @throws error if baseOrAlphabet is not usable
+ * @throws error character mapped decoding fails, due to missing token/unmatched alphabet
+ * @returns {String} the decoded value
+ *
+ * @memberof Conversion:fromBaseX
+ * @alias fromBaseX
+ * @see toBaseX
+ * @example
+ * fromBaseX('Zm9vYmFy')
+ * => 'foobar'
+ * fromBaseX('16W33YPUS', 36)
+ * => 'äす'
+ * fromBaseX('{-3C3}', 13)
+ * => -666
+ * fromBaseX('q', 64, false, false, true)
+ * => 42
+ * fromBaseX('U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C', 36, true)
+ * => 'too-long-for-number-conversion'
+ * fromBaseX('D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C', 16, false, true)
+ * => 'too-long-for-number-conversion'
+ */
+export function fromBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChunks=false, valueIsNumber=false){
+	const __methodName__ = 'fromBaseX';
+
+	valueIsNumber = !!valueIsNumber
+		|| isInt(value)
+		|| (`${value}`.startsWith('{') &amp;&amp; `${value}`.endsWith('}'))
+	;
+	value = `${value}`;
+	if( valueIsNumber ){
+		value = trim(value, ['{', '}']);
+	}
+	const valueIsNegativeNumber = valueIsNumber &amp;&amp; value.startsWith('-');
+	if( valueIsNegativeNumber ){
+		value = value.slice(1);
+	}
+
+	useCharacterMap = orDefault(useCharacterMap, false, 'bool');
+	useChunks = orDefault(useChunks, false, 'bool');
+
+	if(
+		(baseOrAlphabet === 64)
+		&amp;&amp; !useCharacterMap
+		&amp;&amp; !useChunks
+		&amp;&amp; !valueIsNumber
+	) return base64ToString(value, __methodName__);
+
+	const alphabet = buildAlphabet(__methodName__, baseOrAlphabet, useChunks);
+	if( alphabet.includes('{') || alphabet.includes('}') ){
+		throw new Error(`${MODULE_NAME}:${__methodName__} | invalid alphabet, must not contain "{" or "}"`)
+	}
+
+	let
+		base64Value = '',
+		base10Value = 0,
+		decodedValue
+	;
+
+	if( useCharacterMap ){
+		const
+			pageMap = buildPageMap(alphabet),
+			charMap = buildCharMap(pageMap, alphabet),
+			inverseCharMap = Object.fromEntries(
+				Object
+				.entries(charMap)
+				.map(([key, value]) => [value, key])
+			),
+			tokensByLength = Object.keys(inverseCharMap).sort((a, b) => {
+				return (a.length === b.length) ? 0 : ((a.length > b.length) ? -1 : 1);
+			})
+		;
+
+		let tokenFound = false;
+		while( value !== '' ){
+			for( let token of tokensByLength ){
+				tokenFound = false;
+				if( value.startsWith(token) ){
+					tokenFound = true;
+					base64Value += inverseCharMap[token];
+					value = value.slice(token.length);
+					break;
+				}
+			}
+
+			if( !tokenFound ){
+				throw new Error(
+					`${MODULE_NAME}:${__methodName__} | unknown token at start of "${value}", likely due to non-matching alphabet`
+				);
+			}
+		}
+
+		decodedValue = base64ToString(base64Value, __methodName__);
+		if( valueIsNegativeNumber ){
+			decodedValue = `-${decodedValue}`;
+		}
+
+		return decodedValue;
+	} else {
+		decodedValue = '';
+
+		const
+			chunkAlphabet = useChunks ? alphabet.slice(1) : alphabet,
+			chunkSeparator = useChunks ? alphabet[0] : '',
+			chunks = useChunks ? value.split(chunkSeparator) : [value]
+		;
+
+		for( let chunk of chunks ){
+			base10Value = baseXToBase10(chunk, chunkAlphabet);
+
+			if( valueIsNumber ){
+				decodedValue += `${base10Value}`;
+			} else {
+				base64Value += base10toBaseX(base10Value, BASE64_ALPHABET);
+			}
+		}
+
+		if( decodedValue === '' ){
+			decodedValue = base64ToString(base64Value, __methodName__)
+			if( valueIsNegativeNumber ){
+				decodedValue = `-${decodedValue}`;
+			}
+		}
+
+		if( !useChunks &amp;&amp; valueIsNumber ){
+			decodedValue = Number(decodedValue);
+			if( valueIsNegativeNumber &amp;&amp; (decodedValue >= 0) ){
+				decodedValue = -decodedValue;
+			}
+		}
+
+		return decodedValue;
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li class=""><a href="BreakpointObserver.html">BreakpointObserver</a></li><li class=""><a href="RestfulJsonClient.html">RestfulJsonClient</a></li><li class=""><a href="SaneDate.html">SaneDate</a></li><li class=""><a href="SimplePollingObserver.html">SimplePollingObserver</a></li><li class=""><a href="Urison.html">Urison</a></li><li class=""><a href="UrisonParser.html">UrisonParser</a></li><li class=""><a href="VisibilityObserver.html">VisibilityObserver</a></li><li class=""><a href="VisibilityState.html">VisibilityState</a></li></ul><h3>Namespaces</h3><ul><li class="namespace-member"><a href="Animation.html">Animation</a></li><li class="namespace"><a href="Animation_EasingFunctions.html">Animation:EasingFunctions</a></li><li class="namespace"><a href="Animation_transition.html">Animation:transition</a></li><li class="namespace-member"><a href="Arrays.html">Arrays</a></li><li class="namespace"><a href="Arrays_generateRange.html">Arrays:generateRange</a></li><li class="namespace"><a href="Arrays_removeFrom.html">Arrays:removeFrom</a></li><li class="namespace-member"><a href="Basic.html">Basic</a></li><li class="namespace"><a href="Basic_Deferred.html">Basic:Deferred</a></li><li class="namespace"><a href="Basic_Observable.html">Basic:Observable</a></li><li class="namespace"><a href="Basic_assert.html">Basic:assert</a></li><li class="namespace"><a href="Basic_attempt.html">Basic:attempt</a></li><li class="namespace"><a href="Basic_getType.html">Basic:getType</a></li><li class="namespace"><a href="Basic_hasMembers.html">Basic:hasMembers</a></li><li class="namespace"><a href="Basic_hasValue.html">Basic:hasValue</a></li><li class="namespace"><a href="Basic_isA.html">Basic:isA</a></li><li class="namespace"><a href="Basic_isArray.html">Basic:isArray</a></li><li class="namespace"><a href="Basic_isBigInt.html">Basic:isBigInt</a></li><li class="namespace"><a href="Basic_isBoolean.html">Basic:isBoolean</a></li><li class="namespace"><a href="Basic_isCollection.html">Basic:isCollection</a></li><li class="namespace"><a href="Basic_isDate.html">Basic:isDate</a></li><li class="namespace"><a href="Basic_isDocument.html">Basic:isDocument</a></li><li class="namespace"><a href="Basic_isElement.html">Basic:isElement</a></li><li class="namespace"><a href="Basic_isEmpty.html">Basic:isEmpty</a></li><li class="namespace"><a href="Basic_isError.html">Basic:isError</a></li><li class="namespace"><a href="Basic_isEventTarget.html">Basic:isEventTarget</a></li><li class="namespace"><a href="Basic_isFloat.html">Basic:isFloat</a></li><li class="namespace"><a href="Basic_isFunction.html">Basic:isFunction</a></li><li class="namespace"><a href="Basic_isGenerator.html">Basic:isGenerator</a></li><li class="namespace"><a href="Basic_isInt.html">Basic:isInt</a></li><li class="namespace"><a href="Basic_isIterator.html">Basic:isIterator</a></li><li class="namespace"><a href="Basic_isMap.html">Basic:isMap</a></li><li class="namespace"><a href="Basic_isNaN.html">Basic:isNaN</a></li><li class="namespace"><a href="Basic_isNodeList.html">Basic:isNodeList</a></li><li class="namespace"><a href="Basic_isNumber.html">Basic:isNumber</a></li><li class="namespace"><a href="Basic_isObject.html">Basic:isObject</a></li><li class="namespace"><a href="Basic_isPlainObject.html">Basic:isPlainObject</a></li><li class="namespace"><a href="Basic_isPotentialId.html">Basic:isPotentialId</a></li><li class="namespace"><a href="Basic_isRegExp.html">Basic:isRegExp</a></li><li class="namespace"><a href="Basic_isSelector.html">Basic:isSelector</a></li><li class="namespace"><a href="Basic_isSet.html">Basic:isSet</a></li><li class="namespace"><a href="Basic_isString.html">Basic:isString</a></li><li class="namespace"><a href="Basic_isSvg.html">Basic:isSvg</a></li><li class="namespace"><a href="Basic_isSymbol.html">Basic:isSymbol</a></li><li class="namespace"><a href="Basic_isUrl.html">Basic:isUrl</a></li><li class="namespace"><a href="Basic_isUrlSearchParams.html">Basic:isUrlSearchParams</a></li><li class="namespace"><a href="Basic_isWeakMap.html">Basic:isWeakMap</a></li><li class="namespace"><a href="Basic_isWeakSet.html">Basic:isWeakSet</a></li><li class="namespace"><a href="Basic_isWindow.html">Basic:isWindow</a></li><li class="namespace"><a href="Basic_max.html">Basic:max</a></li><li class="namespace"><a href="Basic_min.html">Basic:min</a></li><li class="namespace"><a href="Basic_minMax.html">Basic:minMax</a></li><li class="namespace"><a href="Basic_orDefault.html">Basic:orDefault</a></li><li class="namespace"><a href="Basic_round.html">Basic:round</a></li><li class="namespace"><a href="Basic_size.html">Basic:size</a></li><li class="namespace-member"><a href="CSS.html">CSS</a></li><li class="namespace"><a href="CSS_applyStyles.html">CSS:applyStyles</a></li><li class="namespace"><a href="CSS_cssUrlValueToUrl.html">CSS:cssUrlValueToUrl</a></li><li class="namespace"><a href="CSS_cssValueToNumber.html">CSS:cssValueToNumber</a></li><li class="namespace"><a href="CSS_remByPx.html">CSS:remByPx</a></li><li class="namespace-member"><a href="Context.html">Context</a></li><li class="namespace"><a href="Context_browserSupportsHistoryManipulation.html">Context:browserSupportsHistoryManipulation</a></li><li class="namespace"><a href="Context_contextHasHighDpi.html">Context:contextHasHighDpi</a></li><li class="namespace"><a href="Context_detectAppleDevice.html">Context:detectAppleDevice</a></li><li class="namespace"><a href="Context_detectInteractionType.html">Context:detectInteractionType</a></li><li class="namespace"><a href="Context_getBrowserLanguage.html">Context:getBrowserLanguage</a></li><li class="namespace"><a href="Context_getBrowserLocale.html">Context:getBrowserLocale</a></li><li class="namespace"><a href="Context_getBrowserScrollbarWidth.html">Context:getBrowserScrollbarWidth</a></li><li class="namespace"><a href="Context_getLocale.html">Context:getLocale</a></li><li class="namespace-member"><a href="Conversion.html">Conversion</a></li><li class="namespace"><a href="Conversion_fromBaseX.html">Conversion:fromBaseX</a></li><li class="namespace"><a href="Conversion_toBaseX.html">Conversion:toBaseX</a></li><li class="namespace-member"><a href="Cookies.html">Cookies</a></li><li class="namespace"><a href="Cookies_getCookie.html">Cookies:getCookie</a></li><li class="namespace"><a href="Cookies_getCookies.html">Cookies:getCookies</a></li><li class="namespace"><a href="Cookies_removeCookie.html">Cookies:removeCookie</a></li><li class="namespace"><a href="Cookies_setCookie.html">Cookies:setCookie</a></li><li class="namespace-member"><a href="Dates.html">Dates</a></li><li class="namespace"><a href="Dates_SaneDate.html">Dates:SaneDate</a></li><li class="namespace"><a href="Dates_format.html">Dates:format</a></li><li class="namespace-member"><a href="Elements.html">Elements</a></li><li class="namespace"><a href="Elements_createNode.html">Elements:createNode</a></li><li class="namespace"><a href="Elements_defineNode.html">Elements:defineNode</a></li><li class="namespace"><a href="Elements_find.html">Elements:find</a></li><li class="namespace"><a href="Elements_findOne.html">Elements:findOne</a></li><li class="namespace"><a href="Elements_findTextNodes.html">Elements:findTextNodes</a></li><li class="namespace"><a href="Elements_getData.html">Elements:getData</a></li><li class="namespace"><a href="Elements_getTextContent.html">Elements:getTextContent</a></li><li class="namespace"><a href="Elements_insertNode.html">Elements:insertNode</a></li><li class="namespace"><a href="Elements_isInDom.html">Elements:isInDom</a></li><li class="namespace"><a href="Elements_measureHiddenDimensions.html">Elements:measureHiddenDimensions</a></li><li class="namespace"><a href="Elements_prime.html">Elements:prime</a></li><li class="namespace"><a href="Elements_removeData.html">Elements:removeData</a></li><li class="namespace"><a href="Elements_replaceNode.html">Elements:replaceNode</a></li><li class="namespace"><a href="Elements_setData.html">Elements:setData</a></li><li class="namespace-member"><a href="Events.html">Events</a></li><li class="namespace"><a href="Events_emit.html">Events:emit</a></li><li class="namespace"><a href="Events_emitPostMessage.html">Events:emitPostMessage</a></li><li class="namespace"><a href="Events_fire.html">Events:fire</a></li><li class="namespace"><a href="Events_off.html">Events:off</a></li><li class="namespace"><a href="Events_offDetachedElements.html">Events:offDetachedElements</a></li><li class="namespace"><a href="Events_offPostMessage.html">Events:offPostMessage</a></li><li class="namespace"><a href="Events_offSwipe.html">Events:offSwipe</a></li><li class="namespace"><a href="Events_on.html">Events:on</a></li><li class="namespace"><a href="Events_onDomReady.html">Events:onDomReady</a></li><li class="namespace"><a href="Events_onPostMessage.html">Events:onPostMessage</a></li><li class="namespace"><a href="Events_onSwipe.html">Events:onSwipe</a></li><li class="namespace"><a href="Events_once.html">Events:once</a></li><li class="namespace"><a href="Events_pause.html">Events:pause</a></li><li class="namespace"><a href="Events_resume.html">Events:resume</a></li><li class="namespace-member"><a href="Fonts.html">Fonts</a></li><li class="namespace"><a href="Fonts_waitForWebfonts.html">Fonts:waitForWebfonts</a></li><li class="namespace-member"><a href="Forms.html">Forms</a></li><li class="namespace"><a href="Forms_formDataToObject.html">Forms:formDataToObject</a></li><li class="namespace"><a href="Forms_objectToFormData.html">Forms:objectToFormData</a></li><li class="namespace-member"><a href="Functions.html">Functions</a></li><li class="namespace"><a href="Functions_debounce.html">Functions:debounce</a></li><li class="namespace"><a href="Functions_defer.html">Functions:defer</a></li><li class="namespace"><a href="Functions_kwargs.html">Functions:kwargs</a></li><li class="namespace"><a href="Functions_throttle.html">Functions:throttle</a></li><li class="namespace-member"><a href="Images.html">Images</a></li><li class="namespace"><a href="Images_loaded.html">Images:loaded</a></li><li class="namespace"><a href="Images_preload.html">Images:preload</a></li><li class="namespace-member"><a href="Interaction.html">Interaction</a></li><li class="namespace"><a href="Interaction_createSelection.html">Interaction:createSelection</a></li><li class="namespace"><a href="Interaction_disableSelection.html">Interaction:disableSelection</a></li><li class="namespace"><a href="Interaction_enableSelection.html">Interaction:enableSelection</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateMailToLink.html">Interaction:obfuscatePrivateMailToLink</a></li><li class="namespace"><a href="Interaction_obfuscatePrivateTelLink.html">Interaction:obfuscatePrivateTelLink</a></li><li class="namespace"><a href="Interaction_removeSelections.html">Interaction:removeSelections</a></li><li class="namespace"><a href="Interaction_setTappedState.html">Interaction:setTappedState</a></li><li class="namespace"><a href="Interaction_setupAutoTappedStates.html">Interaction:setupAutoTappedStates</a></li><li class="namespace-member"><a href="Logging.html">Logging</a></li><li class="namespace"><a href="Logging_err.html">Logging:err</a></li><li class="namespace"><a href="Logging_log.html">Logging:log</a></li><li class="namespace"><a href="Logging_warn.html">Logging:warn</a></li><li class="namespace"><a href="Logging_xlog.html">Logging:xlog</a></li><li class="namespace-member"><a href="Navigation.html">Navigation</a></li><li class="namespace"><a href="Navigation_changeCurrentUrl.html">Navigation:changeCurrentUrl</a></li><li class="namespace"><a href="Navigation_offHistoryChange.html">Navigation:offHistoryChange</a></li><li class="namespace"><a href="Navigation_onHistoryChange.html">Navigation:onHistoryChange</a></li><li class="namespace"><a href="Navigation_openTab.html">Navigation:openTab</a></li><li class="namespace"><a href="Navigation_openWindow.html">Navigation:openWindow</a></li><li class="namespace"><a href="Navigation_redirect.html">Navigation:redirect</a></li><li class="namespace"><a href="Navigation_reload.html">Navigation:reload</a></li><li class="namespace-member"><a href="Objects.html">Objects</a></li><li class="namespace"><a href="Objects_clone.html">Objects:clone</a></li><li class="namespace"><a href="Objects_merge.html">Objects:merge</a></li><li class="namespace-member"><a href="Polling.html">Polling</a></li><li class="namespace"><a href="Polling_poll.html">Polling:poll</a></li><li class="namespace"><a href="Polling_unpoll.html">Polling:unpoll</a></li><li class="namespace-member"><a href="Polyfills.html">Polyfills</a></li><li class="namespace"><a href="Polyfills_polyfillArrayAt.html">Polyfills:polyfillArrayAt</a></li><li class="namespace"><a href="Polyfills_polyfillCustomEvent.html">Polyfills:polyfillCustomEvent</a></li><li class="namespace"><a href="Polyfills_polyfillElementMatches.html">Polyfills:polyfillElementMatches</a></li><li class="namespace"><a href="Polyfills_polyfillFetch.html">Polyfills:polyfillFetch</a></li><li class="namespace-member"><a href="Random.html">Random</a></li><li class="namespace"><a href="Random_randomNumber.html">Random:randomNumber</a></li><li class="namespace"><a href="Random_randomUserCode.html">Random:randomUserCode</a></li><li class="namespace"><a href="Random_randomUuid.html">Random:randomUuid</a></li><li class="namespace-member"><a href="Requests.html">Requests</a></li><li class="namespace"><a href="Requests_RestfulJsonClient.html">Requests:RestfulJsonClient</a></li><li class="namespace"><a href="Requests_createCssRequest.html">Requests:createCssRequest</a></li><li class="namespace"><a href="Requests_createFetchRequest.html">Requests:createFetchRequest</a></li><li class="namespace"><a href="Requests_createHtmlRequest.html">Requests:createHtmlRequest</a></li><li class="namespace"><a href="Requests_createJsRequest.html">Requests:createJsRequest</a></li><li class="namespace"><a href="Requests_createJsonRequest.html">Requests:createJsonRequest</a></li><li class="namespace"><a href="Requests_visitUrl.html">Requests:visitUrl</a></li><li class="namespace-member"><a href="Strings.html">Strings</a></li><li class="namespace"><a href="Strings_concat.html">Strings:concat</a></li><li class="namespace"><a href="Strings_format.html">Strings:format</a></li><li class="namespace"><a href="Strings_maskForHtml.html">Strings:maskForHtml</a></li><li class="namespace"><a href="Strings_maskForRegEx.html">Strings:maskForRegEx</a></li><li class="namespace"><a href="Strings_maskForSelector.html">Strings:maskForSelector</a></li><li class="namespace"><a href="Strings_pad.html">Strings:pad</a></li><li class="namespace"><a href="Strings_replace.html">Strings:replace</a></li><li class="namespace"><a href="Strings_slugify.html">Strings:slugify</a></li><li class="namespace"><a href="Strings_trim.html">Strings:trim</a></li><li class="namespace"><a href="Strings_truncate.html">Strings:truncate</a></li><li class="namespace"><a href="Strings_unmaskFromHtml.html">Strings:unmaskFromHtml</a></li><li class="namespace-member"><a href="Timers.html">Timers</a></li><li class="namespace"><a href="Timers_cancelAnimationFrame.html">Timers:cancelAnimationFrame</a></li><li class="namespace"><a href="Timers_countermand.html">Timers:countermand</a></li><li class="namespace"><a href="Timers_loop.html">Timers:loop</a></li><li class="namespace"><a href="Timers_ploop.html">Timers:ploop</a></li><li class="namespace"><a href="Timers_pschedule.html">Timers:pschedule</a></li><li class="namespace"><a href="Timers_requestAnimationFrame.html">Timers:requestAnimationFrame</a></li><li class="namespace"><a href="Timers_reschedule.html">Timers:reschedule</a></li><li class="namespace"><a href="Timers_schedule.html">Timers:schedule</a></li><li class="namespace"><a href="Timers_waitForRepaint.html">Timers:waitForRepaint</a></li><li class="namespace-member"><a href="Units.html">Units</a></li><li class="namespace"><a href="Units_asCurrency.html">Units:asCurrency</a></li><li class="namespace"><a href="Units_asDecimal.html">Units:asDecimal</a></li><li class="namespace"><a href="Units_asFileSize.html">Units:asFileSize</a></li><li class="namespace-member"><a href="Urls.html">Urls</a></li><li class="namespace"><a href="Urls_Urison.html">Urls:Urison</a></li><li class="namespace"><a href="Urls_addCacheBuster.html">Urls:addCacheBuster</a></li><li class="namespace"><a href="Urls_addNextParameter.html">Urls:addNextParameter</a></li><li class="namespace"><a href="Urls_evaluateBaseDomain.html">Urls:evaluateBaseDomain</a></li><li class="namespace"><a href="Urls_urlAnchor.html">Urls:urlAnchor</a></li><li class="namespace"><a href="Urls_urlHref.html">Urls:urlHref</a></li><li class="namespace"><a href="Urls_urlParameter.html">Urls:urlParameter</a></li><li class="namespace"><a href="Urls_urlParameters.html">Urls:urlParameters</a></li><li class="namespace-member"><a href="Viewport.html">Viewport</a></li><li class="namespace"><a href="Viewport_BreakpointObserver.html">Viewport:BreakpointObserver</a></li><li class="namespace"><a href="Viewport_VisibilityObserver.html">Viewport:VisibilityObserver</a></li><li class="namespace"><a href="Viewport_isInViewport.html">Viewport:isInViewport</a></li><li class="namespace"><a href="Viewport_scrollTo.html">Viewport:scrollTo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Dec 11 2023 15:42:25 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

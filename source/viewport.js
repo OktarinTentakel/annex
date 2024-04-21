@@ -1664,58 +1664,63 @@ class VisibilityObserver {
 		entries.forEach(entry => {
 			if( hasValue(entry.rootBounds) ){
 				const state = this.#states.get(entry.target);
+				// normally, this should not be necessary, since #states
+				// observer are always set in tandem, but somehow, sometimes
+				// the observer still triggers an intersection with a non-state target
+				// this could be a browser but, which needs to be handled here
+				if( hasValue(state) ){
+					state.inViewport(entry.intersectionRatio > 0);
+					state.fullyInViewport(entry.intersectionRatio >= 1);
 
-				state.inViewport(entry.intersectionRatio > 0);
-				state.fullyInViewport(entry.intersectionRatio >= 1);
-
-				state.upperBoundInViewport(
-					(entry.boundingClientRect.top >= entry.rootBounds.top)
-					&& (entry.boundingClientRect.top <= entry.rootBounds.bottom)
-				);
-				state.lowerBoundInViewport(
-					(entry.boundingClientRect.bottom >= entry.rootBounds.top)
-					&& (entry.boundingClientRect.bottom <= entry.rootBounds.bottom)
-				);
-
-				state.visiblePercent(entry.intersectionRatio * 100);
-				state.visiblePixels(entry.intersectionRect.height);
-
-				if( state.calculateScrolled ){
-					state.scrolledPercent(
-						(entry.boundingClientRect.top - entry.rootBounds.height)
-						/ (-entry.boundingClientRect.height - entry.rootBounds.height) * 100
+					state.upperBoundInViewport(
+						(entry.boundingClientRect.top >= entry.rootBounds.top)
+						&& (entry.boundingClientRect.top <= entry.rootBounds.bottom)
+					);
+					state.lowerBoundInViewport(
+						(entry.boundingClientRect.bottom >= entry.rootBounds.top)
+						&& (entry.boundingClientRect.bottom <= entry.rootBounds.bottom)
 					);
 
-					if( state.fullyInViewport() ){
-						state.startAutoScrolledPercentUpdates(this.#viewportInfoHash, this.#targetFps);
-					} else {
-						state.stopAutoScrolledPercentUpdates();
-					}
-				}
+					state.visiblePercent(entry.intersectionRatio * 100);
+					state.visiblePixels(entry.intersectionRect.height);
 
-				if( state.calculateDistance ){
-					if( !state.inViewport() ){
-						state.startAutoDistanceUpdates(this.#viewportInfoHash, DISTANCE_BASE_FPS);
-					} else {
-						state.stopAutoDistanceUpdates();
-						state.distancePixels(0);
-						state.distanceViewports(0);
-					}
-				}
+					if( state.calculateScrolled ){
+						state.scrolledPercent(
+							(entry.boundingClientRect.top - entry.rootBounds.height)
+							/ (-entry.boundingClientRect.height - entry.rootBounds.height) * 100
+						);
 
-				if(
-					state.autoHandleTooLargeElements
-					&& (entry.boundingClientRect.height > entry.rootBounds.height)
-				){
-					if( state.inViewport() ){
-						state.startAutoTooLargeUpdates(this.#viewportInfoHash, this.#targetFps);
-						if( state.calculateScrolled ){
-							state.startAutoScrolledPercentUpdates(this.#viewportInfoHash, this.#targetFps, false);
-						}
-					} else {
-						state.stopAutoTooLargeUpdates();
-						if( state.calculateScrolled ){
+						if( state.fullyInViewport() ){
+							state.startAutoScrolledPercentUpdates(this.#viewportInfoHash, this.#targetFps);
+						} else {
 							state.stopAutoScrolledPercentUpdates();
+						}
+					}
+
+					if( state.calculateDistance ){
+						if( !state.inViewport() ){
+							state.startAutoDistanceUpdates(this.#viewportInfoHash, DISTANCE_BASE_FPS);
+						} else {
+							state.stopAutoDistanceUpdates();
+							state.distancePixels(0);
+							state.distanceViewports(0);
+						}
+					}
+
+					if(
+						state.autoHandleTooLargeElements
+						&& (entry.boundingClientRect.height > entry.rootBounds.height)
+					){
+						if( state.inViewport() ){
+							state.startAutoTooLargeUpdates(this.#viewportInfoHash, this.#targetFps);
+							if( state.calculateScrolled ){
+								state.startAutoScrolledPercentUpdates(this.#viewportInfoHash, this.#targetFps, false);
+							}
+						} else {
+							state.stopAutoTooLargeUpdates();
+							if( state.calculateScrolled ){
+								state.stopAutoScrolledPercentUpdates();
+							}
 						}
 					}
 				}

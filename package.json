@@ -1,6 +1,6 @@
 {
 	"name" : "@oktarintentakel/annex",
-	"version" : "0.1.18-beta",
+	"version" : "0.1.19-beta",
 	"author" : "Sebastian Schlapkohl",
 	"description" : "Unit-tested and semantically packaged standard solutions for everyday frontend tasks and syntax streamlining for those ugly darks corners of JS.",
 	"license" : "MIT",
@@ -39,18 +39,27 @@
 		"test" : "./test"
 	},
 
-	"__comment_on_browserslist" : "only relevant for building the ES5 monolith",
+	"//@browserslist" : "only relevant for building the ES5 monolith",
 	"browserslist" : ["IE >= 11"],
 
-	"__comment_on_ava" : "updating to v4 requires full refactoring of unit tests",
+	"scripts" : {
+		"build" : "yarn install; gulp --color build",
+		"test" : "yarn install; ava --color",
+		"test-dist" : "yarn install; SOURCE=dist ava --color",
+		"test-es5-monolith" : "yarn install; SOURCE=es5-monolith ava --color",
+		"documentation" : "yarn install; gulp --color documentation",
+		"examples": "yarn install; gulp --color examples"
+	},
+
+	"//@ava" : "updating to v4 requires full refactoring of unit tests",
 	"devDependencies" : {
 		"ava" : "~3.15.0",
-		"@babel/core" : "~7.20.7",
-		"@babel/preset-env" : "~7.20.2",
+		"@babel/core" : "~7.24.4",
+		"@babel/preset-env" : "~7.24.4",
 		"browser-env" : "~3.3.0",
-		"core-js" : "~3.26.1",
+		"core-js" : "~3.37.0",
 		"cors" : "^2.8.5",
-		"express" : "^4.18.2",
+		"express" : "^4.19.2",
 		"gulp" : "^4.0.2",
 		"gulp-connect" : "^5.7.0",
 		"gulp-inject-string" : "^1.1.2",
@@ -59,20 +68,19 @@
 		"gulp-terser" : "^2.1.0",
 		"jsdoc" : "^4.0.2",
 		"natives" : "^1.1.6",
-		"rollup" : "^3.8.1",
-		"@rollup/plugin-babel" : "^6.0.3",
-		"@rollup/plugin-commonjs" : "^24.0.0",
-		"@rollup/plugin-node-resolve" : "^15.0.1",
-		"@rollup/plugin-terser" : "^0.2.1",
+		"rollup" : "^3.29.4",
+		"@rollup/plugin-babel" : "^6.0.4",
+		"@rollup/plugin-commonjs" : "^25.0.7",
+		"@rollup/plugin-node-resolve" : "^15.2.3",
+		"@rollup/plugin-terser" : "^0.4.4",
 		"rollup-plugin-includepaths" : "^0.2.4",
 		"serve-static" : "^1.15.0",
 		"st" : "^3.0.0",
-		"yargs" : "^17.6.2"
+		"yargs" : "^17.7.2"
 	},
 
-	"scripts" : {
-		"test" : "ava --color",
-		"test-dist" : "SOURCE=dist ava --color",
-		"test-es5-monolith" : "SOURCE=es5-monolith ava --color"
+	"//@resolutions" : "nswapi 2.2.8 is broken for h1-h6",
+	"resolutions" : {
+		"nwsapi" : "2.2.7"
 	}
 }

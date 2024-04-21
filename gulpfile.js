@@ -1,6 +1,6 @@
 //###[ IMPORTS ]########################################################################################################
 
-import fs from 'fs';
+import fs from 'node:fs';
 import gulp from'gulp';
 import shell from 'gulp-shell';
 import yargs from 'yargs';
@@ -183,8 +183,9 @@ gulp.task('test-dist', shell.task(`yarn run test-dist${testTopic}`));
 gulp.task('test-es5-monolith', shell.task(`yarn run test-es5-monolith${testTopic}`));
 
 gulp.task('build', gulp.series(
-	shell.task(`rm -rf ${DIST_DIR}/*`), shell.task(`rm -rf ${EXAMPLES_DIR}/lib/annex/dist/*`),
-	shell.task(`sleep 10`),
+	function removeDist(done){ shell.task(`rm -rf ${DIST_DIR}/*`)().then(done); },
+	function removeExamplesDist(done) { shell.task(`rm -rf ${EXAMPLES_DIR}/lib/annex/dist/*`)().then(done); },
+	function waitForFileSystem(done) { shell.task(`sleep 5`)().then(done); },
 	'test',
 	buildJs, 'test-dist',
 	buildEs5Monolith, 'test-es5-monolith',

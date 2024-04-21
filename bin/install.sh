@@ -3,4 +3,4 @@
 cd "${0%/*}" && \
 cd .. && \
 docker compose run --rm \
-annex bash -c 'yarn run build'
+annex bash -c 'yarn install'

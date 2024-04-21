@@ -1,15 +1,16 @@
-FROM node:16.19
-
-ENV TERM=xterm-256color
+FROM node:16.20
 
 RUN apt-get update
 RUN apt-get upgrade -y
+RUN apt-get install -y bc ed nano fonts-powerline
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+WORKDIR /root
+RUN touch build_marker
+RUN git clone --recursive https://github.com/andresgongora/synth-shell.git
+RUN chmod +x synth-shell/setup.sh
+RUN yes | synth-shell/setup.sh
+
 RUN yarn global add gulp-cli@2.3.0
 RUN yarn global add jsdoc@3.6.11
-
-WORKDIR /project
-
-COPY docker/bash/bashrc /root/.bashrc

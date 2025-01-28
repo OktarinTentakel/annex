@@ -1,4 +1,5 @@
 {
+	"esversion": 11,
 	"laxbreak" : true,
 	"loopfunc" : true,
 	"evil" : true

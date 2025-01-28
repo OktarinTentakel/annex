@@ -656,7 +656,7 @@ test('isSet', assert => {
 		boofar = new WeakSet()
 	;
 
-	boofar.add(new Date())
+	boofar.add(new Date());
 
 	assert.true(isSet(foo));
 	assert.true(isSet(bar));

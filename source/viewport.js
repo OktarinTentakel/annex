@@ -1345,7 +1345,7 @@ class VisibilityObserver {
 	 */
 	observe(element, calculateScrolled=false, calculateDistance=false, autoHandleTooLargeElements=true){
 		if( this.#startedSafeguard() ){
-			const __methodName__ = 'addElement';
+			const __methodName__ = 'observe';
 
 			assert(
 				isElement(element),
@@ -1353,7 +1353,7 @@ class VisibilityObserver {
 			);
 
 			if( !isInDom(element) ){
-				warn(`${MODULE_NAME}:${this.#__className__}.${__methodName__} | element not in DOM`);
+				warn(`${MODULE_NAME}:${this.#__className__}.${__methodName__} | element "${element.outerHTML}" not in DOM`);
 			}
 
 			this.#states.set(element, new VisibilityState(

@@ -116,7 +116,7 @@ function serveExamples(done){
 		https : true,
 		host : '0.0.0.0',
 		root : EXAMPLES_DIR,
-		port : 3000,
+		port : 443,
 		livereload : {
 			port : 3001
 		},
@@ -179,16 +179,16 @@ gulp.task('documentation', shell.task([`rm -rf ${DOCUMENTATION_DIR}`, 'sleep 1',
 
 const testTopic = ARGV.topic ? ` --topic=${ARGV.topic}` : '';
 gulp.task('test', shell.task(`yarn run test${testTopic}`));
-gulp.task('test-dist', shell.task(`yarn run test-dist${testTopic}`));
-gulp.task('test-es5-monolith', shell.task(`yarn run test-es5-monolith${testTopic}`));
+gulp.task('test-dist', gulp.series(buildJs, shell.task(`yarn run test-dist${testTopic}`)));
+gulp.task('test-es5-monolith', gulp.series(buildEs5Monolith, shell.task(`yarn run test-es5-monolith${testTopic}`)));
 
 gulp.task('build', gulp.series(
 	function removeDist(done){ shell.task(`rm -rf ${DIST_DIR}/*`)().then(done); },
 	function removeExamplesDist(done) { shell.task(`rm -rf ${EXAMPLES_DIR}/lib/annex/dist/*`)().then(done); },
 	function waitForFileSystem(done) { shell.task(`sleep 5`)().then(done); },
 	'test',
-	buildJs, 'test-dist',
-	buildEs5Monolith, 'test-es5-monolith',
+	'test-dist',
+	'test-es5-monolith',
 	copyExamplesLibs
 ));
 

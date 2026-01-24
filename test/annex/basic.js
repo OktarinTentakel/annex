@@ -79,11 +79,11 @@ test('assert', _assert => {
 
 	_assert.throws(() => {
 		assert((() => { return foo.length < 3; })(), 'not the right length');
-	}, null, 'not the right length');
+	}, undefined, 'not the right length');
 
 	_assert.throws(() => {
 		assert(Array.isArray(foobar), 'this is not an array dude');
-	}, null, 'this is not an array dude');
+	}, undefined, 'this is not an array dude');
 
 	_assert.notThrows(() => {
 		assert(Array.isArray(bar), 'this is not an array dude');

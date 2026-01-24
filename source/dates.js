@@ -107,7 +107,7 @@ const DATE_PART_SETTERS_AND_GETTERS = {
 /**
  * Returns a formatted string, describing the date in a verbose, non-technical way.
  *
- * Under the hood, this uses Intl.DateTimeFormat, which is widely supported and conveniently to use
+ * Under the hood, this uses Intl.DateTimeFormat, which is widely supported and convenient to use
  * for most widely used locales.
  *
  * "definition" may be a format shortcut for "dateStyle" (and "timeStyle" if type is "datetime") or a format string,
@@ -141,7 +141,7 @@ const DATE_PART_SETTERS_AND_GETTERS = {
  *
  * @param {Date} date - the date to format
  * @param {?String} [definition='long'] - either a preset style to quickly define a format style, by setting shortcuts for dateStyle and timeStyle (if type is "datetime"), set to "none" or nullish value to skip quick format; alternatively, define this as a format string to use a custom format
- * @param {?String|Array<String>} [locale='en-US'] - locale to use for date format and text generation, use array to define fallback; always falls back to en-US if nothing else works
+ * @param {?String|Array<String>} [locale='en-US'] - locale to use for date format and text generation, use an array to define fallback; always falls back to en-US if nothing else works
  * @param {?String} [type='datetime'] - set to 'datetime', 'date' or 'time' to define which parts should be rendered
  * @param {?Object} [options=null] - options to pass to the Intl.DateTimeFormat constructor, is applied last, so should override anything predefined, if key is reset
  * @returns {String} - the formatted date/time string

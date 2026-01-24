@@ -44,43 +44,37 @@
 
 	"scripts" : {
 		"build" : "yarn install; gulp --color build",
-		"test" : "yarn install; ava --color",
-		"test-dist" : "yarn install; SOURCE=dist ava --color",
-		"test-es5-monolith" : "yarn install; SOURCE=es5-monolith ava --color",
+		"test" : "yarn install; TZ=Australia/Darwin ava --color",
+		"test-dist" : "yarn install; TZ=Australia/Darwin SOURCE=dist ava --color",
+		"test-es5-monolith" : "yarn install; TZ=Australia/Darwin SOURCE=es5-monolith ava --color",
 		"documentation" : "yarn install; gulp --color documentation",
 		"examples": "yarn install; gulp --color examples"
 	},
 
 	"//@ava" : "updating to v4 requires full refactoring of unit tests",
 	"devDependencies" : {
-		"ava" : "~3.15.0",
-		"@babel/core" : "~7.24.4",
-		"@babel/preset-env" : "~7.24.4",
+		"ava" : "~6.4.1",
+		"@babel/core" : "~7.28.6",
+		"@babel/preset-env" : "~7.28.6",
 		"browser-env" : "~3.3.0",
-		"core-js" : "~3.37.0",
-		"cors" : "^2.8.5",
-		"express" : "^4.19.2",
-		"gulp" : "^4.0.2",
+		"core-js" : "~3.48.0",
+		"cors" : "^2.8.6",
+		"express" : "^5.2.1",
+		"gulp" : "^5.0.1",
 		"gulp-connect" : "^5.7.0",
 		"gulp-inject-string" : "^1.1.2",
 		"gulp-shell" : "^0.8.0",
 		"gulp-sourcemaps" : "^3.0.0",
 		"gulp-terser" : "^2.1.0",
-		"jsdoc" : "^4.0.2",
+		"jsdoc" : "^4.0.5",
 		"natives" : "^1.1.6",
-		"rollup" : "^3.29.4",
-		"@rollup/plugin-babel" : "^6.0.4",
-		"@rollup/plugin-commonjs" : "^25.0.7",
-		"@rollup/plugin-node-resolve" : "^15.2.3",
+		"rollup" : "^4.56.0",
+		"@rollup/plugin-babel" : "^6.1.0",
+		"@rollup/plugin-commonjs" : "^29.0.0",
+		"@rollup/plugin-node-resolve" : "^16.0.3",
 		"@rollup/plugin-terser" : "^0.4.4",
 		"rollup-plugin-includepaths" : "^0.2.4",
-		"serve-static" : "^1.15.0",
-		"st" : "^3.0.0",
-		"yargs" : "^17.7.2"
-	},
-
-	"//@resolutions" : "nswapi 2.2.8 is broken for h1-h6",
-	"resolutions" : {
-		"nwsapi" : "2.2.7"
+		"st" : "^3.0.3",
+		"yargs" : "^18.0.0"
 	}
 }

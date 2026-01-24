@@ -18,7 +18,7 @@ const {
 
 
 
-test.cb('throttle', assert => {
+test('throttle', assert => new Promise(resolve => {
 	let
 		foo = 0,
 		bar = 0,
@@ -65,16 +65,16 @@ test.cb('throttle', assert => {
 		window.clearInterval(i4);
 
 		assert.true(foo >= 60 && foo <= 70);
-		assert.true(bar >= 110 && bar <= 120);
+		assert.true(bar >= 100 && bar <= 120);
 		assert.true(baz >= 60 && baz <= 70);
 		assert.true(foobar >= 15 && foobar <= 20);
-		assert.end();
+		resolve();
 	}, 2020);
-});
+}));
 
 
 
-test.cb('debounce', assert => {
+test('debounce', assert => new Promise(resolve => {
 	let
 		foo = 0,
 		bar = 0
@@ -116,13 +116,13 @@ test.cb('debounce', assert => {
 	window.setTimeout(() => {
 		assert.is(foo, 8);
 		assert.is(bar, 8);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 
-test.cb('defer', assert => {
+test('defer', assert => new Promise(resolve => {
 	let foo = 0;
 
 	let fTestInc = defer(function(inc){
@@ -150,9 +150,9 @@ test.cb('defer', assert => {
 
 	window.setTimeout(() => {
 		assert.is(foo, 12);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 

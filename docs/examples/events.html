@@ -303,7 +303,7 @@
 							button.classList.add('on');
 							button.innerText = 'unbind swipes';
 
-							offSwipe(eTest, 'up', null, 'foo');
+							offSwipe(eTest, 'up', null, false, 'foo');
 							onSwipe(eTest, 'up', function(e){
 								e.stopPropagation();
 
@@ -311,7 +311,7 @@
 								eMessage.innerText = 'swipe up';
 							}, 0.15, false, 'foo');
 
-							offSwipe(eTest, 'right', null, 'foo');
+							offSwipe(eTest, 'right', null, false, 'foo');
 							onSwipe(eTest, 'right', function(e){
 								e.stopPropagation();
 
@@ -319,7 +319,7 @@
 								eMessage.innerText = 'swipe right';
 							}, 0.15, false, 'foo');
 
-							offSwipe(eTest, 'down', null, 'foo');
+							offSwipe(eTest, 'down', null, false, 'foo');
 							onSwipe(eTest, 'down', function(e){
 								e.stopPropagation();
 
@@ -327,7 +327,7 @@
 								eMessage.innerText = 'swipe down';
 							}, 0.15, false, 'foo');
 
-							offSwipe(eTest, 'left', null, 'foo');
+							offSwipe(eTest, 'left', null, false, 'foo');
 							onSwipe(eTest, 'left', function(e){
 								e.stopPropagation();
 
@@ -344,7 +344,7 @@
 
 							eTest.removeEventListener('touchmove', fSuppressEvent);
 
-							offSwipe(eTest, null, null, 'foo');
+							offSwipe(eTest, null, null, false, 'foo');
 							eTest.classList.remove('active');
 							eTest.style.backgroundColor = '';
 							eMessage.innerText = '';

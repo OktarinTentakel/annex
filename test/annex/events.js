@@ -101,7 +101,7 @@ test.serial('on', assert => {
 	// and clean up the path up to the map afterwards as well
 	assert.is(EVENT_MAP.size, 4);
 
-	foo.dispatchEvent(new CustomEvent('crash'));
+	foo.dispatchEvent(new window.CustomEvent('crash'));
 	bar.click();
 	baz.click();
 	bar.click();
@@ -162,7 +162,7 @@ test.serial('once', assert => {
 
 	assert.is(EVENT_MAP.size, 4);
 
-	foo.dispatchEvent(new CustomEvent('crash'));
+	foo.dispatchEvent(new window.CustomEvent('crash'));
 	bar.click();
 	baz.click();
 	bar.click();
@@ -173,9 +173,9 @@ test.serial('once', assert => {
 	// there should be trailing crash registrations for bar and baz
 	// since the link and the button never receive the events
 	assert.is(EVENT_MAP.size, 3);
-	bar.dispatchEvent(new CustomEvent('crash'));
-	baz.dispatchEvent(new CustomEvent('crash'));
-	document.body.dispatchEvent(new CustomEvent('crash'));
+	bar.dispatchEvent(new window.CustomEvent('crash'));
+	baz.dispatchEvent(new window.CustomEvent('crash'));
+	document.body.dispatchEvent(new window.CustomEvent('crash'));
 	// last crash registration should be on the div as a delegation, since CustomEvent does not bubble
 	// and therefore the dispatch on baz, should never reach the handler
 	assert.is(EVENT_MAP.size, 1);
@@ -187,7 +187,7 @@ test.serial('once', assert => {
 	once(foo, 'burn', () => {
 		off(foo, 'burn');
 	});
-	foo.dispatchEvent(new CustomEvent('burn'));
+	foo.dispatchEvent(new window.CustomEvent('burn'));
 	assert.false(failed);
 	window.onerror = null;
 	assert.is(EVENT_MAP.size, 0);
@@ -223,7 +223,7 @@ test.serial('off', assert => {
 console.log(EVENT_MAP);
 	assert.is(EVENT_MAP.size, 0);
 	assert.is(handlersRemoved, 8);
-	foo.dispatchEvent(new CustomEvent('cra_:_sh'));
+	foo.dispatchEvent(new window.CustomEvent('cra_:_sh'));
 	bar.click();
 	baz.click();
 	assert.is(eventsFiredCount, 0);
@@ -267,7 +267,7 @@ test.serial('pause', assert => {
 	handlersPaused += pause([foo, 'a'], 'click');
 	handlersPaused += pause([foo, '.btn[data-foobar="test"]'], '*.delegated', handler2);
 	assert.is(handlersPaused, 8);
-	foo.dispatchEvent(new CustomEvent('crash'));
+	foo.dispatchEvent(new window.CustomEvent('crash'));
 	bar.click();
 	baz.click();
 	assert.is(eventsFiredCount, 0);
@@ -302,7 +302,7 @@ test.serial('resume', assert => {
 	handlersPaused += pause([foo, 'a'], 'click');
 	handlersPaused += pause([foo, '.btn[data-foobar="test"]'], '*.delegated', handler2);
 	assert.is(handlersPaused, 8);
-	foo.dispatchEvent(new CustomEvent('crash'));
+	foo.dispatchEvent(new window.CustomEvent('crash'));
 	bar.click();
 	baz.click();
 	assert.is(eventsFiredCount, 0);
@@ -312,7 +312,7 @@ test.serial('resume', assert => {
 	assert.is(resume(foo, ['*.test', '*.site']), 2);
 	assert.is(resume([foo, 'a', foo, '.btn[data-foobar="test"]'], '*.*', handler2), 2);
 	assert.is(resume(baz, '*.*'), 1);
-	foo.dispatchEvent(new CustomEvent('crash'));
+	foo.dispatchEvent(new window.CustomEvent('crash'));
 	bar.click();
 	baz.click();
 	assert.is(eventsFiredCount, 6);
@@ -453,19 +453,19 @@ test.serial('offDetachedElements', assert => {
 	assert.is(offDetachedElements([foo, bar, baz]), 1);
 	document.body.removeChild(foo);
 	assert.is(offDetachedElements(bar), 1);
-	bar.dispatchEvent(new CustomEvent('click'));
-	foo.dispatchEvent(new CustomEvent('click'));
+	bar.dispatchEvent(new window.CustomEvent('click'));
+	foo.dispatchEvent(new window.CustomEvent('click'));
 	assert.is(eventsFiredCount, 1);
 	document.body.appendChild(foo);
-	foo.dispatchEvent(new CustomEvent('click'));
+	foo.dispatchEvent(new window.CustomEvent('click'));
 	assert.is(eventsFiredCount, 2);
 	assert.is(offDetachedElements(foo), 0);
-	foo.dispatchEvent(new CustomEvent('click'));
+	foo.dispatchEvent(new window.CustomEvent('click'));
 	assert.is(eventsFiredCount, 3);
 	document.body.removeChild(foo);
 	assert.is(offDetachedElements(), 1);
-	foo.dispatchEvent(new CustomEvent('click'));
-	baz.dispatchEvent(new CustomEvent('click'));
+	foo.dispatchEvent(new window.CustomEvent('click'));
+	baz.dispatchEvent(new window.CustomEvent('click'));
 	assert.is(eventsFiredCount, 3);
 
 	off([document.body, foo, foo, 'a', foo, '.btn[data-foobar="test"]', bar, baz], '*', null, false);

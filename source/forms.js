@@ -81,7 +81,7 @@ export function formDataToObject(formDataOrForm){
 		formData = formDataOrForm;
 	} else {
 		try {
-			formData = new FormData(formDataOrForm);
+			formData = new window.FormData(formDataOrForm);
 		} catch(ex){
 			formData = null;
 		}

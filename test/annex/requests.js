@@ -1,8 +1,7 @@
+import path from 'node:path';
 import test from 'ava';
-import path from 'path';
 import express from 'express';
 import cors from 'cors';
-import serveStatic from 'serve-static';
 
 let pkg;
 
@@ -28,7 +27,16 @@ test.before(assert => {
 	return new Promise(resolve => {
 		const server = express();
 		server.use(cors());
-		server.use(serveStatic(path.resolve(process.cwd(), './test/assets')));
+		server.use(express.static(
+			path.resolve(process.cwd(), './test/assets'),
+			{
+				setHeaders(res, filePath) {
+					if (/\.(?:mjs|cjs|js)$/i.test(filePath)) {
+						res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+					}
+				}
+			}
+		));
 		assert.context.server = server.listen(3000, () => { resolve(); });
 	});
 });

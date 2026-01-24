@@ -478,116 +478,116 @@ test('findTextNodes', assert => {
 
 
 
-test.cb('prime', assert => {
-	let
-		foo = document.createElement('p'),
-		bar = document.createElement('span'),
-		boo = document.createElement('input'),
-		promisesResolvedCount = 0
-	;
+test('prime', assert => new Promise(resolve => {
+		let
+			foo = document.createElement('p'),
+			bar = document.createElement('span'),
+			boo = document.createElement('input'),
+			promisesResolvedCount = 0
+		;
 
-	bar.setAttribute('class', 'foo bar boo');
-	boo.setAttribute('type', 'hidden');
-	boo.setAttribute('name', 'boo');
-	boo.setAttribute('value', 'boo');
+		bar.setAttribute('class', 'foo bar boo');
+		boo.setAttribute('type', 'hidden');
+		boo.setAttribute('name', 'boo');
+		boo.setAttribute('value', 'boo');
 
-	const fWaitForPromises = resolution => {
-		assert.is(resolution, 42);
+		const fWaitForPromises = resolution => {
+			assert.is(resolution, 42);
 
-		promisesResolvedCount++;
-		if( promisesResolvedCount >= 4 ){
-			assert.is(foo.getAttribute('data-primed'), 'true');
-			assert.is(bar.getAttribute('data-primed-ready'), 'true');
-			assert.is(bar.dataset.primedResolved, 'true');
-			assert.is(foo.getAttribute('id'), 'foo');
-			assert.is(foo.innerText, 'foo');
-			assert.true(bar.classList.contains('foo'));
-			assert.true(bar.classList.contains('far'));
-			assert.false(bar.classList.contains('boo'));
-			assert.false(bar.classList.contains('bar'));
-			assert.true(boo.classList.contains('far'));
+			promisesResolvedCount++;
+			if( promisesResolvedCount >= 4 ){
+				assert.is(foo.getAttribute('data-primed'), 'true');
+				assert.is(bar.getAttribute('data-primed-ready'), 'true');
+				assert.is(bar.dataset.primedResolved, 'true');
+				assert.is(foo.getAttribute('id'), 'foo');
+				assert.is(foo.innerText, 'foo');
+				assert.true(bar.classList.contains('foo'));
+				assert.true(bar.classList.contains('far'));
+				assert.false(bar.classList.contains('boo'));
+				assert.false(bar.classList.contains('bar'));
+				assert.true(boo.classList.contains('far'));
 
-			prime(foo, () => {}).then(resolution => {
-				assert.is(resolution, undefined);
-				assert.end();
-			});
-		}
-	};
+				prime(foo, () => {}).then(resolution => {
+					assert.is(resolution, undefined);
+					resolve();
+				});
+			}
+		};
 
-	prime(foo, node => {
-		node.setAttribute('id', 'foo');
-		node.innerText = 'foo';
-		return 42;
-	}).then(fWaitForPromises);
-
-	prime(
-		bar,
-		() => {
-			return new Promise(resolve => {
-				window.setTimeout(() => { resolve(42); }, 1000);
-			});
-		},
-		{add : 'far', remove : 'foo boo bar'}
-	).then(fWaitForPromises);
-
-
-	foo = document.createElement('p');
-	bar = document.createElement('span');
-	bar.setAttribute('class', 'foo bar boo');
-
-	Promise.all([
 		prime(foo, node => {
-			return new Promise(resolve => {
-				node.setAttribute('id', 'foo');
-				node.innerText = 'foo';
-				window.setTimeout(() => { resolve(42); }, 250);
-			});
-		}),
-		...([bar, boo].reduce((primes, node) => {
-			primes.push(prime(
-				node,
-				() => {
-					return new Promise(resolve => {
-						window.setTimeout(() => { resolve(42); }, 750);
-					});
-				},
-				{add : 'far', remove : 'far boo bar'}
-			));
-			return primes;
-		}, []))
-	]).then(resolutions => {
-		fWaitForPromises(resolutions[0]);
-	});
+			node.setAttribute('id', 'foo');
+			node.innerText = 'foo';
+			return 42;
+		}).then(fWaitForPromises);
 
-	foo = document.createElement('p');
-	bar = document.createElement('span');
-	bar.setAttribute('class', 'foo bar boo');
+		prime(
+			bar,
+			() => {
+				return new Promise(resolve => {
+					window.setTimeout(() => { resolve(42); }, 1000);
+				});
+			},
+			{add : 'far', remove : 'foo boo bar'}
+		).then(fWaitForPromises);
 
-	Promise.all([
-		prime(foo, node => {
-			return new Promise(resolve => {
-				node.setAttribute('id', 'foo');
-				node.innerText = 'foo';
-				window.setTimeout(() => { resolve(42); }, 500);
-			});
-		}),
-		...([bar, boo].reduce((primes, node) => {
-			primes.push(prime(
-				node,
-				() => {
-					return new Promise(resolve => {
-						window.setTimeout(() => { resolve(42); }, 300);
-					});
-				},
-				{add : 'far', remove : ['far', 'boo', 'bar']}
-			));
-			return primes;
-		}, []))
-	]).then(resolutions => {
-		fWaitForPromises(resolutions[0]);
-	});
 
-	assert.throws(() => {
-		prime(boo, 5);
-	});
-});
+		foo = document.createElement('p');
+		bar = document.createElement('span');
+		bar.setAttribute('class', 'foo bar boo');
+
+		Promise.all([
+			prime(foo, node => {
+				return new Promise(resolve => {
+					node.setAttribute('id', 'foo');
+					node.innerText = 'foo';
+					window.setTimeout(() => { resolve(42); }, 250);
+				});
+			}),
+			...([bar, boo].reduce((primes, node) => {
+				primes.push(prime(
+					node,
+					() => {
+						return new Promise(resolve => {
+							window.setTimeout(() => { resolve(42); }, 750);
+						});
+					},
+					{add : 'far', remove : 'far boo bar'}
+				));
+				return primes;
+			}, []))
+		]).then(resolutions => {
+			fWaitForPromises(resolutions[0]);
+		});
+
+		foo = document.createElement('p');
+		bar = document.createElement('span');
+		bar.setAttribute('class', 'foo bar boo');
+
+		Promise.all([
+			prime(foo, node => {
+				return new Promise(resolve => {
+					node.setAttribute('id', 'foo');
+					node.innerText = 'foo';
+					window.setTimeout(() => { resolve(42); }, 500);
+				});
+			}),
+			...([bar, boo].reduce((primes, node) => {
+				primes.push(prime(
+					node,
+					() => {
+						return new Promise(resolve => {
+							window.setTimeout(() => { resolve(42); }, 300);
+						});
+					},
+					{add : 'far', remove : ['far', 'boo', 'bar']}
+				));
+				return primes;
+			}, []))
+		]).then(resolutions => {
+			fWaitForPromises(resolutions[0]);
+		});
+
+		assert.throws(() => {
+			prime(boo, 5);
+		});
+}));

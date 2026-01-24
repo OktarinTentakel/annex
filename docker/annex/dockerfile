@@ -1,8 +1,8 @@
-FROM node:16.20
+FROM node:24
 
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y bc ed nano fonts-powerline
+RUN apt-get install -y bc ed nano fonts-powerline tzdata
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -12,5 +12,5 @@ RUN git clone --recursive https://github.com/andresgongora/synth-shell.git
 RUN chmod +x synth-shell/setup.sh
 RUN yes | synth-shell/setup.sh
 
-RUN yarn global add gulp-cli@2.3.0
-RUN yarn global add jsdoc@3.6.11
+RUN yarn global add gulp-cli@3.1.0
+RUN yarn global add jsdoc@4.0.5

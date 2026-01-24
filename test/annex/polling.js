@@ -17,7 +17,7 @@ const {
 
 
 
-test.cb('poll', assert => {
+test('poll', assert => new Promise(resolve => {
 	let
 		foo = 0,
 		bar = 0,
@@ -89,13 +89,13 @@ test.cb('poll', assert => {
 		assert.is(elseCounter, 7);
 		assert.is(elseChangedCounter, 0);
 		assert.is(bar, 4);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 
-test.cb('unpoll', assert => {
+test('unpoll', assert => new Promise(resolve => {
 	let
 		foo = 0,
 		bar = false,
@@ -144,6 +144,6 @@ test.cb('unpoll', assert => {
 		assert.true(foobar);
 		assert.is(POLLS.activePollCount, 0);
 		assert.is(Object.keys(POLLS.activePolls).length, 0);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));

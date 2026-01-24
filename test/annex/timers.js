@@ -23,7 +23,7 @@ const {
 
 
 
-test.cb('schedule', assert => {
+test('schedule', assert => new Promise(resolve => {
 	let
 		finished = 0,
 		i = 0,
@@ -51,13 +51,13 @@ test.cb('schedule', assert => {
 	window.setTimeout(() => {
 		assert.is(finished, 2);
 		assert.true(bar);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 
-test.cb('pschedule', assert => {
+test('pschedule', assert => new Promise(resolve => {
 	let
 		finished = 0,
 		i = 0,
@@ -85,13 +85,13 @@ test.cb('pschedule', assert => {
 	window.setTimeout(() => {
 		assert.is(finished, 2);
 		assert.true(bar);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 
-test.cb('reschedule', assert => {
+test('reschedule', assert => new Promise(resolve => {
 	let
 		finished = 0,
 		i = 0,
@@ -119,13 +119,13 @@ test.cb('reschedule', assert => {
 	window.setTimeout(() => {
 		assert.is(finished, 2);
 		assert.true(bar);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 
-test.cb('loop', assert => {
+test('loop', assert => new Promise(resolve => {
 	let
 		finished = 0,
 		foo,
@@ -156,13 +156,13 @@ test.cb('loop', assert => {
 	window.setTimeout(() => {
 		assert.true(finished >= 8 && finished <= 10);
 		assert.true(bar);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 
-test.cb('ploop', assert => {
+test('ploop', assert => new Promise(resolve => {
 	let
 		finished = 0,
 		foo,
@@ -193,13 +193,13 @@ test.cb('ploop', assert => {
 	window.setTimeout(() => {
 		assert.true(finished >= 8 && finished <= 10);
 		assert.true(bar);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 
-test.cb('countermand', assert => {
+test('countermand', assert => new Promise(resolve => {
 	let finished = 0,
 		foo = schedule(1000, () => { finished++; }),
 		bar = pschedule(1000, () => { finished++; }),
@@ -230,13 +230,13 @@ test.cb('countermand', assert => {
 	window.setTimeout(() => {
 		assert.is(finished, 1);
 		assert.true(booboo);
-		assert.end();
+		resolve();
 	}, 2000);
-});
+}));
 
 
 
-test.cb('requestAnimationFrame', assert => {
+test('requestAnimationFrame', assert => new Promise(resolve => {
 	let finished = 0;
 
 	requestAnimationFrame(() => {
@@ -250,13 +250,13 @@ test.cb('requestAnimationFrame', assert => {
 	requestAnimationFrame(() => {
 		finished++;
 		assert.is(finished, 3);
-		assert.end();
+		resolve();
 	});
-});
+}));
 
 
 
-test.cb('cancelAnimationFrame', assert => {
+test('cancelAnimationFrame', assert => new Promise(resolve => {
 	let
 		finished = 0,
 		foo,
@@ -282,13 +282,13 @@ test.cb('cancelAnimationFrame', assert => {
 	requestAnimationFrame(() => {
 		finished++;
 		assert.is(finished, 3);
-		assert.end();
+		resolve();
 	});
-});
+}));
 
 
 
-test.cb('waitForRepaint', assert => {
+test('waitForRepaint', assert => new Promise(resolve => {
 	let
 		finished = 0,
 		foo,
@@ -311,6 +311,6 @@ test.cb('waitForRepaint', assert => {
 	waitForRepaint(() => {
 		finished++;
 		assert.is(finished, 2);
-		assert.end();
+		resolve();
 	});
-});
+}));

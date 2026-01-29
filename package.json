@@ -51,7 +51,6 @@
 		"examples": "yarn install; gulp --color examples"
 	},
 
-	"//@ava" : "updating to v4 requires full refactoring of unit tests",
 	"devDependencies" : {
 		"ava" : "~6.4.1",
 		"@babel/core" : "~7.28.6",

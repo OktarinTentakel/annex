@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="arrays.js.html">arrays.js</a>, <a href="arrays.js.html#line128">line 128</a>
+        <a href="arrays.js.html">arrays.js</a>, <a href="arrays.js.html#line150">line 150</a>
     </li></ul></dd>
     
 
@@ -106,14 +106,20 @@
 
     
 
-    <h4 class="name" id="generateRange"><span class="type-signature"></span>generateRange<span class="signature">(from, to, step<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Array}</span></h4>
+    <h4 class="name" id="generateRange"><span class="type-signature"></span>generateRange<span class="signature">(from, to, step<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Array.&lt;number>|Array.&lt;string>}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>To remove these by reference from target, instead of iterating them, set &quot;to&quot; to true.</p>
+    <p>Generates a numerical or a character range.</p>
+<p>Define a &quot;from&quot; and a &quot;to&quot; value and let the function fill the rest automatically, returning
+an array with a complete list.</p>
+<p>&quot;from&quot; and &quot;to&quot; can be numbers or strings. The first character of the string will be used.
+If you use strings and numbers mixed, the numbers will be interpreted as character codes.</p>
+<p>&quot;from&quot; and &quot;to&quot; do not have to be in ascending order and can also be in reverse.</p>
+<p>Add a &quot;step&quot; to define the value frequency.</p>
 </div>
 
 
@@ -159,10 +165,10 @@
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 |
 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 
 
             
@@ -184,7 +190,9 @@
                 </td>
             
 
-            <td class="description last"><p>the start of the range, may also be negative, if larger than &quot;to&quot;, the range is created in reverse, as a string, this can be a single character</p></td>
+            <td class="description last"><p>the start of the range, may also be negative,
+if larger than &quot;to&quot;, the range is created in reverse,
+as a string, this can be a single character</p></td>
         </tr>
 
     
@@ -197,10 +205,10 @@
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 |
 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 
 
             
@@ -222,7 +230,9 @@
                 </td>
             
 
-            <td class="description last"><p>the end of the range, may also be negative, if smaller than &quot;from&quot;, the range is created in reverse, as a string, this can be a single character</p></td>
+            <td class="description last"><p>the end of the range, may also be negative,
+if smaller than &quot;from&quot;, the range is created in reverse,
+as a string, this can be a single character</p></td>
         </tr>
 
     
@@ -235,7 +245,7 @@
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 
 
             
@@ -263,7 +273,8 @@
                 </td>
             
 
-            <td class="description last"><p>the (positive) step length in the range to use between individual range values, if the step length does not hit &quot;to&quot; exactly, the range will end at the last possible value before &quot;to&quot;</p></td>
+            <td class="description last"><p>the (positive) step length in the range to use between individual range values,
+if the step length does not hit &quot;to&quot; exactly, the range will end at the last possible value before &quot;to&quot;</p></td>
         </tr>
 
     
@@ -304,7 +315,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="arrays.js.html">arrays.js</a>, <a href="arrays.js.html#line151">line 151</a>
+        <a href="arrays.js.html">arrays.js</a>, <a href="arrays.js.html#line188">line 188</a>
     </li></ul></dd>
     
 
@@ -329,11 +340,28 @@
 
         
 
-    <div class="param-desc">
-    
+<dl>
+    <dt>
+        <div class="param-desc">
         <p>error if &quot;from&quot; or &quot;to&quot; are empty strings</p>
-    
-    </div>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
 
 
     
@@ -354,7 +382,10 @@
     </dt>
     <dd>
         
-<span class="param-type">Array</span>
+<span class="param-type">Array.&lt;number></span>
+|
+
+<span class="param-type">Array.&lt;string></span>
 
 
     </dd>
@@ -366,11 +397,11 @@
     <h5>Example</h5>
     
     <pre class="prettyprint"><code>generateRange(0, 10, 2)
-=> [0, 2, 4, 6, 8, 10]
+// => [0, 2, 4, 6, 8, 10]
 generateRange(5, -5, 3.5)
-=> [5, 1.5, -2]
-generateRange('a', 'g, 3)
-=> ['a', 'd', 'g']</code></pre>
+// => [5, 1.5, -2]
+generateRange('a', 'g', 3)
+// => ['a', 'd', 'g']</code></pre>
 
 
 
@@ -396,7 +427,7 @@ generateRange('a', 'g, 3)
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sat Jan 24 2026 15:20:29 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Mon Jan 26 2026 17:27:42 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

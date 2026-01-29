@@ -23,11 +23,12 @@ import {log, warn} from './logging.js';
  */
 
 /**
- * Classical assert method. If condition is falsy, throw assert exception.
+ * Classical assert method.
+ * If the condition is falsy, throw assert exception.
  *
- * @param {Boolean} condition - defines if an assertion is successful
- * @param {?String} [message='assert exception: assertion failed'] - to display if assertion fails
- * @throws assert exception
+ * @param {boolean} condition - if true the assertion is successful
+ * @param {string} [message='assert exception: assertion failed'] - the message to display if assertion fails
+ * @throws {Error} assert exception
  *
  * @memberof Basic:assert
  * @alias assert
@@ -55,19 +56,21 @@ export function assert(condition, message){
  * Attempt to compute contents of closure and catch all occurring exceptions.
  * The boolean result tells you if the operation was successful or not.
  *
- * This is most helpful, when used to test value conversions or other atomic/singluar operations, where it
- * just is important if something isolated works or not.
+ * This is most helpful when used to test value conversions or other atomic/singular operations, where it
+ * is just important if something isolated works or not.
  *
  * Do not encapsulate complex code in the closure and mind recursively occurring exceptions!
  *
  * @param {Function} closure - the code to test
- * @throws error if closure is not a function
- * @returns {Boolean} true if no exception occurred
+ * @returns {boolean} true if no exception occurred
+ * @throws {Error} if closure is not a function
  *
  * @memberof Basic:attempt
  * @alias attempt
  * @example
- * if( !attempt(function(){ foobar(); }) ){ console.log('foobar cannot be executed!'); }
+ * if( !attempt(function(){ foobar(); }) ){
+ *   console.log('foobar cannot be executed!');
+ * }
  */
 export function attempt(closure){
 	assert(isFunction(closure), `${MODULE_NAME}:attempt | closure is no function`);
@@ -88,10 +91,10 @@ export function attempt(closure){
  */
 
 /**
- * Check if variable(s) is set, by being neither undefined nor null.
+ * Check if arguments(s) is/are have a value being neither undefined nor null (not "nullish").
  *
- * @param {...*} [...] - add any number of variables you wish to check
- * @returns {Boolean} variable(s) is/are set
+ * @param {...*} args - arguments to check for values
+ * @returns {boolean} true if all arguments have a value, no given args return false
  *
  * @memberof Basic:hasValue
  * @alias hasValue
@@ -102,10 +105,12 @@ export function attempt(closure){
  *   }
  * }
  */
-export function hasValue(){
+export function hasValue(...args){
+	if( args.length === 0 ) return false;
+
 	let res = true;
 
-	Array.from(arguments).forEach(value => {
+	args.forEach(value => {
 		res &&= ((value !== undefined) && (value !== null));
 	});
 
@@ -119,9 +124,9 @@ export function hasValue(){
  */
 
 /**
- * Determine the (value) size of a collection.
+ * Determines the size of a collection or value.
  *
- * A collection is an object with countable values:
+ * A collection, in the sense of this function, is something with countable values:
  * - Arrays return their length
  * - Sets and Maps return their size
  * - Strings return their (character) length
@@ -129,33 +134,44 @@ export function hasValue(){
  * - Objects return the length of their value list
  * - any object implementing .values() returns the length of the returned value list
  *
- * @param {Object|Array|Set|Map|String|Iterable} target - a collection to determine the (value) size of
- * @param {?Boolean} [countStringCharacters=true] - if we want to determine the length of a string, we'd normally like to count actual characters, but length normally returns the technical length counting more than one for unicode chars, set this to "false" to use technical length instead of characters
- * @returns {Number|null} the size of the collection or null if no size could be determined
+ * @param {Object.<string,*>|Array|Set|Map|Iterable|string} target - a collection/value to determine the size of
+ * @param {boolean} [countStringCharacters=true] - if we want to determine the length of a string, we'd normally
+ *   like to count actual characters, but length normally returns the technical length counting more than one for
+ *   Unicode chars, set this to "false" to use technical length instead of characters
+ * @returns {number|null} the size of the collection or null if no size could be determined
  *
  * @memberof Basic:size
  * @alias size
  * @example
  * size('日本国💩👻');
- * => 5
+ * // => 5
+ *
  * size('日本国💩👻', false);
- * => 7
+ * // => 7
+ *
  * size({a : 1, b : new Date(), c : [1, 2, 3]});
- * => 3
+ * // => 3
+ *
  * size(['test', 'test', 'test']);
- * => 3
+ * // => 3
+ *
  * size(new Set(['test1', 'test2', 'test3']));
- * => 3
+ * // => 3
+ *
  * size(new Set(['test1', 'test2', 'test3']).values());
- * => 3
+ * // => 3
+ *
  * size(new Map([[1, 1], [new Date(), new Date()], ['foo', 'bar']]));
- * => 3
+ * // => 3
+ *
  * size(new Map([[1, 1], [new Date(), new Date()], ['foo', 'bar']]).values());
- * => 3
+ * // => 3
+ *
  * size(null);
- * => null
+ * // => null
+ *
  * size(undefined);
- * => null
+ * // => null
  */
 export function size(target, countStringCharacters=true){
 	if( isFunction(target?.values) ) return Array.from(target.values()).length;
@@ -199,44 +215,97 @@ export function size(target, countStringCharacters=true){
  */
 
 /**
- * Check if variable(s) contain non-empty value
- * (not undefined, null, '', 0, [], {} or an empty Set/Map).
+ * Check if arguments represent "empty" (undefined, null, '', 0, [], {} or an empty Set/Map) values.
+ * Will return true if all arguments are considered empty.
  *
- * You can supply additional non-empty values by providing an object having the key "__additionalEmptyValues__" as
+ * You can supply additional non-empty values by providing an object having the key "__empty__" as
  * any single parameter. Multiple occurrences will be merged.
  *
- * @param {...*} [...] - add any number of variables you wish to check
- * @returns {Boolean} variable(s) is/are empty
+ * @param {...*} args - arguments to check for "emptiness"
+ * @returns {boolean} true if all arguments are considered empty
  *
  * @memberof Basic:isEmpty
  * @alias isEmpty
  * @example
  * function set(name, value){
- *   if( isEmpty(fooBar) || isEmpty({'__additionalEmptyValues__' : [false, '0']}, someArray, someSet, someString, value) ){
+ *   if(
+ *     isEmpty(fooBar)
+ *     || isEmpty({'__empty__' : [false, '0']}, someArray, someSet, someString, value)
+ *   ){
  *     ...
  *   }
  * }
  */
-export function isEmpty(){
+export function isEmpty(...args){
 	let
 		res = true,
 		emptyValues = [undefined, null, '', 0]
 	;
 
-	Array.from(arguments).forEach(obj => {
-		if( isArray(obj?.__additionalEmptyValues__) ){
-			emptyValues = emptyValues.concat(obj.__additionalEmptyValues__);
+	args.forEach(obj => {
+		if( isArray(obj?.__empty__) ){
+			emptyValues = emptyValues.concat(obj.__empty__);
 		}
 	});
 	emptyValues = Array.from(new Set(emptyValues));
 
-	Array.from(arguments).forEach(obj => {
-		if( res && !isArray(obj?.__additionalEmptyValues__) ){
+	args.forEach(obj => {
+		if( res && !isArray(obj?.__empty__) ){
 			res = emptyValues.includes(obj);
 
 			if( !res ){
 				res = (size(obj) === 0);
 			}
+		}
+	});
+
+	return res;
+}
+
+
+
+/**
+ * @namespace Basic:isNullish
+ */
+
+/**
+ * Check if arguments represent "nullish" (undefined or null) values.
+ * Will return true if all arguments are considered nullish.
+ *
+ * You can supply additional nullish values by providing an object having the key "__nullish__" as
+ * any single parameter. Multiple occurrences will be merged.
+ *
+ * @param {...*} args - arguments to check for being "nullish"
+ * @returns {boolean} true if all arguments are considered nullish
+ *
+ * @memberof Basic:isNullish
+ * @alias isNullish
+ * @example
+ * function set(name, value){
+ *   if(
+ *     isNullish(fooBar)
+ *     || isNullish({'__nullish__' : [0, false]}, value1, value2, value3)
+ *   ){
+ *     ...
+ *   }
+ * }
+ */
+export function isNullish(...args){
+	let
+		res = true,
+		nullishValues = [undefined, null]
+	;
+
+	args.forEach(obj => {
+		if( isArray(obj?.__nullish__) ){
+			nullishValues = nullishValues.concat(obj.__nullish__);
+		}
+	});
+	nullishValues = Array.from(new Set(nullishValues));
+
+	args.forEach(obj => {
+		if( res && !isArray(obj?.__nullish__) ){
+			res = nullishValues.includes(obj);
 		}
 	});
 
@@ -252,10 +321,10 @@ export function isEmpty(){
 /**
  * "Validates" an object in a very basic way by checking if all given members are present and are not nullish.
  *
- * @param {Object} obj - the object to check
- * @param {String[]} memberNames - the names of the members to check
- * @param {Boolean} [verbose=false] - defines if method should output missing members to console
- * @returns {Boolean} all memberNames present and not nullish
+ * @param {Object.<string,*>} obj - the object to check
+ * @param {Array.<string>} memberNames - the names of the members/properties to check
+ * @param {boolean} [verbose=false] - defines if missing members should be printed to console
+ * @returns {boolean} true if all memberNames present and not nullish
  *
  * @memberof Basic:hasMembers
  * @alias hasMembers
@@ -292,14 +361,23 @@ export function hasMembers(obj, memberNames, verbose=false){
  */
 
 /**
- * If an expression returns a non-value (undefined or null), use the default value instead.
- * Define a caster name, to force expression result/value into certain data type.
+ * Checks if a value is empty (null and undefined by default), and if so, returns a default value instead.
+ * Define a caster to force the value into a certain data type, defined by that caster.
+ * The basic use case for this would be streamlining function arguments before usage.
  *
- * @param {*} expression - the expression to evaluate
- * @param {*} defaultValue - the default value to use if the expression is considered empty
- * @param {?(String|Function)} [caster=null] - either a default caster by name ('str', 'string', 'int', 'integer', 'bool', 'boolean', 'float', 'arr', 'array') or a function getting the value and returning the transformed value
- * @param {?Array} [additionalEmptyValues=null] - if set, provides a list of additional values to be considered empty, apart from undefined and null
- * @returns {*} expression of defaultValue
+ * @param {*} value - the value to evaluate
+ * @param {*} defaultValue - the default value to use if the value is considered empty
+ * @param {?"str"|"string"
+ *     |"int"|"integer"
+ *     |"bool"|"boolean"
+ *     |"float"
+ *     |"arr"|"array"
+ *     |Function
+ *   } [caster=null] - either a default caster by (string) name or a function getting the value and returning the
+ *   transformed value (the caster will also be applied to the default value)
+ * @param {?Array.<*>} [additionalEmptyValues=null] - if set, provides a list of additional values to be
+ *   considered empty, apart from undefined and null
+ * @returns {*} (cast) value or defaultValue
  *
  * @memberof Basic:orDefault
  * @alias orDefault
@@ -309,7 +387,7 @@ export function hasMembers(obj, memberNames, verbose=false){
  *   value = orDefault(value, 42, 'int');
  * }
  */
-export function orDefault(expression, defaultValue, caster=null, additionalEmptyValues=null){
+export function orDefault(value, defaultValue, caster=null, additionalEmptyValues=null){
 	if( hasValue(additionalEmptyValues) ){
 		additionalEmptyValues = [].concat(additionalEmptyValues);
 	} else {
@@ -347,10 +425,10 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
 		caster = function(value){ return value; };
 	}
 
-	if( !hasValue(expression) || (additionalEmptyValues.includes(expression)) ){
-		return defaultValue;
+	if( isNullish(value, {__nullish__ : additionalEmptyValues}) ){
+		return caster(defaultValue);
 	} else {
-		return caster(expression);
+		return caster(value);
 	}
 }
 
@@ -361,41 +439,40 @@ export function orDefault(expression, defaultValue, caster=null, additionalEmpty
  */
 
 /**
- * Prod-ready type detection for values, expanding on flawed typeof functionality, roughly following
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof, but expanding on
- * useful frontend types like "htmldocument", "htmlelement", "htmlcollection" and "nodelist"
+ * Detects types for values, expanding the flawed "typeof" functionality, roughly following
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof,
+ * but expanding the detected types dramatically.
  *
- * Types:
- * - "undefined"
- * - "null"
- * - "boolean"
- * - "number"
- * - "bigint"
- * - "string"
- * - "symbol"
+ * For example, with useful frontend types like "htmlelement" or "nodelist"
+ *
+ * Detected types:
+ * - "undefined"|"null"
+ * - "number"|"bigint"|"boolean"|"string"
+ * - "object"|"array"
  * - "function"
- * - "object"
- * - "array"
- * - "date"
- * - "error"
- * - "generator"
- * - "iterator"
- * - "regexp"
- * - "set"
- * - "weakset"
- * - "map"
- * - "weakmap"
- * - "htmldocument"
- * - "htmlelement"
- * - "svgelement"
- * - "htmlcollection"
- * - "nodelist"
+ * - "date"|"error"|"regexp"|"symbol"
+ * - "set"|"weakset"|"map"|"weakmap"
+ * - "generator"|"iterator"
  * - "window"
- * - "url"
- * - "urlsearchparams"
+ * - "url"|"urlsearchparams"
+ * - "htmldocument"
+ * - "htmlelement"|"svgelement"
+ * - "htmlcollection"|"nodelist"
  *
- * @param {*} [value] - variable to check the type of
- * @returns {String} the value type in lower case
+ * @param {*} value - variable to check the type of
+ * @returns {"undefined"|"null"
+ *     |"number"|"bigint"|"boolean"|"string"
+ *     |"object"|"array"
+ *     |"function"
+ *     |"date"|"error"|"regexp"|"symbol"
+ *     |"set"|"weakset"|"map"|"weakmap"
+ *     |"generator"|"iterator"
+ *     |"window"
+ *     |"url"|"urlsearchparams"
+ *     |"htmldocument"
+ *     |"htmlelement"|"svgelement"
+ *     |"htmlcollection"|"nodelist"
+ *   } the value type in lower case
  *
  * @memberof Basic:getType
  * @alias getType
@@ -429,12 +506,38 @@ export function getType(value) {
  */
 
 /**
- * Short form of "getType"-method with a more compact syntax.
- * Can identify all types listed in getType.
+ * Checks if a value is of a certain type.
+ * Acts like an expanded version of the "typeof" operator, but with a lot more types.
  *
- * @param {*} value - variable to check the type of
- * @param {String} type - the name of the type to check for, has to be a standard JS-type, is case insensitive
- * @returns {Boolean} target has type
+ * Supported types:
+ * - "undefined"|"null"
+ * - "number"|"bigint"|"boolean"|"string"
+ * - "object"|"array"
+ * - "function"
+ * - "date"|"error"|"regexp"|"symbol"
+ * - "set"|"weakset"|"map"|"weakmap"
+ * - "generator"|"iterator"
+ * - "window"
+ * - "url"|"urlsearchparams"
+ * - "htmldocument"
+ * - "htmlelement"|"svgelement"
+ * - "htmlcollection"|"nodelist"
+ *
+ * @param {*} value - value to check the type of
+ * @param {"undefined"|"null"
+ *     |"number"|"bigint"|"boolean"|"string"
+ *     |"object"|"array"
+ *     |"function"
+ *     |"date"|"error"|"regexp"|"symbol"
+ *     |"set"|"weakset"|"map"|"weakmap"
+ *     |"generator"|"iterator"
+ *     |"window"
+ *     |"url"|"urlsearchparams"
+ *     |"htmldocument"
+ *     |"htmlelement"|"svgelement"
+ *     |"htmlcollection"|"nodelist"
+ *   } type - the name of the type to check for, see above for supported types
+ * @returns {boolean} true if target is of given type
  *
  * @memberof Basic:isA
  * @alias isA
@@ -445,33 +548,18 @@ export function getType(value) {
 export function isA(value, type){
 	if(
 		[
-			'undefined',
-			'null',
-			'boolean',
-			'number',
-			'bigint',
-			'string',
-			'symbol',
+			'undefined', 'null',
+			'number', 'bigint', 'boolean', 'string',
+			'object', 'array',
 			'function',
-			'object',
-			'array',
-			'date',
-			'error',
-			'generator',
-			'iterator',
-			'regexp',
-			'set',
-			'weakset',
-			'map',
-			'weakmap',
-			'htmldocument',
-			'htmlelement',
-			'svgelement',
-			'htmlcollection',
-			'nodelist',
+			'date', 'error', 'regexp', 'symbol',
+			'set', 'weakset', 'map', 'weakmap',
+			'generator', 'iterator',
 			'window',
-			'url',
-			'urlsearchparams'
+			'url', 'urlsearchparams',
+			'htmldocument',
+			'htmlelement', 'svgelement',
+			'htmlcollection', 'nodelist',
 		].includes(`${type}`.toLowerCase())
 	){
 		return getType(value) === `${type}`.toLowerCase();
@@ -491,7 +579,7 @@ export function isA(value, type){
  * Returns if a value is a boolean value.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a boolean
+ * @returns {boolean} true if value is a boolean
  *
  * @memberof Basic:isBoolean
  * @alias isBoolean
@@ -516,7 +604,7 @@ export function isBoolean(value){
  * Hint: to check numbers in more detail, use isInt, isFloat and isNaN
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a number
+ * @returns {boolean} true if value is a number
  *
  * @memberof Basic:isNumber
  * @alias isNumber
@@ -1539,7 +1627,7 @@ export class Deferred {
 
 /**
  * A class offering the bare minimum feature set to observe a value and subscribe to future value changes.
- * No automatic magic going on here, this simply follows a basic subscription pattern, where each subscription is
+ * No automatic magic going on here; this simply follows a basic subscription pattern, where each subscription is
  * a function, being called with a newly set value. This closely resembles the kind of observables knockout is using.
  *
  * For details, see class documentation below.

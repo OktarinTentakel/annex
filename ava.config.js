@@ -17,13 +17,29 @@ process.argv.slice(2).forEach(arg => {
 	}
 });
 
+
+
+const SOURCE = process.env.SOURCE ?? 'source';
+console.log(`> testing "${SOURCE}"`);
+
+
+
 export default {
 	files : [
-		`./test/annex/${topic}.js`
+		['arrays', 'basic'].includes(topic)
+			? `./test/annex/${topic}.ts`
+			: `./test/annex/${topic}.js`
 	],
+	environmentVariables : {
+		SOURCE
+	},
 	require : [
-		'./test/helpers/setup-browserenv.js'
+		'./test/helpers/setup-browserenv.js',
 	],
 	verbose : true,
 	timeout : '60s',
+	extensions : {
+		js : true,
+		ts : 'module',
+	},
 }

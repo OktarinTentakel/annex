@@ -12,7 +12,16 @@ const MODULE_NAME = 'Animation';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {hasValue, isPlainObject, isEmpty, isNaN, isElement, orDefault, assert, Deferred} from './basic.js';
+import {
+	hasValue,
+	isPlainObject,
+	isEmpty,
+	isNaN,
+	isElement,
+	orDefault,
+	assert,
+	Deferred,
+} from './basic.js';
 import {warn} from './logging.js';
 import {pschedule, countermand, waitForRepaint} from './timers.js';
 import {applyStyles} from './css.js';
@@ -103,7 +112,7 @@ export const EasingFunctions = {
  * timings (transition and transition-duration) and looks for the longest currently running transition.
  * Values are excepted as milliseconds or seconds (int or float notation).
  *
- * Why would you do this, if there is something like the `animationend` event, you ask? Well, the problem is, that,
+ * Why would you do this if there is something like the `animationend` event, you ask? Well, the problem is, that,
  * if the animation is interrupted or never finishes for any other reason, the event never fires. For that, there is
  * the `animationcancel` event, but that is not really robustly supported at the moment. So, in cases of complex
  * style changes, where we definitively want to have a callback when the animation has been (or would have been)
@@ -113,15 +122,23 @@ export const EasingFunctions = {
  * Calling this method successively on the same element replaces the currently running transition, normally
  * resulting in premature resolution of the Deferred and application of the newly provided changes.
  *
- * Be advised, that legacy browsers like IE11 and Edge <= 18 have problems connecting interrupted transitions,
+ * Be advised that legacy browsers like IE11 and Edge <= 18 have problems connecting interrupted transitions,
  * especially when transition-durations change during animation, resulting in skipped or choppy animations. If you
  * experience this, try to keep timings stable during animation and chain animations without overlap.
  *
  * @param {Element} element - the element to transition, by applying class and/or style changes
- * @param {?Object} [classChanges=null] - plain object containing class changes to apply, add classes via the "add" key, remove them via the "remove" key (add has precedence over remove); values may be standard CSS class string notation or an array of standard CSS class notations
- * @param {?Object} [styleChanges=null] - plain object containing style changes to apply (via applyStyles)
- * @param {?Boolean} [rejectOnInterruption=false] - if a new transition is applied using this function while a previous transition is still running the Deferred would normally be resolved before continuing, set this to true to let the Deferred reject in that case (the rejection message is "interrupted", access the element using "element)
- * @return {Basic.Deferred} resolves on transition completion or repeated call on the same element, with the resolution value being the element, rejects on repeated call on same element if rejectOnInterruption is true (the rejection message is "interrupted", access the element using "element")
+ * @param {?Object.<string,string>} [classChanges=null] - plain object containing class changes to apply,
+ *   add classes via the "add" key, remove them via the "remove" key (add has precedence over remove);
+ *   values may be standard CSS class string notation or an array of standard CSS class notations
+ * @param {?Object.<string,string>} [styleChanges=null] - plain object containing style changes to apply (via applyStyles)
+ * @param {boolean} [rejectOnInterruption=false] - if a new transition is applied using this function while
+ *   a previous transition is still running the Deferred would normally be resolved before continuing,
+ *   set this to true to let the Deferred reject in that case
+ *   (the rejection message is "interrupted", access the element using "element)
+ * @returns {Basic.Deferred} resolves on transition completion or repeated call on the same element,
+ *   with the resolution value being the element, rejects on repeated call on same element if
+ *   rejectOnInterruption is true (the rejection message is "interrupted", access the element using "element")
+ * @throws {Error} error if "element" is not an Element or "classChanges"/"styleChanges" are not PlainObjects
  *
  * @memberof Animation:transition
  * @alias transition
@@ -129,7 +146,13 @@ export const EasingFunctions = {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/animationend_event
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/animationcancel_event
  * @example
- * transition(element, {add : 'foobar'}).then(element => { return transition(element, {remove : 'foobar'}); }).then(() => { console.log('finished'); });
+ * transition(
+ *     element,
+ *     {add : 'foobar'}
+ * )
+ *     .then(element => transition(element, {remove : 'foobar'}))
+ *     .then(() => { console.log('finished'); })
+ * ;
  * transition(element, null, {top : 0, left : 0, background : 'pink', transition : 'all 1500ms'}).then(() => { console.log('finished'); });
  * transition(element, {add : 'foobar'}).then(() => { console.log('finished'); }).catch(error => { console.log('cancelled'); });
  */

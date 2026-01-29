@@ -34,10 +34,10 @@ if (( ${#PASSTHROUGH[@]} )); then
 	cd "${0%/*}" && \
 	cd .. && \
 	docker compose run --rm \
-	annex bash -lc 'yarn install; gulp --color "$@"' -- "${TASK}" "${PASSTHROUGH[@]}"
+	annex bash -lc 'gulp --color "$@"' -- "${TASK}" "${PASSTHROUGH[@]}"
 else
 	cd "${0%/*}" && \
 	cd .. && \
 	docker compose run --rm \
-	annex bash -lc 'yarn install; gulp --color "$@"' -- "${TASK}"
+	annex bash -lc 'gulp --color "$@"' -- "${TASK}"
 fi

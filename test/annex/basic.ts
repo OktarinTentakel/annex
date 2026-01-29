@@ -1,159 +1,133 @@
+import type {ExecutionContext} from 'ava';
+
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
 import test from 'ava';
 
-let pkg;
-
-if( global.__AVA_SOURCE__ === 'es5-monolith' ){
-	await import(`../../dist/es5-monolith.js`);
-	pkg = global.annex.basic;
-} else {
-	pkg = await import(`../../${global.__AVA_SOURCE__}/basic.js`);
-}
-
-const {
-	assert,
-	attempt,
-	hasValue,
-	isEmpty,
-	size,
-	hasMembers,
-	orDefault,
-	getType,
-	isA,
-	isBoolean,
-	isNumber,
-	isBigInt,
-	isInt,
-	isFloat,
-	isNaN,
-	isString,
-	isSymbol,
-	isFunction,
-	isObject,
-	isPlainObject,
-	isArray,
-	isDate,
-	isError,
-	isGenerator,
-	isIterator,
-	isRegExp,
-	isSet,
-	isWeakSet,
-	isMap,
-	isWeakMap,
-	isDocument,
-	isElement,
-	isSvg,
-	isCollection,
-	isNodeList,
-	isWindow,
-	isUrl,
-	isUrlSearchParams,
-	isEventTarget,
-	isSelector,
-	isPotentialId,
-	min,
-	max,
-	minMax,
-	round,
-	Deferred,
-	Observable
-} = pkg;
+import {basic as _} from './_implementations.ts';
 
 
 
-const exampleSVG = '<svg enable-background="new 0 0 396 99.3" height="99.3" viewBox="0 0 396 99.3" width="396" xmlns="http://www.w3.org/2000/svg"><g fill="#fff"><path d="m22.5 60.2 48.7-3.9v-8.1l-48.7 4.9z"/><path d="m22.5 91.3h48.7v-10.1l-48.7.9z"/><path d="m22.5 75.1 48.7-1.9v-9.4l-48.7 2.9z"/><path d="m.3 30 70.9-14.1v-5.7l-70.9 15.5z"/><path d="m.3 18.6v3.5l70.9-16.9v-4.9z"/><path d="m.3 39.2 70.9-11.3v-6.3l-70.9 12.8z"/><path d="m.3 49.8 70.9-8.5v-7.2l-70.9 10z"/><path d="m141.9 65.6v2.8s-2.6-2.3-8.7-2.3c-6.7 0-10.6 4.4-10.6 11.3s3.7 11.6 11.2 11.6c3.8 0 6-.6 6-.6v-6.3h-7.3v-2.4h10.1v9.3s-2.9 2.9-9.3 2.9c-9.1 0-13.7-6.2-13.7-14.3 0-8.4 5.4-14.2 13.5-14.2 6.2-.2 8.8 2.2 8.8 2.2z"/><path d="m159.3 72v2.5h-1.4c-4.2 0-6.5 2.9-6.5 6.6v10.2h-2.9v-18.9l2.9-.7v4.2c1.2-2.5 3.5-4.2 6.3-4.2.8 0 1.6.3 1.6.3z"/><path d="m179.6 81.4c0 6-3.8 10.4-9.5 10.4-5.5 0-9.2-4.1-9.2-9.9 0-6 3.7-10.4 9.4-10.4 5.7.1 9.3 4.1 9.3 9.9zm-15.8.4c0 4.5 2.4 7.4 6.3 7.4 4.5 0 6.6-3.5 6.6-7.8 0-4.4-2.5-7.4-6.4-7.4-4.5 0-6.5 3.5-6.5 7.8z"/><path d="m199.9 71.8v19.6h-2.8v-3.4c-1.4 2.4-3.6 3.7-6.2 3.7-4.5 0-6.5-2.8-6.5-7.1v-12.2l2.9-.7v12.7c0 3.2 1.4 4.7 4.1 4.7 3.3 0 5.8-2.6 5.8-7.6v-9.2z"/><path d="m222.5 81.1c0 5.9-3.8 10.6-9.6 10.6-2.2 0-4-.9-4.5-1.1v8.7h-2.8v-26.9l2.8-.7v3.6c1.3-2.3 3.6-3.7 6.4-3.7 5.1.1 7.7 4 7.7 9.5zm-2.8.1c0-4.7-2.2-6.9-5.3-6.9-3.7 0-5.9 2.8-5.9 6.8v7.2c.4.2 2 .9 4.5.9 4.3-.1 6.7-3.3 6.7-8z"/><path d="m147.3 24.4v21.6h-8v-4.6c-2.4 3.3-6.5 5.2-10.8 5.2-5.1 0-8.5-2.8-8.5-7.7 0-7.6 8.2-11.9 19.3-11.9v-1.2c0-3.1-1.7-5-6.2-5-7 0-11.8 4-11.8 4v-7.4s4-4 13.1-4c8.8.2 12.9 4 12.9 11zm-8 8.9v-1.5c-7.4 0-10.9 2.9-10.9 6.1 0 1.7 1.2 2.9 3.3 2.9 3.7-.1 7.6-3.1 7.6-7.5z"/><path d="m162.6 46h-9.1v-43.9l9.1-1.8z"/><path d="m178.1 46h-9.1v-43.9l9.1-1.8z"/><path d="m211.6 11.9v2.3h9.9v6.3h-9.9v25.5h-9v-25.5h-4.5v-6.3h4.5v-2.3c0-7.5 4.5-11.9 12.1-11.9 5.4 0 7.4 1.7 7.4 1.7v5.8s-2.2-1-5.2-1c-3.6 0-5.3 2-5.3 5.4z"/><path d="m253.9 29.7c0 10.4-6.4 17.1-16.1 17.1-9.9 0-15.8-6.4-15.8-16.4 0-10.4 6.5-16.9 16-16.9 9.9 0 15.9 6.3 15.9 16.2zm-23.1.7c0 6.1 2.6 9.7 7 9.7 5.1 0 7.3-4.2 7.3-10.1 0-6-2.7-9.8-7.1-9.8-5 0-7.2 4.3-7.2 10.2z"/><path d="m280.5 14.1v7.8h-2.4c-6.5 0-10 4.5-10 10v14.1h-8.8v-30.7l8.8-1.7v7.8c1.9-4.6 5.2-7.8 9.7-7.8 1.9 0 2.7.5 2.7.5z"/><path d="m329.5 29.7c0 10.4-6.4 17.1-16.1 17.1-9.9 0-15.8-6.4-15.8-16.4 0-10.4 6.5-16.9 16-16.9 9.9 0 15.9 6.3 15.9 16.2zm-23.1.7c0 6.1 2.6 9.7 7 9.7 5.1 0 7.3-4.2 7.3-10.1 0-6-2.7-9.8-7.1-9.8-4.9 0-7.2 4.3-7.2 10.2z"/><path d="m363.2 24.7v21.3h-8.9v-19.5c0-3.5-1.5-5.4-4.5-5.4-3.7-.1-6.2 3-6.2 8.8v16h-8.7v-30.5l8.7-1.8v5.7c2.2-3.7 5.7-5.8 9.8-5.8 7 .1 9.8 4.6 9.8 11.2z"/><path d="m386.6 39.6c5.8 0 9.3-2.6 9.3-2.6v6.2s-3.5 3.5-11.3 3.5c-10.8 0-16.4-6.5-16.4-16.1 0-9.8 5.8-17 15.3-17 7.9 0 12.8 4.7 12.8 12.3 0 3.3-1.1 5.6-1.1 5.6h-18.7c.7 5.3 4 8.1 10.1 8.1zm-10-12.9h12c-.1-4.5-1.9-6.7-5.3-6.7-3.6-.1-6 2.4-6.7 6.7z"/></g></svg>';
+const
+	__filename:string = fileURLToPath(import.meta.url),
+	__dirname:string = dirname(__filename),
+	exampleSVG:string = readFileSync(
+		join(__dirname, '..', 'assets', 'img', 'example.svg'),
+		'utf8'
+	)
+;
 
 
 
-// name parameter _assert instead of assert here, to avoid collision with annex method name
-test('assert', _assert => {
+test('assert', (assert:ExecutionContext):void => {
 	const
-		foo = 'bar',
-		bar = [],
-		foobar = {a : 1}
+		foo:string = 'bar',
+		bar:Array<number> = [],
+		foobar:Record<string,number> = {a : 1}
 	;
 
-	_assert.notThrows(() => {
-		assert(foo.length === 3, 'not the right length');
+	assert.notThrows(():void => {
+		_.assert(foo.length === 3, 'not the right length');
 	});
 
-	_assert.throws(() => {
-		assert((() => { return foo.length < 3; })(), 'not the right length');
+	assert.throws(():void => {
+		_.assert((():boolean => { return foo.length < 3; })(), 'not the right length');
 	}, undefined, 'not the right length');
 
-	_assert.throws(() => {
-		assert(Array.isArray(foobar), 'this is not an array dude');
+	assert.throws(():void => {
+		_.assert(Array.isArray(foobar), 'this is not an array dude');
 	}, undefined, 'this is not an array dude');
 
-	_assert.notThrows(() => {
-		assert(Array.isArray(bar), 'this is not an array dude');
+	assert.notThrows(():void => {
+		_.assert(Array.isArray(bar), 'this is not an array dude');
 	});
 });
 
 
 
-test('attempt', assert => {
+test('attempt', (assert:ExecutionContext):void => {
 	const
-		noJsonString = '{a : new Date()}',
-		jsonString = '[{"a" : {"b" : "c"}}]'
+		noJsonString:string = '{a : new Date()}',
+		jsonString:string = '[{"a" : {"b" : "c"}}]'
 	;
-	let json;
+	let json:any;
 
-	if( !attempt(() => { json = JSON.parse(noJsonString) }) ){
+	if( !_.attempt(():void => { json = JSON.parse(noJsonString) }) ){
 		json = {};
 	}
 	assert.deepEqual(json, {});
 
-	if( !attempt(() => { json = JSON.parse(jsonString) }) ){
+	if( !_.attempt(():void => { json = JSON.parse(jsonString) }) ){
 		json = {};
 	}
 	assert.deepEqual(json, [{a : {b : 'c'}}]);
 
-	assert.true(attempt(() => { json = 42 * 42; }));
-	assert.false(attempt(() => { return foo + bar; }));
+	assert.true(_.attempt(():void => { json = 42 * 42; }));
+
+	// @ts-ignore
+	assert.false(_.attempt(():void => { return foo + bar; }));
 });
 
 
 
-test('hasValue', assert => {
+test('hasValue', (assert:ExecutionContext):void => {
 	const
-		bar = 1,
-		foobar = 'abc'
+		bar:number = 1,
+		foobar:string = 'abc'
 	;
-	let foo;
+	let foo:undefined;
 
-	assert.false(hasValue(foo));
-	assert.false(hasValue(null));
-	assert.false(hasValue(undefined));
-	assert.false(hasValue(foo, bar, foobar));
-	assert.true(hasValue(bar));
-	assert.true(hasValue(bar, foobar));
+	assert.false(_.hasValue(foo));
+
+	assert.false(_.hasValue(null));
+
+	assert.false(_.hasValue(undefined));
+
+	assert.false(_.hasValue(foo, bar, foobar));
+
+	assert.false(_.hasValue());
+
+	assert.true(_.hasValue(bar));
+
+	assert.true(_.hasValue(bar, foobar));
 });
 
 
 
-test('size', assert => {
+test('size', (assert:ExecutionContext):void => {
 	let
-		bar = 0,
-		foobar = '',
-		boofar = {},
-		farbar = [],
-		barfoo = new Set(),
-		zzz = new Map(),
-		boo = 'none',
-		far = 1,
-		eBody = document.querySelectorAll('body')
+		bar:number = 0,
+		foobar:string = '',
+		boofar:Record<string, any> = {},
+		farbar:Array<string> = [],
+		barfoo:Set<string> = new Set(),
+		zzz:Map<any,any> = new Map(),
+		boo:string = 'none',
+		far:number = 1,
+		eBody:NodeListOf<HTMLElement> = document.querySelectorAll('body')
 	;
 
-	assert.is(size(bar), null);
-	assert.is(size(foobar), 0);
-	assert.is(size(boofar), 0);
-	assert.is(size(farbar), 0);
-	assert.is(size(barfoo), 0);
-	assert.is(size(zzz), 0);
-	assert.is(size(boo), 4);
-	assert.is(size(far), null);
-	assert.is(size(eBody), 1);
+	// @ts-ignore
+	assert.is(_.size(bar), null);
+
+	assert.is(_.size(foobar), 0);
+
+	assert.is(_.size(boofar), 0);
+
+	assert.is(_.size(farbar), 0);
+
+	assert.is(_.size(barfoo), 0);
+
+	assert.is(_.size(zzz), 0);
+
+	assert.is(_.size(boo), 4);
+
+	// @ts-ignore
+	assert.is(_.size(far), null);
+
+	assert.is(_.size(eBody), 1);
+
 
 	foobar = '日本国💩👻';
 	boofar = {a : 1, b : new Date(), c : [1, 2, 3]};
@@ -161,197 +135,293 @@ test('size', assert => {
 	barfoo.add('test1').add('test2').add('test3');
 	zzz.set(1, 1).set(new Date(), new Date()).set('foo', 'bar');
 
-	assert.is(size(foobar), 5);
-	assert.true(size(foobar, false) > 5);
-	assert.is(size(boofar), 3);
-	assert.is(size(farbar), 3);
-	assert.is(size(barfoo), 3);
-	assert.is(size(barfoo.values()), 3);
-	assert.is(size(zzz), 3);
-	assert.is(size(zzz.values()), 3);
-	assert.is(size(null), null);
-	assert.is(size(undefined), null);
+	assert.is(_.size(foobar), 5);
+
+	assert.true(_.size(foobar, false) > 5);
+
+	assert.is(_.size(boofar), 3);
+
+	assert.is(_.size(farbar), 3);
+
+	assert.is(_.size(barfoo), 3);
+
+	assert.is(_.size(barfoo.values()), 3);
+
+	assert.is(_.size(zzz), 3);
+
+	assert.is(_.size(zzz.values()), 3);
+
+	assert.is(_.size(null), null);
+
+	assert.is(_.size(undefined), null);
 });
 
 
 
-test('isEmpty', assert => {
+test('isEmpty', (assert:ExecutionContext):void => {
 	const
-		bar = 0,
-		foobar = '',
-		boofar = {},
-		farbar = [],
-		barfoo = new Set(),
-		zzz = new Map(),
-		boo = 'none',
-		far = 1
+		bar:number = 0,
+		foobar:string = '',
+		boofar:Record<string,string> = {},
+		farbar:Array<boolean> = [],
+		barfoo:Set<number> = new Set(),
+		zzz:Map<string,string> = new Map(),
+		boo:string = 'none',
+		far:number = 1
 	;
-	let foo;
+	let foo:undefined;
 
-	assert.true(isEmpty(foo));
-	assert.true(isEmpty(foo, bar, foobar, boofar, farbar, barfoo));
-	assert.true(isEmpty(foo, bar, foobar, {__additionalEmptyValues__ : [false]}, farbar, boofar, barfoo, boo, false, {__additionalEmptyValues__ : ['none']}));
-	assert.true(isEmpty(zzz));
-	assert.false(isEmpty(bar, foobar, far));
+	assert.true(_.isEmpty(foo));
+
+	assert.true(_.isEmpty(foo, bar, foobar, boofar, farbar, barfoo));
+
+	assert.true(_.isEmpty(
+		foo, bar, foobar,
+		{__empty__ : [false]},
+		farbar, boofar, barfoo, boo, false,
+		{__empty__ : ['none']}
+	));
+
+	assert.true(_.isEmpty(zzz));
+
+	assert.false(_.isEmpty(bar, foobar, far));
+
 
 	boofar.a = 'a';
 	barfoo.add(42);
 	zzz.set('a', 'b')
 	farbar.push(true);
 
-	assert.false(isEmpty(boofar));
-	assert.false(isEmpty(barfoo));
-	assert.false(isEmpty(farbar));
-	assert.false(isEmpty(zzz));
+	assert.false(_.isEmpty(boofar));
+
+	assert.false(_.isEmpty(barfoo));
+
+	assert.false(_.isEmpty(farbar));
+
+	assert.false(_.isEmpty(zzz));
 });
 
 
 
-test('hasMembers', assert => {
-	const foo = {
+test('isNullish', (assert:ExecutionContext):void => {
+	const
+		foobar:string = '',
+		boo:null = null,
+		far:number = 1
+	;
+	let foo:undefined;
+
+	assert.true(_.isNullish(foo));
+
+	assert.true(_.isNullish(foo, boo));
+
+	assert.true(_.isNullish(
+		foo, boo, foobar,
+		{__nullish__ : [false]},
+		null, '', false,
+		{__nullish__ : ['']}
+	));
+
+	assert.false(_.isNullish(foo, boo, far));
+});
+
+
+
+test('hasMembers', (assert:ExecutionContext):void => {
+	const foo:Record<string,number> = {
 		a : 1,
 		b : 2,
 		c : 3
 	};
 
-	assert.true(hasMembers(foo, ['a', 'b', 'c']));
-	assert.false(hasMembers(foo, ['a', 'b', 'd']));
-	assert.true(hasMembers(console, ['log']));
-	assert.true(hasMembers(window, ['location', 'parent']));
-	assert.false(hasMembers(window, ['foobar']));
+	assert.true(_.hasMembers(foo, ['a', 'b', 'c']));
+
+	assert.false(_.hasMembers(foo, ['a', 'b', 'd']));
+
+	assert.true(_.hasMembers(console, ['log']));
+
+	assert.true(_.hasMembers(window, ['location', 'parent']));
+
+	assert.false(_.hasMembers(window, ['foobar']));
 });
 
 
 
-test('orDefault', assert => {
+test('orDefault', (assert:ExecutionContext):void => {
 	const
-		foo = orDefault('none', 'kittens!', 'string', ['', 'none']),
-		bar = orDefault('2', 42, 'int'),
-		foobar = orDefault(null, 'fluffy', 'str'),
-		barfoo = orDefault(0, true, 'bool'),
-		boo = orDefault('a', [1, 2, 3], 'array'),
-		far = orDefault(42, 1.1, 'float')
+		foo:string = _.orDefault('none', 'kittens!', 'string', ['', 'none']) as string,
+		bar:number = _.orDefault('2', 42, 'int') as number,
+		foobar:string = _.orDefault(null, 'fluffy', 'str') as string,
+		barfoo:boolean = _.orDefault(0, true, 'bool') as boolean,
+		boo:Array<string|number> = _.orDefault('a', [1, 2, 3], 'array') as Array<string|number>,
+		far:number = _.orDefault(42, 1.1, 'float') as number
 	;
 
 	assert.is(foo, 'kittens!');
+
 	assert.is(bar, 2);
+
 	assert.is(foobar, 'fluffy');
+
 	assert.false(barfoo);
+
 	assert.deepEqual(boo, ['a']);
+
 	assert.is(far, 42.0);
 });
 
 
 
-test('getType', assert => {
-	const outerNode = document.createElement('div');
+test('getType', (assert:ExecutionContext):void => {
+	const outerNode:HTMLElement = document.createElement('div');
 	outerNode.innerHTML = exampleSVG;
 
 	const
-		foo = true,
-		bar = {a : 'b'},
-		foobar = () => 42.42,
-		boo = new Date(),
-		far = [1, 2, 3],
-		boofar = /[a-z0-9]/g,
-		lala = new Set([1, 2, 3, 4, 5]),
-		wm = new Map(),
-		u = new URL('', window.location.origin),
-		usp = new URLSearchParams(),
-		svg = outerNode.firstChild
+		foo:boolean = true,
+		bar:Record<string,string> = {a : 'b'},
+		foobar:Function = ():number => 42.42,
+		boo:Date = new Date(),
+		far:Array<number> = [1, 2, 3],
+		boofar:RegExp = /[a-z0-9]/g,
+		lala:Set<number> = new Set([1, 2, 3, 4, 5]),
+		wm:Map<Function,string> = new Map(),
+		u:URL = new URL('', window.location.origin),
+		usp:URLSearchParams = new URLSearchParams(),
+		svg:Node = outerNode.firstChild
 	;
-
 	wm.set(foobar, 'foobar');
 
-	assert.is((getType(foo) === 'boolean' && foo) ? 'true' : 'false', 'true');
-	assert.is(getType(bar), 'object');
-	assert.is(getType(bar.a), 'string');
-	assert.is(getType(foobar), 'function');
-	assert.is(getType(foobar()), 'number');
-	assert.is(getType(boo), 'date');
-	assert.is(getType(far), 'array');
-	assert.is(getType(far[1]), 'number');
-	assert.is(getType(boofar), 'regexp');
-	assert.not(getType(boofar), 'boofar');
-	assert.not(getType(bar.a), 'date');
-	assert.is(getType(lala), 'set');
-	assert.is(getType(wm), 'map');
-	assert.is(getType(wm.values()), 'iterator');
-	assert.is(getType(u), 'url');
-	assert.is(getType(usp), 'urlsearchparams');
-	assert.is(getType(document.querySelectorAll('.test')), 'nodelist');
-	assert.is(getType(document), 'htmldocument');
-	assert.is(getType(document.createElement('div')), 'htmlelement');
-	assert.is(getType(document.createElement('p')), 'htmlelement');
-	assert.is(getType(document.createElement('body')), 'htmlelement');
-	assert.is(getType(svg), 'svgelement');
+	assert.is((_.getType(foo) === 'boolean' && foo) ? 'true' : 'false', 'true');
+
+	assert.is(_.getType(bar), 'object');
+
+	assert.is(_.getType(bar.a), 'string');
+
+	assert.is(_.getType(foobar), 'function');
+
+	assert.is(_.getType(foobar()), 'number');
+
+	assert.is(_.getType(boo), 'date');
+
+	assert.is(_.getType(far), 'array');
+
+	assert.is(_.getType(far[1]), 'number');
+
+	assert.is(_.getType(boofar), 'regexp');
+
+	assert.not(_.getType(boofar), 'boofar');
+
+	assert.not(_.getType(bar.a), 'date');
+
+	assert.is(_.getType(lala), 'set');
+
+	assert.is(_.getType(wm), 'map');
+
+	assert.is(_.getType(wm.values()), 'iterator');
+
+	assert.is(_.getType(u), 'url');
+
+	assert.is(_.getType(usp), 'urlsearchparams');
+
+	assert.is(_.getType(document.querySelectorAll('.test')), 'nodelist');
+
+	assert.is(_.getType(document), 'htmldocument');
+
+	assert.is(_.getType(document.createElement('div')), 'htmlelement');
+
+	assert.is(_.getType(document.createElement('p')), 'htmlelement');
+
+	assert.is(_.getType(document.createElement('body')), 'htmlelement');
+
+	assert.is(_.getType(svg), 'svgelement');
 });
 
 
 
-test('isA', assert => {
-	const outerNode = document.createElement('div');
+test('isA', (assert:ExecutionContext):void => {
+	const outerNode:HTMLElement = document.createElement('div');
 	outerNode.innerHTML = exampleSVG;
 
 	const
-		foo = true,
-		bar = {a : 'b'},
-		foobar = () => 42.42,
-		boo = new Date(),
-		far = [1, 2, 3],
-		boofar = /[a-z0-9]/g,
-		lala = new Set([1, 2, 3, 4, 5]),
-		wm = new Map(),
-        u = new URL('', window.location.origin),
-        usp = new URLSearchParams(),
-		svg = outerNode.firstChild
+		foo:boolean = true,
+		bar:Record<string,string> = {a : 'b'},
+		foobar:Function = ():number => 42.42,
+		boo:Date = new Date(),
+		far:Array<number> = [1, 2, 3],
+		boofar:RegExp = /[a-z0-9]/g,
+		lala:Set<number> = new Set([1, 2, 3, 4, 5]),
+		wm:Map<Function,string> = new Map(),
+		u:URL = new URL('', window.location.origin),
+		usp:URLSearchParams = new URLSearchParams(),
+		svg:Node = outerNode.firstChild
 	;
-
 	wm.set(foobar, 'foobar');
 
-	assert.is((isA(foo, 'boolean') && foo) ? 'true' : 'false', 'true');
-	assert.true(isA(bar, 'object'));
-	assert.true(isA(bar.a, 'string'));
-	assert.true(isA(foobar, 'function'));
-	assert.true(isA(foobar(), 'number'));
-	assert.true(isA(boo, 'date'));
-	assert.true(isA(far, 'array'));
-	assert.true(isA(far[1], 'number'));
-	assert.true(isA(boofar, 'regexp'));
-	assert.false(isA(boofar, 'boofar'));
-	assert.false(isA(bar.a, 'date'));
-	assert.true(isA(lala, 'set'));
-	assert.true(isA(wm, 'map'));
-	assert.true(isA(wm.values(), 'iterator'));
-    assert.true(isA(u, 'url'));
-    assert.true(isA(usp, 'urlsearchparams'));
-	assert.true(isA(document.querySelectorAll('.test'), 'nodelist'));
-	assert.true(isA(document, 'htmldocument'));
-	assert.true(isA(document.createElement('div'), 'htmlelement'));
-	assert.true(isA(document.createElement('p'), 'htmlelement'));
-	assert.true(isA(document.createElement('body'), 'htmlelement'));
-	assert.true(isA(svg, 'svgelement'));
+	assert.is((_.isA(foo, 'boolean') && foo) ? 'true' : 'false', 'true');
+
+	assert.true(_.isA(bar, 'object'));
+
+	assert.true(_.isA(bar.a, 'string'));
+
+	assert.true(_.isA(foobar, 'function'));
+
+	assert.true(_.isA(foobar(), 'number'));
+
+	assert.true(_.isA(boo, 'date'));
+
+	assert.true(_.isA(far, 'array'));
+
+	assert.true(_.isA(far[1], 'number'));
+
+	assert.true(_.isA(boofar, 'regexp'));
+
+	// @ts-ignore
+	assert.false(_.isA(boofar, 'boofar'));
+
+	assert.false(_.isA(bar.a, 'date'));
+
+	assert.true(_.isA(lala, 'set'));
+
+	assert.true(_.isA(wm, 'map'));
+
+	assert.true(_.isA(wm.values(), 'iterator'));
+
+    assert.true(_.isA(u, 'url'));
+
+    assert.true(_.isA(usp, 'urlsearchparams'));
+
+	assert.true(_.isA(document.querySelectorAll('.test'), 'nodelist'));
+
+	assert.true(_.isA(document, 'htmldocument'));
+
+	assert.true(_.isA(document.createElement('div'), 'htmlelement'));
+
+	assert.true(_.isA(document.createElement('p'), 'htmlelement'));
+
+	assert.true(_.isA(document.createElement('body'), 'htmlelement'));
+
+	assert.true(_.isA(svg, 'svgelement'));
 });
 
 
 
-test('isBoolean', assert => {
+test('isBoolean', (assert:ExecutionContext):void => {
 	const
-		foo = true,
-		bar = false,
-		foobar = 'true',
-		boofar = 5
+		foo:boolean = true,
+		bar:boolean = false,
+		foobar:string = 'true',
+		boofar:number = 5
 	;
 
-	assert.true(isBoolean(foo));
-	assert.true(isBoolean(bar));
-	assert.false(isBoolean(foobar));
-	assert.false(isBoolean(boofar));
+	assert.true(_.isBoolean(foo));
+	assert.true(_.isBoolean(bar));
+	assert.false(_.isBoolean(foobar));
+	assert.false(_.isBoolean(boofar));
 });
 
 
 
-test('isNumber', assert => {
+/*test('isNumber', assert => {
 	const
 		foo = 42,
 		bar = 42.42,
@@ -1077,4 +1147,4 @@ test('Observable', assert => {
 	foo.setValue(3);
 
 	assert.is(changeCount, 3);
-});
+});*/

@@ -2,7 +2,7 @@ FROM node:24
 
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y bc ed nano fonts-powerline tzdata
+RUN apt-get install -y bc ed nano fonts-powerline tzdata pciutils
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

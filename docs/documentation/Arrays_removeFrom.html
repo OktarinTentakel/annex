@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="arrays.js.html">arrays.js</a>, <a href="arrays.js.html#line21">line 21</a>
+        <a href="arrays.js.html">arrays.js</a>, <a href="arrays.js.html#line30">line 30</a>
     </li></ul></dd>
     
 
@@ -106,35 +106,40 @@
 
     
 
-    <h4 class="name" id="removeFrom"><span class="type-signature"></span>removeFrom<span class="signature">(target, from, to<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Array}</span></h4>
+    <h4 class="name" id="removeFrom"><span class="type-signature"></span>removeFrom<span class="signature">(target, from, to<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Array.&lt;*>}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Removes Elements from an Array, where to and from are inclusive.
-If you only provide &quot;from&quot;, that exact index is removed.</p>
+    <p>Removes Elements from an Array.</p>
 <p>Does not modify the original.</p>
-<p>Keep in mind, that &quot;from&quot; should normally be smaller than &quot;to&quot; to slice from left to right. This means that the elements
-indexed by &quot;from&quot; and &quot;to&quot; should have the right order. For example: [1,2,3,4]. Here from=-1 and to=-3 are illegal since
-&quot;from&quot; references a later element than &quot;to&quot;, but there are also viable examples where &quot;from&quot; is numerically bigger. If we
-use from=2 and to=-1, &quot;from&quot; is numerically bigger, but references an earlier element than -1 (which is the last element),
-which is totally okay. Just make sure &quot;from&quot; comes before &quot;to&quot; in the element's order.</p>
+<p>This function supports multiple parameter overrides, the most simple one being numerical &quot;from&quot; and &quot;to&quot;,
+to remove an index-based part of the array. &quot;from&quot; and &quot;to&quot; are inclusive in that case.
+If you only provide &quot;from&quot;, that exact index is removed.</p>
+<p>Keep in mind that &quot;from&quot; has to reference an element physically before &quot;to&quot;, since we slice from left to right.
+For example, [1, 2, 3, 4].
+Here &quot;from=-1&quot; and &quot;to=-3&quot; are illegal since &quot;from&quot; references a later element than &quot;to&quot;.
+If we use &quot;from=2&quot; and &quot;to=-1&quot;, &quot;from&quot; is numerically bigger but references an earlier element than -1
+(which is the last element), which is totally okay.</p>
+<p>Apart from those basic index-cases, &quot;from&quot; can almost be any value to search for in the array.</p>
 <p>If you provide a string for &quot;from&quot; everything matching that string with its string representation will be removed
 (you can provide stringification for objects via the toString method, see:
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString).</p>
-<p>Everything else (except collections) provided for &quot;from&quot; will determine the element(s) to remove by identity (===).</p>
-<p>If you want to remove several elements at once, you may provide an iterable collection as &quot;from&quot; and
-This also makes it possible to actually remove numbers from an array by identity: define the number(s) as an array,
-to signal, that these are no indices. If you need to remove a collection from the array by reference, either put
-the collection in an array or set &quot;to&quot; to true, to force the collection being treated as a reference.</p>
-<p>Iterable collections, usable in &quot;from&quot; in the sense of this method are:</p>
+<p>Everything else (except collections) provided for &quot;from&quot; will determine the element(s)
+to remove by identity (===).</p>
+<p>If you want to remove several elements at once, you may provide an iterable collection as &quot;from&quot;.
+This also makes it possible to actually remove numbers from an array by identity:
+define the number(s) as an array to signal that these are no indices.
+If you need to remove a collection from the array by reference, either put the collection in an array or set
+&quot;to&quot; to true, to force the collection being treated as a reference.</p>
+<p>Iterable collections, usable in &quot;from&quot; in the sense of this method, are:</p>
 <ul>
-<li>PlainObject (values)</li>
+<li>PlainObject (using the values as the list)</li>
 <li>Array</li>
 <li>Set</li>
-<li>Map (values)
+<li>Map (using the values as the list)
 To remove these by reference from target, instead of iterating them, set &quot;to&quot; to true.</li>
 </ul>
 </div>
@@ -182,7 +187,7 @@ To remove these by reference from target, instead of iterating them, set &quot;t
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type">Array.&lt;*></span>
 
 
             
@@ -218,6 +223,18 @@ To remove these by reference from target, instead of iterating them, set &quot;t
             
                 
 <span class="param-type">*</span>
+|
+
+<span class="param-type">Object.&lt;string, *></span>
+|
+
+<span class="param-type">Array.&lt;*></span>
+|
+
+<span class="param-type">Set.&lt;*></span>
+|
+
+<span class="param-type">Map.&lt;*, *></span>
 
 
             
@@ -239,7 +256,11 @@ To remove these by reference from target, instead of iterating them, set &quot;t
                 </td>
             
 
-            <td class="description last"><p>numerical index to start removing from (can also be negative to start counting from back), a string to identify elements to remove by their string representation or any other value identifying elements to remove by identity, if this is an iterable collection, the collection is iterated instead of being treated as a reference, enforce treatment as a reference, by setting &quot;to&quot; to true</p></td>
+            <td class="description last"><p>numerical index to start removing from
+(can also be negative to start counting from back), a string to identify elements to remove by their string
+representation or any other value identifying elements to remove by identity, if this is an iterable
+collection, the collection is iterated instead of being treated as a reference, enforce treatment as
+a reference, by setting &quot;to&quot; to true</p></td>
         </tr>
 
     
@@ -252,10 +273,10 @@ To remove these by reference from target, instead of iterating them, set &quot;t
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 |
 
-<span class="param-type">Boolean</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -281,7 +302,9 @@ To remove these by reference from target, instead of iterating them, set &quot;t
                 </td>
             
 
-            <td class="description last"><p>index to end removing (can also be negative to end counting from back), if true, &quot;from&quot; defines a given iterable collection to be removed by reference, instead of removing the contained values, with this you can remove an array from an array for example</p></td>
+            <td class="description last"><p>index to end removing (can also be negative to start counting from back),
+if true, &quot;from&quot; defines a given iterable collection to be removed by reference, instead of removing the
+contained values, with this you can remove an array from an array for example</p></td>
         </tr>
 
     
@@ -322,7 +345,7 @@ To remove these by reference from target, instead of iterating them, set &quot;t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="arrays.js.html">arrays.js</a>, <a href="arrays.js.html#line77">line 77</a>
+        <a href="arrays.js.html">arrays.js</a>, <a href="arrays.js.html#line99">line 99</a>
     </li></ul></dd>
     
 
@@ -347,11 +370,28 @@ To remove these by reference from target, instead of iterating them, set &quot;t
 
         
 
-    <div class="param-desc">
-    
+<dl>
+    <dt>
+        <div class="param-desc">
         <p>error if target is not an array</p>
-    
-    </div>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
 
 
     
@@ -372,7 +412,7 @@ To remove these by reference from target, instead of iterating them, set &quot;t
     </dt>
     <dd>
         
-<span class="param-type">Array</span>
+<span class="param-type">Array.&lt;*></span>
 
 
     </dd>
@@ -384,17 +424,17 @@ To remove these by reference from target, instead of iterating them, set &quot;t
     <h5>Example</h5>
     
     <pre class="prettyprint"><code>removeFrom([1, 2, 3, 4, 5], 0, 2);
-=> [4, 5]
+// => [4, 5]
 removeFrom([1, 2, 3, 4, 5], -3, -1);
-=> [1, 2]
+// => [1, 2]
 removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], 'b');
-=> [b, 1]
+// => [b, 1]
 removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], b);
-=> [{a : 'b', toString(){ return 'b'; }}, 'b', 1]
+// => [{a : 'b', toString(){ return 'b'; }}, 'b', 1]
 removeFrom([true, true, false, true, true], true)
-=> [false]
+// => [false]
 removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2]);
-=> [1]</code></pre>
+// => [1]</code></pre>
 
 
 
@@ -420,7 +460,7 @@ removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2]);
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sat Jan 24 2026 15:20:29 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Mon Jan 26 2026 17:27:42 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

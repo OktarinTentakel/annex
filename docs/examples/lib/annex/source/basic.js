@@ -516,7 +516,7 @@ export function isBoolean(value){
  * Hint: to check numbers in more detail, use isInt, isFloat and isNaN
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a number
+ * @returns {boolean} true if value is a number
  *
  * @memberof Basic:isNumber
  * @alias isNumber

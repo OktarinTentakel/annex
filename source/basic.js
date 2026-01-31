@@ -61,7 +61,7 @@ export function assert(condition, message){
  *
  * Do not encapsulate complex code in the closure and mind recursively occurring exceptions!
  *
- * @param {Function} closure - the code to test
+ * @param {function():*} closure - the code to test
  * @returns {boolean} true if no exception occurred
  * @throws {Error} if closure is not a function
  *
@@ -111,7 +111,9 @@ export function hasValue(...args){
 	let res = true;
 
 	args.forEach(value => {
+		// jshint ignore:start
 		res &&= ((value !== undefined) && (value !== null));
+		// jshint ignore:end
 	});
 
 	return res;
@@ -372,7 +374,7 @@ export function hasMembers(obj, memberNames, verbose=false){
  *     |"bool"|"boolean"
  *     |"float"
  *     |"arr"|"array"
- *     |Function
+ *     |function(*):*
  *   } [caster=null] - either a default caster by (string) name or a function getting the value and returning the
  *   transformed value (the caster will also be applied to the default value)
  * @param {?Array.<*>} [additionalEmptyValues=null] - if set, provides a list of additional values to be
@@ -630,7 +632,7 @@ export function isNumber(value){
  * Returns if a value is a BigInt value.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a BigInt
+ * @returns {boolean} true if value is a BigInt
  *
  * @memberof Basic:isBigInt
  * @alias isBigInt
@@ -650,12 +652,12 @@ export function isBigInt(value){
  */
 
 /**
- * Returns if a value is truly a real integer value and not just an int-parsable value for example.
- * Since JS only knows the data type "number" all numbers are usable as floats by default, but not the
+ * Returns if a value is truly a real integer value and not just an int-parsable value, for example.
+ * Since JS only knows the data type "number," all numbers are usable as floats by default, but not the
  * other way round.
  *
- * @param {*} intVal - the value the check
- * @returns {Boolean} true if intVal is a true integer value
+ * @param {*} value - the value the check
+ * @returns {boolean} true if value is a true integer value
  *
  * @memberof Basic:isInt
  * @alias isInt
@@ -664,8 +666,8 @@ export function isBigInt(value){
  *   val = parseInt(val, 10);
  * }
  */
-export function isInt(intVal){
-	return parseInt(intVal, 10) === intVal;
+export function isInt(value){
+	return parseInt(value, 10) === value;
 }
 
 
@@ -676,22 +678,22 @@ export function isInt(intVal){
 
 /**
  * Returns if a value is a numeric value, usable as a float number in any calculation.
- * Any number that fulfills isInt, is also considered a valid float, which lies in JS's
+ * Any number that fulfills isInt(), is also considered a valid float, which lies in JS's
  * nature of not differentiating ints and floats by putting them both into a "number"-type.
  * So ints are always floats, but not necessarily the other way round.
  *
- * @param {*} floatVal - the value to check
- * @returns {Boolean} true if floatVal is usable in a float context
+ * @param {*} value - the value to check
+ * @returns {boolean} true if value is usable in a float context
  *
  * @memberof Basic:isFloat
  * @alias isFloat
  * @example
  * if( !isFloat(val) ){
- *   alert('val can not be calculated with!');
+ *   alert('val cannot be calculated with!');
  * }
  */
-export function isFloat(floatVal){
-	return parseFloat(floatVal) === floatVal;
+export function isFloat(value){
+	return parseFloat(value) === value;
 }
 
 
@@ -701,16 +703,22 @@ export function isFloat(floatVal){
  */
 
 /**
- * Returns if an expression is NaN or not.
- * This method employs two different approaches:
- * By default it really checks if the expression is the _value_ NaN or not, this being a valid JS-value for something.
- * In JS this gets checked by comparing an expression with itself on identity, since NaN is the only value not being
- * identical to itself. If you set checkForIdentity to false, this method will use the standard JS-isNaN, which
- * inspects the expression, tries to cast or parse a number from it and returns the result.
+ * Returns if a value is NaN.
  *
- * @param {*} expression - the expression to check
- * @param {Boolean} [checkForIdentity=true] - set to false if you want to use default JS-functionality
- * @returns {Boolean} true if expression is NaN
+ * This method uses two different approaches:
+ * By default, it really checks if the value is the _value_ NaN or not, this being a valid JS value.
+ * In JS this gets checked by comparing a value with itself on identity, since NaN is the only value not being
+ * identical to itself.
+ *
+ * If you set checkForIdentity to false, this method will use the standard JS isNaN(), which
+ * inspects the value, tries to cast or parse a number from it, and returns the result, if that was possible.
+ *
+ * So the default approach here tells you if something is the value "NaN", while the second approach tells you
+ * if a value can be considered not being a number (like !isNumber()).
+ *
+ * @param {*} value - the value to check
+ * @param {boolean} [checkForIdentity=true] - set to false if you want to use default JS functionality
+ * @returns {boolean} true if value is NaN
  *
  * @memberof Basic:isNaN
  * @alias isNaN
@@ -719,13 +727,13 @@ export function isFloat(floatVal){
  *   return suspiciousCalculatedValue * 3;
  * }
  */
-export function isNaN(expression, checkForIdentity=true){
+export function isNaN(value, checkForIdentity=true){
 	checkForIdentity = orDefault(checkForIdentity, true, 'bool');
 
 	if( checkForIdentity ){
-		return expression !== expression;
+		return value !== value;
 	} else {
-		return isNaN(expression);
+		return window.isNaN(value);
 	}
 }
 
@@ -739,7 +747,7 @@ export function isNaN(expression, checkForIdentity=true){
  * Returns if a value is a string.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a string
+ * @returns {boolean} true if value is a string
  *
  * @memberof Basic:isString
  * @alias isString
@@ -762,7 +770,7 @@ export function isString(value){
  * Returns if a value is a symbol.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a symbol
+ * @returns {boolean} true if value is a symbol
  *
  * @memberof Basic:isSymbol
  * @alias isSymbol
@@ -786,7 +794,7 @@ export function isSymbol(value){
  * Returns if a value is a function.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a function
+ * @returns {boolean} true if value is a function
  *
  * @memberof Basic:isFunction
  * @alias isFunction
@@ -808,10 +816,10 @@ export function isFunction(value){
 /**
  * Returns if a value is an object.
  *
- * Hint: if you explicitly want to check for a plain object, use isPlainObject
+ * Hint: if you explicitly want to check for a plain object, use isPlainObject().
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is an object
+ * @returns {boolean} true if value is an object
  *
  * @memberof Basic:isObject
  * @alias isObject
@@ -832,18 +840,17 @@ export function isObject(value){
  */
 
 /**
- * Returns if a value is an object literal, so so-called "plain object.
+ * Returns if a value is an object literal, a so-called "plain object".
  * A plain object is something like "{hello : 'world'}".
  *
- * This might especially be helpful when dealing with JSON configs, so quickly check if
- * something might even be parsed JSON (which in most cases is a plain object in js).
+ * This might especially be helpful when dealing with config objects.
  *
  * Be aware that this function cannot differentiate between constructor-based simple objects and
  * plain objects declared inline. So, if someone took on the work to instantiate a base object and assign
  * properties either in a function or a constructor, we accept that as a plain object.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value seems to be a plain object
+ * @returns {boolean} true if value seems to be a plain object
  *
  * @memberof Basic:isPlainObject
  * @alias isPlainObject
@@ -868,7 +875,7 @@ export function isPlainObject(value){
  * Returns if a value is an array.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is an array
+ * @returns {boolean} true if value is an array
  *
  * @memberof Basic:isArray
  * @alias isArray
@@ -891,7 +898,7 @@ export function isArray(value){
  * Returns if a value is a date.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a date
+ * @returns {boolean} true if value is a date
  *
  * @memberof Basic:isDate
  * @alias isDate
@@ -914,7 +921,7 @@ export function isDate(value){
  * Returns if a value is an error.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is an error
+ * @returns {boolean} true if value is an error
  *
  * @memberof Basic:isError
  * @alias isError
@@ -937,7 +944,7 @@ export function isError(value){
  * Returns if a value is a generator.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a generator
+ * @returns {boolean} true if value is a generator
  *
  * @memberof Basic:isGenerator
  * @alias isGenerator
@@ -961,7 +968,7 @@ export function isGenerator(value){
  * Returns if a value is an iterator.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is an iterator
+ * @returns {boolean} true if value is an iterator
  *
  * @memberof Basic:isIterator
  * @alias isIterator
@@ -985,7 +992,7 @@ export function isIterator(value){
  * Returns if a value is a regular expression.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a regular expression
+ * @returns {boolean} true if value is a regular expression
  *
  * @memberof Basic:isRegExp
  * @alias isRegExp
@@ -1008,7 +1015,7 @@ export function isRegExp(value){
  * Returns if a value is a set.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a set
+ * @returns {boolean} true if value is a set
  *
  * @memberof Basic:isSet
  * @alias isSet
@@ -1032,7 +1039,7 @@ export function isSet(value){
  * Returns if a value is a weak set.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a weak set
+ * @returns {boolean} true if value is a weak set
  *
  * @memberof Basic:isWeakSet
  * @alias isWeakSet
@@ -1056,7 +1063,7 @@ export function isWeakSet(value){
  * Returns if a value is a map.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a map
+ * @returns {boolean} true if value is a map
  *
  * @memberof Basic:isMap
  * @alias isMap
@@ -1080,7 +1087,7 @@ export function isMap(value){
  * Returns if a value is a weak map.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a weak map
+ * @returns {boolean} true if value is a weak map
  *
  * @memberof Basic:isWeakMap
  * @alias isWeakMap
@@ -1104,7 +1111,7 @@ export function isWeakMap(value){
  * Returns if a value is an HTML document.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is an HTML document
+ * @returns {boolean} true if value is an HTML document
  *
  * @memberof Basic:isDocument
  * @alias isDocument
@@ -1125,15 +1132,17 @@ export function isDocument(value){
 
 /**
  * Returns if a value is an HTML element.
- * Be aware, that this explicitly means an element, not necessarily any node.
- * So text nodes, comments and such do not qualify.
- * Also keep in mind, that SVGs are also something different.
+ *
+ * Be aware that this explicitly means an element, not necessarily any node.
+ * So text nodes, comments, and such do not qualify.
+ * Also keep in mind that SVGs are also something different.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is an HTML element
+ * @returns {boolean} true if value is an HTML element
  *
  * @memberof Basic:isElement
  * @alias isElement
+ * @see isSvg
  * @example
  * if( isElement(target) ){
  *   target.classList.add('foo');
@@ -1152,11 +1161,16 @@ export function isElement(value){
 /**
  * Returns if a value is an SVG element.
  *
+ * Keep in mind that SVG and HTML elements are closely related, but different.
+ * This function will explicitly identify SVG elements, while isElement() will
+ * explicitly identify HTML elements. You'll need to use both to cover them together.
+ *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is an SVG element
+ * @returns {boolean} true if value is an SVG element
  *
  * @memberof Basic:isSvg
  * @alias isSvg
+ * @see isElement
  * @example
  * if( isSvg(target) ){
  *   target.querySelectorAll('path').remove();
@@ -1173,14 +1187,21 @@ export function isSvg(value){
  */
 
 /**
- * Returns if a value is a collection of html elements.
+ * Returns if a value is a collection of HTML elements.
+ *
+ * Keep in mind that a collection and a node list are two different DOM concepts,
+ * closely related, but different; representing two different levels of abstraction.
+ * While elements are real elements with tags and attributes, nodes can also be text and comment nodes.
+ * Both also use a different API. Which type you get strongly depends on the approach you are using
+ * (querSelector vs. children vs. childNodes).
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a collection of html elements
+ * @returns {Boolean} true if value is a collection of HTML elements
  *
  * @memberof Basic:isCollection
  * @alias isCollection
  * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection
+ * @see isNodeList
  * @example
  * if( isCollection(val) ){
  *   return val.item(0);
@@ -1199,8 +1220,14 @@ export function isCollection(value){
 /**
  * Returns if a value is a node list.
  *
+ * Keep in mind that a collection and a node list are two different DOM concepts,
+ * closely related, but different; representing two different levels of abstraction.
+ * While elements are real elements with tags and attributes, nodes can also be text and comment nodes.
+ * Both also use a different API. Which type you get strongly depends on the approach you are using
+ * (querSelector vs. children vs. childNodes).
+ *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a node list
+ * @returns {boolean} true if value is a node list
  *
  * @memberof Basic:isNodeList
  * @alias isNodeList
@@ -1224,7 +1251,7 @@ export function isNodeList(value){
  * Returns if a value is a window.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a window
+ * @returns {boolean} true if value is a window
  *
  * @memberof Basic:isWindow
  * @alias isWindow
@@ -1244,10 +1271,10 @@ export function isWindow(value){
  */
 
 /**
- * Returns if a value is an URL object.
+ * Returns if a value is a URL object.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a URL object
+ * @returns {boolean} true if value is a URL object
  *
  * @memberof Basic:isUrl
  * @alias isUrl
@@ -1267,10 +1294,10 @@ export function isUrl(value){
  */
 
 /**
- * Returns if a value is an URLSearchParams object.
+ * Returns if a value is a URLSearchParams object.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a URLSearchParams object
+ * @returns {boolean} true if value is a URLSearchParams object
  *
  * @memberof Basic:isUrlSearchParams
  * @alias isUrlSearchParams
@@ -1291,13 +1318,14 @@ export function isUrlSearchParams(value){
 
 /**
  * Returns if a value is an EventTarget, which means that it is able to dispatch and receive events.
+ *
  * This is determined via duck-typing and not via class inheritance check, since this method is not
  * about type-safety, but the question if we can use the target for events, which is simply determined
- * by three essential object methods: addEventListener, removeEventListener and dispatchEvent. All
- * objects supporting these are fine with us.
+ * by three essential object methods: "addEventListener", "removeEventListener" and "dispatchEvent".
+ * All objects supporting these are fine for us, since they fulfill the expected interface.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value supports event methods
+ * @returns {boolean} true if value supports event methods
  *
  * @memberof Basic:isEventTarget
  * @alias isEventTarget
@@ -1325,7 +1353,7 @@ export function isEventTarget(value){
  * and querySelectorAll.
  *
  * @param {*} value - the value to check
- * @returns {Boolean} true if value is a valid selector
+ * @returns {boolean} true if value is a valid selector
  *
  * @memberof Basic:isSelector
  * @alias isSelector
@@ -1336,6 +1364,7 @@ export function isEventTarget(value){
  */
 export function isSelector(value){
 	// almost all values like "null", "undefined" and "NaN" are accepted querySelectors, numbers are not
+	value = isNaN(value) ? 0 : value;
 	value = orDefault(value, 0, 'str');
 
 	const fragment = document.createDocumentFragment();
@@ -1352,29 +1381,34 @@ export function isSelector(value){
 
 
 /**
- * @namespace Basic:isPotentialId
+ * @namespace Basic:getPotentialId
  */
 
 /**
- * Determines if a given value is potentially a valid id for something, because it matches a format of given
- * prefix, postfix and id regex. "Potential", because we can only assume by the format, we do not actually know
- * if the id really matches anything like a database entry for example.
+ * Determines if a given value is potentially a valid id for something, because it matches a format of a given
+ * prefix, postfix, and id regex and returns the found id, if any.
  *
- * @param {(String|Number)} value - the value to test, will be stringified
- * @param {?String} [prefix=''] - a prefix for the id
- * @param {?String} [idRex='[1-9][0-9]*'] - the regex string to use to identify the id part of the value
- * @param {?String} [postfix=''] - a postfix for the id
- * @param {?Boolean} [maskFixes=true] - usually, prefixes are not treated as regexes and are automatically masked, if you'd like to define complex pre- and postfixes using regexes, set this to false
- * @returns {String|Boolean} if value is potential id according to format, the id is returned as a string (still usable as a truthy value), otherwise the return value is false
+ * "Potential", because we can only assume by the format, we do not really know if the id matches
+ * anything like a database entry, for example.
  *
- * @memberof Basic:isPotentialId
- * @alias isPotentialId
+ * @param {*} value - the value to check (will be stringified)
+ * @param {?string} [prefix=''] - a prefix for the id
+ * @param {?string} [idRex='[1-9][0-9]*'] - the regex string to use to identify the id part of the value
+ * @param {?string} [postfix=''] - a postfix for the id
+ * @param {boolean} [maskFixes=true] - usually, prefixes are not treated as regexes and are automatically masked,
+ *   if you'd like to define complex pre- and postfixes using regexes, set this to false
+ * @returns {string|null} if value is potential id according to format, the id is returned as a string,
+ *   otherwise the return value is null
+ *
+ * @memberof Basic:getPotentialId
+ * @alias getPotentialId
+ * @see isPotentialId
  * @example
- * if( isPotentialId(id, 'test_(', '[0-9]+', ')') ){
- *   createJsonRequest(`/backend/${id}`).then(() => { alert('done'); });
- * }
+ * createJsonRequest(`/backend/${getPotentialId(id, 'test_(', '[0-9]+', ')') ?? '0'}`)
+ *   .then(() => { alert('done'); })
+ * ;
  */
-export function isPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix='', maskFixes=true){
+export function getPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix='', maskFixes=true){
 	value = `${value}`;
 	prefix = orDefault(prefix, '', 'str');
 	idRex = orDefault(idRex, '[1-9][0-9]*', 'str');
@@ -1391,7 +1425,40 @@ export function isPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix='',
 	}
 
 	const matches = rex.exec(value);
-	return hasValue(matches) ? matches[1] : false;
+	return hasValue(matches) ? matches[1] : null;
+}
+
+
+
+/**
+ * @namespace Basic:isPotentialId
+ */
+
+/**
+ * Determines if a given value is potentially a valid id for something, because it matches a format of a given
+ * prefix, postfix, and id regex.
+ *
+ * "Potential", because we can only assume by the format, we do not really know if the id matches
+ * anything like a database entry, for example.
+ *
+ * @param {*} value - the value to check (will be stringified)
+ * @param {?string} [prefix=''] - a prefix for the id
+ * @param {?string} [idRex='[1-9][0-9]*'] - the regex string to use to identify the id part of the value
+ * @param {?string} [postfix=''] - a postfix for the id
+ * @param {boolean} [maskFixes=true] - usually, prefixes are not treated as regexes and are automatically masked,
+ *   if you'd like to define complex pre- and postfixes using regexes, set this to false
+ * @returns {boolean} true if value is potential id according to format
+ *
+ * @memberof Basic:isPotentialId
+ * @alias isPotentialId
+ * @see getPotentialId
+ * @example
+ * if( isPotentialId(id, 'test_(', '[0-9]+', ')') ){
+ *   createJsonRequest(`/backend/${id}`).then(() => { alert('done'); });
+ * }
+ */
+export function isPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix='', maskFixes=true){
+	return getPotentialId(value, prefix, idRex, postfix, maskFixes) !== null;
 }
 
 
@@ -1401,8 +1468,7 @@ export function isPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix='',
  */
 
 /**
- * Checks if a value is larger than a minimum and returns
- * the value or the lower bound respectively.
+ * Returns the "smaller" of two values.
  *
  * Accepts all values comparable with >.
  *
@@ -1426,8 +1492,7 @@ export function min(value, minValue){
  */
 
 /**
- * Checks if a value is smaller than a maximum and returns
- * the value or the upper bound respectively.
+ * Returns the "bigger" of two values.
  *
  * Accepts all values comparable with <.
  *
@@ -1451,16 +1516,17 @@ export function max(value, maxValue){
  */
 
 /**
- * Checks if a value is within bounds of a minimum and maximum and returns
- * the value or the upper or lower bound respectively.
+ * Returns a value if it is "between" a lower and an upper bound.
+ * Returns the lower bound if the value is "smaller".
+ * Return the upper bound if the value is "bigger".
  *
  * Accepts all values comparable with > and <.
  *
  * @param {*} minValue - the lower bound
  * @param {*} value - the value to check
  * @param {*} maxValue - the upper bound
- * @throws error if minValue is not smaller than maxValue
  * @returns {*} value, minValue or maxValue
+ * @throws {Error} if minValue is not smaller than maxValue
  *
  * @memberof Basic:minMax
  * @alias minMax
@@ -1482,29 +1548,30 @@ export function minMax(minValue, value, maxValue){
  */
 
 /**
- * Rounds a number to a defined precision.
+ * Rounds a number to defined precision.
  *
  * Precision 0 rounds to full number.
  *
- * @param {Number} number - the number to round
- * @param {?Number} [precision=0] - the number of digits after the floating point to round to
- * @returns {Number} rounded number
+ * @param {number} value - the number to round
+ * @param {number} [precision=0] - the number of digits after the floating point to round to
+ * @returns {number} rounded number
  *
  * @memberof Basic:round
  * @alias round
  * @example
  * let roundedValue = round(666.66);
- * => 667
+ * // => 667
+ *
  * let roundedValue = round(0.5555555, 3);
- * => 0.556
+ * // => 0.556
  */
-export function round(number, precision=0){
-	number = parseFloat(number);
+export function round(value, precision=0){
+	value = parseFloat(value);
 	precision = min(orDefault(precision, 0, 'int'), 0);
 
 	const power = Math.pow(10, precision);
 
-	return Math.round(parseFloat(number) * power) / power;
+	return Math.round(parseFloat(value) * power) / power;
 }
 
 
@@ -1514,18 +1581,30 @@ export function round(number, precision=0){
  */
 
 /**
- * @typedef Deferred
- * @type {Object}
+ * @typedef {"pending"|"fulfilled"|"rejected"} TypeDef_DeferredStatus
  *
- * @property {Promise} promise - the wrapped promise
- * @property {Function} resolve - resolves the wrapped promise with given value
- * @property {Function} reject - rejects the wrapped promise with given error
- * @property {Function} then - defines a success handler for the wrapped promise and returns its result
- * @property {Function} catch - defines an error handler for the wrapped promise and returns its result
- * @property {Function} finally - defines a "settled" handler for the wrapped promise and returns its result
- * @property {String} status - holds the current resolution status, can either be "pending", "fulfilled" or "rejected"
- * @property {Function} isSettled - returns true, if the Deferred is either "fulfilled" or "rejected"
- * @property {?*} [provision=null] - may contain (a) provisional value(s) to use for a newly instantiated Deferred, before it has resolved to the actual value(s)
+ * @memberof Basic
+ */
+
+/**
+ * @typedef {Object} TypeDef_Deferred
+ * @template T
+ *
+ * @property {function(T=):void} resolve - Resolves the wrapped promise with a given value.
+ * @property {function(*=):void} reject - Rejects the wrapped promise with a given error/reason.
+ * @property {function(function(T):*,function(*):*):Promise<*>} then - Defines handlers for the wrapped promise and
+ *   returns the result. Usually, this defined the success handler, while "catch" defines the error handler,
+ *   but the second parameter can also be used for the error handler.
+ * @property {function(function(*):*):Promise<*>} catch - Defines an error handler for the wrapped promise
+ *   and returns its result.
+ * @property {function(function():*):Promise<T>} finally - Defines a "settled" handler for the wrapped promise
+ *   and returns its result.
+ * @property {TypeDef_DeferredStatus} status - Holds the current resolution status,
+ *   can either be "pending", "fulfilled" or "rejected"
+ * @property {function():boolean} isSettled - Returns true, if the Deferred is either "fulfilled" or "rejected".
+ * @property {?T} [provision=null] - May contain (a) provisional value(s) to use for a newly instantiated Deferred,
+ *   before it has resolved to the actual value(s).
+ * @property {Promise<T>} promise - The wrapped promise.
  *
  * @memberof Basic
  */
@@ -1546,63 +1625,135 @@ export function round(number, precision=0){
  * - https://api.jquery.com/jQuery.Deferred/
  * - https://github.com/kriskowal/q/wiki/Coming-from-jQuery#deferreds-promises-resolvers
  *
- * Keep in mind, that Promises might need a polyfill such as core-js.
+ * Keep in mind that Promises might need a polyfill such as core-js.
  *
- * For details, see class documentation below.
+ * For details, see implementation.
+ *
+ * @class
+ * @template T
+ * @implements {TypeDef_Deferred<T>}
  *
  * @memberof Basic:Deferred
  * @name Deferred
- * @see Basic.Deferred
+ * @see TypeDef_Deferred
+ * @see Basic.TypeDef_Deferred
  * @example
- * const doStuff = new Deferred();
- * doStuff.provision = 'provisional value';
+ * const doStuff = new Deferred('provisional value');
+ *
  * doStuff
  *   .then(value => { alert(`yeah, ready with "${value}"!`); })
  *   .catch(error => { console.error(error); })
  *   .finally(() => { console.info('has been settled'); })
  * ;
+ *
  * if( foobar === 42 ){
  *   doStuff.resolve(42);
  * } else {
  *   doStuff.reject(new Error('not 42!'));
  * }
+ *
  * console.info(doStuff.status);
  */
 export class Deferred {
 
-	constructor(){
+	/**
+	 * @param {?T} [provision=null] - (a) provisional value(s) to use for a newly instantiated Deferred,
+	 *   before it has resolved to the actual value(s)
+	 */
+	constructor(provision=null){
 		const
 			STATUS_PENDING = 'pending',
 			STATUS_FULFILLED = 'fulfilled',
 			STATUS_REJECTED = 'rejected'
 		;
-		this.resolve = null;
-		this.reject = null;
-		this.provision = null;
-		this.status = STATUS_PENDING;
-		this.isSettled = () => [STATUS_FULFILLED, STATUS_REJECTED].includes(this.status);
+
+		/**
+		 * The wrapped promise.
+		 *
+		 * @type {Promise<T>}
+		 */
 		this.promise = new Promise((resolve, reject) => {
+			/**
+			 * Resolves the wrapped promise with a given value.
+			 *
+			 * @param {T} [resolution] - that value to resolve the promise with
+			 */
 			this.resolve = resolution => {
 				this.status = STATUS_FULFILLED;
 				resolve(resolution);
 			};
+
+			/**
+			 * Rejects the wrapped promise with a given error / reason.
+			 *
+			 * @param {*} [rejection] - the error/reason to reject the promise with
+			 */
 			this.reject = rejection => {
 				this.status = STATUS_REJECTED;
 				reject(rejection);
 			};
 		});
+
+		/**
+		 * May contain (a) provisional value(s) to use for a newly instantiated Deferred,
+		 * before it has resolved to the actual value(s).
+		 *
+		 * @type {?T}
+		 */
+		this.provision = provision;
+
+		/**
+		 * Holds the current resolution status, can either be "pending", "fulfilled", or "rejected".
+		 *
+		 * @type {TypeDef_DeferredStatus}
+		 */
+		this.status = STATUS_PENDING;
+
+		/**
+		 * Returns true if the Deferred is either "fulfilled" or "rejected".
+		 *
+		 * @type {function():boolean}
+		 */
+		this.isSettled = () => [STATUS_FULFILLED, STATUS_REJECTED].includes(this.status);
 	}
 
-	then(f){
-		return this.promise.then(f);
+
+
+	/**
+	 * Defines handlers for the wrapped promise and returns the result.
+	 * Usually, this defined the success handler, while "catch" defines the error handler,
+	 * but the second parameter can also be used for the error handler.
+	 *
+	 * @param {function(T):*} onResolved - function to call if promise resolves, gets resolution value
+	 * @param {function(*):*} [onRejected] - function to call if promise rejects, gets reason value
+	 * @returns {Promise<*>} if the function returns something, it will be returned in a promise
+	 */
+	then(onResolved, onRejected){
+		return this.promise.then(onResolved, onRejected);
 	}
 
-	catch(f){
-		return this.promise.catch(f);
+
+
+	/**
+	 * Defines an error handler for the wrapped promise and returns its result.
+	 *
+	 * @param {function(*):*} onRejected - function to call if promise rejects, gets reason value
+	 * @returns {Promise<*>} if the function returns something, it will be returned in a promise
+	 */
+	catch(onRejected){
+		return this.promise.catch(onRejected);
 	}
 
-	finally(f){
-		return this.promise.finally(f);
+
+
+	/**
+	 * Defines a "settled" handler for the wrapped promise and returns its result.
+	 *
+	 * @param {function():*} onFinally - function to call if promise settles with any result
+	 * @returns {Promise<T>} if the function returns something, it will be returned in a promise
+	 */
+	finally(onFinally){
+		return this.promise.finally(onFinally);
 	}
 
 }
@@ -1614,50 +1765,84 @@ export class Deferred {
  */
 
 /**
- * @typedef Observable
- * @type {Object}
+ * @typedef {Object} TypeDef_Observable
+ * @template T
  *
- * @property {Function} getValue - returns the current value
- * @property {Function} setValue - sets a new value, which will subsequently trigger all subscriptions
- * @property {Function} subscribe - register a given function to be executed on any value change, the subscription receives the new and the old value on each execution, returns the subscription value, which can later be used to unsubscribe again
- * @property {Function} unsubscribe - removes a given subscription again, use subscription value returned by subscribe here
+ * @property {function():T} getValue - Returns the current value.
+ * @property {function(T,boolean=):void} setValue - Sets a new value, which will subsequently trigger all subscriptions.
+ * @property {function(function(T=,T=):void):function(T=,T=):void} subscribe - Register a given function to be executed
+ *   on any value change, the subscription receives the new and the old value on each execution, returns the
+ *   subscription value, which can later be used to unsubscribe again.
+ * @property {function(function(T=,T=):void):void} unsubscribe - Removes a given subscription again, use subscription
+ *   value returned by "subscribe" here.
+ * @property {function():string} toString - Returns a string representation of the current value.
  *
  * @memberof Basic
  */
 
 /**
  * A class offering the bare minimum feature set to observe a value and subscribe to future value changes.
- * No automatic magic going on here; this simply follows a basic subscription pattern, where each subscription is
- * a function, being called with a newly set value. This closely resembles the kind of observables knockout is using.
  *
- * For details, see class documentation below.
+ * No automatic magic going on here; this simply follows a basic subscription pattern, where each subscription is
+ * a function, being called with the newly set value (and the old one as well).
+ * This closely resembles the kind of observables MVVM's like knockout and Vue are using.
+ *
+ * For details, see implementation.
+ *
+ * @class
+ * @template T
+ * @implements {TypeDef_Observable<T>}
  *
  * @memberof Basic:Observable
  * @name Observable
- * @see Basic.Observable
+ * @see TypeDef_Observable
+ * @see Basic.TypeDef_Observable
  * @example
  * const status = new Observable('ok');
+ *
  * const subscription = status.subscribe(s => {
  *     console.log(`status changed to: ${s}`);
  * });
+ *
  * status.setValue('oh noez');
  * status.unsubscribe(subscription);
  */
+// jshint ignore:start
 export class Observable {
 
 	#__className__ = 'Observable';
 	#value;
 	#subscriptions;
 
+	/**
+	 * @param {T} initialValue - the initial value of the observable, before any changes
+	 */
 	constructor(initialValue){
 		this.#value = initialValue;
 		this.#subscriptions = [];
 	}
 
+
+
+	/**
+	 * Returns the current value.
+	 *
+	 * @returns {T} the current value
+	 */
 	getValue(){
 		return this.#value;
 	}
 
+
+
+	/**
+	 * Sets a new value, which will subsequently trigger all subscriptions.
+	 *
+	 * {function(T):void} setValue -
+	 * @param {T} newValue - the new value to set
+	 * @param {boolean} [force=false] - usually, setting the same value again will not trigger
+	 *   a change, set this to true to force an update
+	 */
 	setValue(newValue, force=false){
 		const
 			oldValue = this.#value,
@@ -1669,21 +1854,48 @@ export class Observable {
 		}
 	}
 
+
+
+	/**
+	 * Register a given function to be executed on any value change, the subscription receives the new and the old
+	 * value on each execution, returns the subscription value, which can later be used to unsubscribe again.
+	 *
+	 * @param {function(T=,T=):void} subscription - the function to execute on value change
+	 * @returns {function(T=,T=):void} the subscription value, which can later be used to unsubscribe again
+	 */
 	subscribe(subscription){
 		const __methodName__ = 'subscribe';
-		assert(isFunction(subscription), `${MODULE_NAME}:${this.#__className__}.${__methodName__} | subscription must be function`);
+		assert(
+			isFunction(subscription),
+			`${MODULE_NAME}:${this.#__className__}.${__methodName__} | subscription must be function`
+		);
 		if( this.#subscriptions.indexOf(subscription) < 0 ){
 			this.#subscriptions = [...this.#subscriptions, subscription];
 		}
 		return subscription;
 	}
 
+
+
+	/**
+	 * Removes a given subscription again, use subscription value returned by "subscribe" here.
+	 *
+	 * @param {function(T=,T=):void} subscription - the subscription to remove
+	 */
 	unsubscribe(subscription){
 		this.#subscriptions = this.#subscriptions.filter(s => s !== subscription);
 	}
 
+
+
+	/**
+	 * Returns a string representation of the current value.
+	 *
+	 * @returns {string} the string representation of the current value
+	 */
 	toString(){
 		return `${this.#value}`;
 	}
 
 }
+// jshint ignore:end

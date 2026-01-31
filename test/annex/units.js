@@ -18,7 +18,9 @@ const {
 
 
 test('asFileSize', assert => {
+	// jshint ignore:start
 	assert.is(asFileSize(1_500_000, ','), '1,5 MB');
+	// jshint ignore:end
 	assert.is(asFileSize(1024, '.', 0, true), '1 KiB');
 	assert.is(asFileSize(123456789, null, 2), '123.46 MB');
 });

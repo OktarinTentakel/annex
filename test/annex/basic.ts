@@ -254,7 +254,10 @@ test('orDefault', (assert:ExecutionContext):void => {
 		foobar:string = _.orDefault(null, 'fluffy', 'str') as string,
 		barfoo:boolean = _.orDefault(0, true, 'bool') as boolean,
 		boo:Array<string|number> = _.orDefault('a', [1, 2, 3], 'array') as Array<string|number>,
-		far:number = _.orDefault(42, 1.1, 'float') as number
+		far:number = _.orDefault(42, 1.1, 'float') as number,
+		baz:Date = _.orDefault(null, '1983-03-16', (val:string):Date => {
+			return new Date(val);
+		}) as Date
 	;
 
 	assert.is(foo, 'kittens!');
@@ -268,6 +271,8 @@ test('orDefault', (assert:ExecutionContext):void => {
 	assert.deepEqual(boo, ['a']);
 
 	assert.is(far, 42.0);
+
+	assert.is(baz.getFullYear(), 1983);
 });
 
 
@@ -421,215 +426,264 @@ test('isBoolean', (assert:ExecutionContext):void => {
 
 
 
-/*test('isNumber', assert => {
+test('isNumber', (assert:ExecutionContext):void => {
 	const
-		foo = 42,
-		bar = 42.42,
-		foobar = '13',
-		boofar = true
+		foo:number = 42,
+		bar:number = 42.42,
+		foobar:string = '13',
+		boofar:boolean = true
 	;
 
-	assert.true(isNumber(foo));
-	assert.true(isNumber(bar));
-	assert.false(isNumber(foobar));
-	assert.false(isNumber(boofar));
+	assert.true(_.isNumber(foo));
+
+	assert.true(_.isNumber(bar));
+
+	assert.false(_.isNumber(foobar));
+
+	assert.false(_.isNumber(boofar));
 });
 
 
 
-test('isBigInt', assert => {
+test('isBigInt', (assert:ExecutionContext):void => {
 	const
-		foo = BigInt('9007199254740991'),
-		bar = BigInt('0x1fffffffffffff'),
-		foobar = 9007199254740991,
-		boofar = 0
+		foo:bigint = BigInt('9007199254740991'),
+		bar:bigint = BigInt('0x1fffffffffffff'),
+		foobar:number = 9007199254740991,
+		boofar:number = 0
 	;
 
-	assert.true(isBigInt(foo));
-	assert.true(isBigInt(bar));
-	assert.false(isBigInt(foobar));
-	assert.false(isBigInt(boofar));
+	assert.true(_.isBigInt(foo));
+
+	assert.true(_.isBigInt(bar));
+
+	assert.false(_.isBigInt(foobar));
+
+	assert.false(_.isBigInt(boofar));
 });
 
 
 
-test('isInt', assert => {
+test('isInt', (assert:ExecutionContext):void => {
 	const
-		foo = 42,
-		bar = 42.42,
-		foobar = '42',
-		boofar = true
+		foo:number = 42,
+		bar:number = 42.42,
+		foobar:string = '42',
+		boofar:boolean = true
 	;
 
-	assert.true(isInt(foo));
-	assert.false(isInt(bar));
-	assert.false(isInt(foobar));
-	assert.false(isInt(boofar));
+	assert.true(_.isInt(foo));
+
+	assert.false(_.isInt(bar));
+
+	assert.false(_.isInt(foobar));
+
+	assert.false(_.isInt(boofar));
 });
 
 
 
-test('isFloat', assert => {
+test('isFloat', (assert:ExecutionContext):void => {
 	const
-		foo = 42.42,
-		bar = 42,
-		foobar = '42.42',
-		boofar = true
+		foo:number = 42.42,
+		bar:number = 42,
+		foobar:string = '42.42',
+		boofar:boolean = true
 	;
 
-	assert.true(isFloat(foo));
-	assert.true(isFloat(bar));
-	assert.false(isFloat(foobar));
-	assert.false(isFloat(boofar));
+	assert.true(_.isFloat(foo));
+
+	assert.true(_.isFloat(bar));
+
+	assert.false(_.isFloat(foobar));
+
+	assert.false(_.isFloat(boofar));
 });
 
 
 
-test('isNaN', assert => {
+test('isNaN', (assert:ExecutionContext):void => {
 	const
-		foo = NaN,
-		bar = parseInt('abc', 10),
-		foobar = 'abc',
-		boo = '42',
-		far = new Date(),
-		boofar = /abc/g
+		foo:number = NaN,
+		bar:number = parseInt('abc', 10),
+		foobar:string = 'abc',
+		boo:string = '42',
+		far:Date = new Date(),
+		boofar:RegExp = /abc/g
 	;
 
-	assert.true(isNaN(foo));
-	assert.true(isNaN(bar));
-	assert.false(isNaN(foobar));
-	assert.false(isNaN(boo));
-	assert.false(isNaN(far));
-	assert.false(isNaN(boofar));
+	assert.true(_.isNaN(foo));
+
+	assert.true(_.isNaN(bar));
+
+	// @ts-ignore
+	assert.false(_.isNaN(foobar));
+
+	// @ts-ignore
+	assert.false(_.isNaN(boo));
+
+	// @ts-ignore
+	assert.false(_.isNaN(far));
+
+	// @ts-ignore
+	assert.false(_.isNaN(boofar));
 });
 
 
 
-test('isString', assert => {
+test('isString', (assert:ExecutionContext):void => {
 	const
-		foo = 'foo',
-		bar = Symbol('bar').toString(),
-		foobar = Symbol('foobar'),
-		boofar = 0
+		foo:string = 'foo',
+		bar:string = Symbol('bar').toString(),
+		foobar:Symbol = Symbol('foobar'),
+		boofar:number = 0
 	;
 
-	assert.true(isString(foo));
-	assert.true(isString(bar));
-	assert.false(isString(foobar));
-	assert.false(isString(boofar));
+	assert.true(_.isString(foo));
+
+	assert.true(_.isString(bar));
+
+	assert.false(_.isString(foobar));
+
+	assert.false(_.isString(boofar));
 });
 
 
 
-test('isSymbol', assert => {
+test('isSymbol', (assert:ExecutionContext):void => {
 	const
-		foo = Symbol('foo'),
-		bar = Symbol(42),
-		foobar = Symbol('foobar').description,
-		boofar = 0
+		foo:Symbol = Symbol('foo'),
+		bar:Symbol = Symbol(42),
+		foobar:string = Symbol('foobar').description,
+		boofar:number = 0
 	;
 
-	assert.true(isSymbol(foo));
-	assert.true(isSymbol(bar));
-	assert.false(isSymbol(foobar));
-	assert.false(isSymbol(boofar));
+	assert.true(_.isSymbol(foo));
+
+	assert.true(_.isSymbol(bar));
+
+	assert.false(_.isSymbol(foobar));
+
+	assert.false(_.isSymbol(boofar));
 });
 
 
 
-test('isFunction', assert => {
-	function foo(){
+test('isFunction', (assert:ExecutionContext):void => {
+	function foo():boolean{
 		return true;
 	}
 
 	const
-		bar = () => false,
-		foobar = Symbol().toString,
-		boofar = 'function(){}'
+		bar:Function = ():boolean => false,
+		foobar:Function = Symbol().toString,
+		boofar:string = 'function(){}'
 	;
 
-	assert.true(isFunction(foo));
-	assert.true(isFunction(bar));
-	assert.true(isFunction(foobar));
-	assert.false(isFunction(boofar));
+	assert.true(_.isFunction(foo));
+
+	assert.true(_.isFunction(bar));
+
+	assert.true(_.isFunction(foobar));
+
+	assert.false(_.isFunction(boofar));
 });
 
 
 
-test('isObject', assert => {
+test('isObject', (assert:ExecutionContext):void => {
 	const
-		foo = {},
-		bar = new Object(42),
-		foobar = new Date(),
-		boofar = 42
+		foo:Record<string,string> = {},
+		bar:Object = new Object(42),
+		foobar:Date = new Date(),
+		boofar:number = 42
 	;
 
-	assert.true(isObject(foo));
-	assert.true(isObject(bar));
-	assert.false(isObject(foobar));
-	assert.false(isObject(boofar));
+	assert.true(_.isObject(foo));
+
+	assert.true(_.isObject(bar));
+
+	assert.false(_.isObject(foobar));
+
+	assert.false(_.isObject(boofar));
 });
 
 
 
-test('isPlainObject', assert => {
-	assert.true(isPlainObject({}));
-	assert.true(isPlainObject({a : 1, b : new Date()}));
-	assert.true(isPlainObject(new Object()));
-	assert.false(isPlainObject(document.createElement('div')));
-	assert.false(isPlainObject(null));
-	assert.false(isPlainObject(Object.create(null)));
-	assert.false(isPlainObject(Object.create(null)));
-	assert.false(isPlainObject(new (function Foo(){})()));
-	assert.false(isPlainObject(42));
-	assert.false(isPlainObject('42'));
-	assert.false(isPlainObject(new Number(42)));
-	assert.false(isPlainObject(Math));
+test('isPlainObject', (assert:ExecutionContext):void => {
+	assert.true(_.isPlainObject({}));
+
+	assert.true(_.isPlainObject({a : 1, b : new Date()}));
+
+	assert.true(_.isPlainObject(new Object()));
+
+	assert.false(_.isPlainObject(document.createElement('div')));
+
+	assert.false(_.isPlainObject(null));
+
+	assert.false(_.isPlainObject(Object.create(null)));
+
+	assert.false(_.isPlainObject(Object.create(null)));
+
+	assert.false(_.isPlainObject(new (function Foo():void{})()));
+
+	assert.false(_.isPlainObject(42));
+
+	assert.false(_.isPlainObject('42'));
+
+	assert.false(_.isPlainObject(new Number(42)));
+
+	assert.false(_.isPlainObject(Math));
 });
 
 
 
-test('isArray', assert => {
+test('isArray', (assert:ExecutionContext):void => {
 	const
-		foo = [1, 2, {}, []],
-		bar = Array.from(new Set([1, 2, 3, {}, []])),
-		foobar = new Set([1, 2, 3, {}, []]),
-		boofar = new Set([1, 2, 3, {}, []]).values()
+		foo:Array<any> = [1, 2, {}, []],
+		bar:Array<any> = Array.from(new Set([1, 2, 3, {}, []])),
+		foobar:Set<any> = new Set([1, 2, 3, {}, []]),
+		boofar:SetIterator<any> = new Set([1, 2, 3, {}, []]).values()
 	;
 
-	assert.true(isArray(foo));
-	assert.true(isArray(bar));
-	assert.false(isArray(foobar));
-	assert.false(isArray(boofar));
+	assert.true(_.isArray(foo));
+
+	assert.true(_.isArray(bar));
+
+	assert.false(_.isArray(foobar));
+
+	assert.false(_.isArray(boofar));
 });
 
 
 
-test('isDate', assert => {
+test('isDate', (assert:ExecutionContext):void => {
 	const
-		foo = new Date(),
-		bar = new Date('1983-03-16'),
-		foobar = Date.now(),
-		boofar = '1983-03-16'
+		foo:Date = new Date(),
+		bar:Date = new Date('1983-03-16'),
+		foobar:number = Date.now(),
+		boofar:string = '1983-03-16'
 	;
 
-	assert.true(isDate(foo));
-	assert.true(isDate(bar));
-	assert.false(isDate(foobar));
-	assert.false(isDate(boofar));
+	assert.true(_.isDate(foo));
+
+	assert.true(_.isDate(bar));
+
+	assert.false(_.isDate(foobar));
+
+	assert.false(_.isDate(boofar));
 });
 
 
 
-test('isError', assert => {
+test('isError', (assert:ExecutionContext):void => {
 	class FooError extends Error {
-		constructor(props){
+		constructor(props:any){
 			super(props);
-
 		}
 	}
 
-	let foobar;
+	let foobar:Error;
 	try {
 		throw 'foobar';
 	} catch(ex){
@@ -637,28 +691,31 @@ test('isError', assert => {
 	}
 
 	const
-		foo = new Error(),
-		bar = new FooError('foo'),
-		boofar = 'error'
+		foo:Error = new Error(),
+		bar:FooError = new FooError('foo'),
+		boofar:string = 'error'
 	;
 
-	assert.true(isError(foo));
-	assert.true(isError(bar));
-	assert.false(isError(foobar));
-	assert.false(isError(boofar));
+	assert.true(_.isError(foo));
+
+	assert.true(_.isError(bar));
+
+	assert.false(_.isError(foobar));
+
+	assert.false(_.isError(boofar));
 });
 
 
 
-test('isGenerator', assert => {
-	function* finiteGen(){
+test('isGenerator', (assert:ExecutionContext):void => {
+	function* finiteGen():Generator<number>{
 		yield 1;
 		yield 2;
 		yield 3;
 	}
 
-	const infiniteGen = function*(){
-		let i = 0;
+	const infiniteGen:Function = function*():Generator<number>{
+		let i:number = 0;
 
 		while(true){
 			yield i++;
@@ -666,466 +723,584 @@ test('isGenerator', assert => {
 	}
 
 	const
-		foo = finiteGen(),
-		bar = infiniteGen(),
-		foobar = finiteGen().return(finiteGen().next().value),
-		boofar = infiniteGen().next()
+		foo:Generator<number> = finiteGen(),
+		bar:Generator<number> = infiniteGen(),
+		foobar:IteratorResult<number> = finiteGen().return(finiteGen().next().value),
+		boofar:IteratorResult<number> = infiniteGen().next()
 	;
 
-	assert.true(isGenerator(foo));
-	assert.true(isGenerator(bar));
-	assert.false(isGenerator(foobar));
-	assert.false(isGenerator(boofar));
+	assert.true(_.isGenerator(foo));
+
+	assert.true(_.isGenerator(bar));
+
+	assert.false(_.isGenerator(foobar));
+
+	assert.false(_.isGenerator(boofar));
 });
 
 
 
-test('isIterator', assert => {
-	function* finiteGen(){
+test('isIterator', (assert:ExecutionContext):void => {
+	function* finiteGen():Generator<number>{
 		yield 1;
 		yield 2;
 		yield 3;
 	}
 
 	const
-		foo = Array.from(finiteGen()).values(),
-		bar = 'bar'.matchAll(/bar/g),
-		foobar = new Set([1, 2, 3, {}, []]),
-		boofar = 'boofar'
+		foo:ArrayIterator<number> = Array.from(finiteGen()).values(),
+		bar:RegExpStringIterator<RegExpExecArray> = 'bar'.matchAll(/bar/g),
+		foobar:Set<any> = new Set([1, 2, 3, {}, []]),
+		boofar:string = 'boofar'
 	;
 
-	assert.true(isIterator(foo));
-	assert.true(isIterator(bar));
-	assert.false(isIterator(foobar));
-	assert.false(isIterator(boofar));
+	assert.true(_.isIterator(foo));
+
+	assert.true(_.isIterator(bar));
+
+	assert.false(_.isIterator(foobar));
+
+	assert.false(_.isIterator(boofar));
 });
 
 
 
-test('isRegExp', assert => {
+test('isRegExp', (assert:ExecutionContext):void => {
 	const
-		foo = /^foo$/,
-		bar = new RegExp('^bar$'),
-		foobar = '^foobar$',
-		boofar = 42
+		foo:RegExp = /^foo$/,
+		bar:RegExp = new RegExp('^bar$'),
+		foobar:string = '^foobar$',
+		boofar:number = 42
 	;
 
-	assert.true(isRegExp(foo));
-	assert.true(isRegExp(bar));
-	assert.false(isRegExp(foobar));
-	assert.false(isRegExp(boofar));
+	assert.true(_.isRegExp(foo));
+
+	assert.true(_.isRegExp(bar));
+
+	assert.false(_.isRegExp(foobar));
+
+	assert.false(_.isRegExp(boofar));
 });
 
 
 
-test('isSet', assert => {
+test('isSet', (assert:ExecutionContext):void => {
 	const
-		foo = new Set([1, 2, 3, {}, []]),
-		bar = new Set(Array.from(new Set([1, 2, 3, {}, []]))),
-		foobar = [1, 2, 3, {}, []],
-		boofar = new WeakSet()
+		foo:Set<any> = new Set([1, 2, 3, {}, []]),
+		bar:Set<any> = new Set(Array.from(new Set([1, 2, 3, {}, []]))),
+		foobar:Array<any> = [1, 2, 3, {}, []],
+		boofar:WeakSet<Date> = new WeakSet()
 	;
-
 	boofar.add(new Date());
 
-	assert.true(isSet(foo));
-	assert.true(isSet(bar));
-	assert.false(isSet(foobar));
-	assert.false(isSet(boofar));
+	assert.true(_.isSet(foo));
+
+	assert.true(_.isSet(bar));
+
+	assert.false(_.isSet(foobar));
+
+	assert.false(_.isSet(boofar));
 });
 
 
 
-test('isWeakSet', assert => {
+test('isWeakSet', (assert:ExecutionContext):void => {
 	const
-		foo = new WeakSet([{}, [], new Date()]),
-		bar = new WeakSet(Array.from(new Set([{}, [], new Date()]))),
-		foobar = [1, 2, 3, {}, []],
-		boofar = new Set([1, 2, 3, {}, []])
+		foo:WeakSet<any> = new WeakSet([{}, [], new Date()]),
+		bar:WeakSet<any> = new WeakSet(Array.from(new Set([{}, [], new Date()]))),
+		foobar:Array<any> = [1, 2, 3, {}, []],
+		boofar:Set<any> = new Set([1, 2, 3, {}, []])
 	;
 
-	assert.true(isWeakSet(foo));
-	assert.true(isWeakSet(bar));
-	assert.false(isWeakSet(foobar));
-	assert.false(isWeakSet(boofar));
+	assert.true(_.isWeakSet(foo));
+
+	assert.true(_.isWeakSet(bar));
+
+	assert.false(_.isWeakSet(foobar));
+
+	assert.false(_.isWeakSet(boofar));
 });
 
 
 
-test('isMap', assert => {
+test('isMap', (assert:ExecutionContext):void => {
 	const
-		foo = new Map(Object.entries({a : 'a', b : 'b', c : 'c'})),
-		bar = new Map(),
-		foobar = {a : 'a', b : 'b', c : 'c'},
-		boofar = new WeakMap()
+		foo:Map<string,string> = new Map(Object.entries({a : 'a', b : 'b', c : 'c'})),
+		bar:Map<Symbol,string> = new Map(),
+		foobar:Record<string,string> = {a : 'a', b : 'b', c : 'c'},
+		boofar:WeakMap<object,string> = new WeakMap()
 	;
-
 	boofar.set({}, 'boofar');
-
 	bar.set(Symbol('bar'), 'bar');
 
-	assert.true(isMap(foo));
-	assert.true(isMap(bar));
-	assert.false(isMap(foobar));
-	assert.false(isMap(boofar));
+	assert.true(_.isMap(foo));
+
+	assert.true(_.isMap(bar));
+
+	assert.false(_.isMap(foobar));
+
+	assert.false(_.isMap(boofar));
 });
 
 
 
-test('isWeakMap', assert => {
+test('isWeakMap', (assert:ExecutionContext):void => {
 	const
-		foo = new WeakMap(),
-		bar = new WeakMap(),
-		foobar = {a : 'a', b : 'b', c : 'c'},
-		boofar = new Map(Object.entries({a : 'a', b : 'b', c : 'c'}))
+		foo:WeakMap<Object|Array<any>|Date,string> = new WeakMap(),
+		bar:WeakMap<Object,string> = new WeakMap(),
+		foobar:Record<string,string> = {a : 'a', b : 'b', c : 'c'},
+		boofar:Map<string,string> = new Map(Object.entries({a : 'a', b : 'b', c : 'c'}))
 	;
-
 	foo.set({}, 'a');
 	foo.set([], 'b');
 	foo.set(new Date(), 'c');
-
 	bar.set({}, 'bar');
 
-	assert.true(isWeakMap(foo));
-	assert.true(isWeakMap(bar));
-	assert.false(isWeakMap(foobar));
-	assert.false(isWeakMap(boofar));
+	assert.true(_.isWeakMap(foo));
+
+	assert.true(_.isWeakMap(bar));
+
+	assert.false(_.isWeakMap(foobar));
+
+	assert.false(_.isWeakMap(boofar));
 });
 
 
 
-test('isDocument', assert => {
+test('isDocument', (assert:ExecutionContext):void => {
 	const
-		foo = window.document,
-		bar = window.parent.document,
-		foobar = window,
-		boofar = document.body
+		foo:Document = window.document,
+		bar:Document = window.parent.document,
+		foobar:Window = window,
+		boofar:HTMLElement = document.body
 	;
 
-	assert.true(isDocument(foo));
-	assert.true(isDocument(bar));
-	assert.false(isDocument(foobar));
-	assert.false(isDocument(boofar));
+	assert.true(_.isDocument(foo));
+
+	assert.true(_.isDocument(bar));
+
+	assert.false(_.isDocument(foobar));
+
+	assert.false(_.isDocument(boofar));
 });
 
 
 
-test('isElement', assert => {
+test('isElement', (assert:ExecutionContext):void => {
 	const
-		foo = document,
-		bar = document.body,
-		foobar = document.querySelector('body'),
-		boo = document.createElement('div'),
-		far = new CustomEvent('test'),
-		boofar = {a : 1}
+		foo:Document = document,
+		bar:HTMLElement = document.body,
+		foobar:HTMLElement = document.querySelector('body'),
+		boo:HTMLElement = document.createElement('div'),
+		far:CustomEvent = new CustomEvent('test'),
+		boofar:Record<string,number> = {a : 1}
 	;
 
-	assert.false(isElement(foo));
-	assert.true(isElement(bar));
-	assert.true(isElement(foobar));
-	assert.true(isElement(boo));
-	assert.false(isElement(far));
-	assert.false(isElement(boofar));
+	assert.false(_.isElement(foo));
+
+	assert.true(_.isElement(bar));
+
+	assert.true(_.isElement(foobar));
+
+	assert.true(_.isElement(boo));
+
+	assert.false(_.isElement(far));
+
+	assert.false(_.isElement(boofar));
 });
 
 
 
-test('isSvg', assert => {
-	const outerNode = document.createElement('div');
+test('isSvg', (assert:ExecutionContext):void => {
+	const outerNode:HTMLElement = document.createElement('div');
 	outerNode.innerHTML = exampleSVG;
 
 	const
-		foo = document,
-		foobar = document.querySelector('body'),
-		svg = outerNode.firstChild
+		foo:Document = document,
+		foobar:HTMLElement = document.querySelector('body'),
+		svg:Node = outerNode.firstChild
 	;
 
-	assert.false(isSvg(foo));
-	assert.false(isSvg(foobar));
-	assert.true(isSvg(svg));
+	assert.false(_.isSvg(foo));
+
+	assert.false(_.isSvg(foobar));
+
+	assert.true(_.isSvg(svg));
 });
 
 
 
-test('isCollection', assert => {
+test('isCollection', (assert:ExecutionContext):void => {
 	const
-		foo = document.body.children,
-		bar = document.body.appendChild(document.createElement('div')).parentNode.children,
-		foobar = document.body.childNodes,
-		boofar = [document.body]
+		foo:HTMLCollection = document.body.children,
+		bar:HTMLCollection = document.body.appendChild(document.createElement('div')).parentNode.children,
+		foobar:NodeList = document.body.childNodes,
+		boofar:Array<HTMLElement> = [document.body]
 	;
 
-	assert.true(isCollection(foo));
-	assert.true(isCollection(bar));
-	assert.false(isCollection(foobar));
-	assert.false(isCollection(boofar));
+	assert.true(_.isCollection(foo));
+
+	assert.true(_.isCollection(bar));
+
+	assert.false(_.isCollection(foobar));
+
+	assert.false(_.isCollection(boofar));
 });
 
 
 
-test('isNodeList', assert => {
+test('isNodeList', (assert:ExecutionContext):void => {
 	const
-		foo = document.body.childNodes,
-		bar = document.body.appendChild(document.createElement('div')).parentNode.childNodes,
-		foobar = document.body.children,
-		boofar = [document.body]
+		foo:NodeList = document.body.childNodes,
+		bar:NodeList = document.body.appendChild(document.createElement('div')).parentNode.childNodes,
+		foobar:HTMLCollection = document.body.children,
+		boofar:Array<HTMLElement> = [document.body]
 	;
 
-	assert.true(isNodeList(foo));
-	assert.true(isNodeList(bar));
-	assert.false(isNodeList(foobar));
-	assert.false(isNodeList(boofar));
+	assert.true(_.isNodeList(foo));
+
+	assert.true(_.isNodeList(bar));
+
+	assert.false(_.isNodeList(foobar));
+
+	assert.false(_.isNodeList(boofar));
 });
 
 
 
-test('isWindow', assert => {
+test('isWindow', (assert:ExecutionContext):void => {
 	const
-		foo = window,
-		bar = window.parent,
-		foobar = document,
-		boofar = document.body
+		foo:Window = window,
+		bar:Window = window.parent,
+		foobar:Document = document,
+		boofar:HTMLElement = document.body
 	;
 
-	assert.true(isWindow(foo));
-	assert.true(isWindow(bar));
-	assert.false(isWindow(foobar));
-	assert.false(isWindow(boofar));
+	assert.true(_.isWindow(foo));
+
+	assert.true(_.isWindow(bar));
+
+	assert.false(_.isWindow(foobar));
+
+	assert.false(_.isWindow(boofar));
 });
 
 
 
-test('isUrl', assert => {
-    const
-        foo = new URL('', window.location.origin),
-        bar = new URL('https://google.com'),
-        foobar = 'https://google.com',
-        boofar = window.location.origin
-    ;
-
-    assert.true(isUrl(foo));
-    assert.true(isUrl(bar));
-    assert.false(isUrl(foobar));
-    assert.false(isUrl(boofar));
-});
-
-
-
-test('isUrlSearchParams', assert => {
-    const
-        foo = new URLSearchParams(),
-        bar = new URL('', window.location.origin).searchParams,
-        foobar = '?foo=bar&bar=foo',
-        boofar = {foo : 'bar', bar : 'foo'}
-    ;
-
-    assert.true(isUrlSearchParams(foo));
-    assert.true(isUrlSearchParams(bar));
-    assert.false(isUrlSearchParams(foobar));
-    assert.false(isUrlSearchParams(boofar));
-});
-
-
-
-test('isEventTarget', assert => {
+test('isUrl', (assert:ExecutionContext):void => {
 	const
-		foo = document,
-		bar = document.body,
-		foobar = document.querySelector('body'),
-		boo = document.createElement('div'),
-		far = new CustomEvent('test'),
-		boofar = {a : 1},
-		zzz = {
-			addEventListener(){},
-			removeEventListener(){},
-			dispatchEvent(){}
+		foo:URL = new URL('', window.location.origin),
+		bar:URL = new URL('https://google.com'),
+		foobar:string = 'https://google.com',
+		boofar:string = window.location.origin
+	;
+
+	assert.true(_.isUrl(foo));
+
+	assert.true(_.isUrl(bar));
+
+	assert.false(_.isUrl(foobar));
+
+	assert.false(_.isUrl(boofar));
+});
+
+
+
+test('isUrlSearchParams', (assert:ExecutionContext):void => {
+	const
+		foo:URLSearchParams = new URLSearchParams(),
+		bar:URLSearchParams = new URL('', window.location.origin).searchParams,
+		foobar:string = '?foo=bar&bar=foo',
+		boofar:Record<string,string> = {foo : 'bar', bar : 'foo'}
+	;
+
+	assert.true(_.isUrlSearchParams(foo));
+
+	assert.true(_.isUrlSearchParams(bar));
+
+	assert.false(_.isUrlSearchParams(foobar));
+
+	assert.false(_.isUrlSearchParams(boofar));
+});
+
+
+
+test('isEventTarget', (assert:ExecutionContext):void => {
+	const
+		foo:Document = document,
+		bar:HTMLElement = document.body,
+		foobar:HTMLElement = document.querySelector('body'),
+		boo:HTMLElement = document.createElement('div'),
+		far:CustomEvent = new CustomEvent('test'),
+		boofar:Record<string,number> = {a : 1},
+		zzz:Record<string,Function> = {
+			addEventListener():void{},
+			removeEventListener():void{},
+			dispatchEvent():void{}
 		}
 	;
 
-	assert.true(isEventTarget(foo));
-	assert.true(isEventTarget(bar));
-	assert.true(isEventTarget(foobar));
-	assert.true(isEventTarget(boo));
-	assert.false(isEventTarget(far));
-	assert.false(isEventTarget(boofar));
-	assert.true(isEventTarget(zzz));
+	assert.true(_.isEventTarget(foo));
+
+	assert.true(_.isEventTarget(bar));
+
+	assert.true(_.isEventTarget(foobar));
+
+	assert.true(_.isEventTarget(boo));
+
+	assert.false(_.isEventTarget(far));
+
+	assert.false(_.isEventTarget(boofar));
+
+	assert.true(_.isEventTarget(zzz));
 });
 
 
 
-test('isSelector', assert => {
+test('isSelector', (assert:ExecutionContext):void => {
 	const
-		foo = 'a',
-		bar = '> body',
-		foobar = 'button.btn[data-foobar][class*="test"]',
-		boo = 'div ~ div',
-		far = '#test',
-		boofar = '$test',
-		zzz = 42
+		foo:string = 'a',
+		bar:string = '> body',
+		foobar:string = 'button.btn[data-foobar][class*="test"]',
+		boo:string = 'div ~ div',
+		far:string = '#test',
+		boofar:string = '$test',
+		zzz:number = 42
 	;
 
-	assert.true(isSelector(foo));
-	assert.false(isSelector(bar));
-	assert.true(isSelector(foobar));
-	assert.true(isSelector(boo));
-	assert.true(isSelector(far));
-	assert.false(isSelector(boofar));
-	assert.false(isSelector(zzz));
+	assert.true(_.isSelector(foo));
+
+	assert.false(_.isSelector(bar));
+
+	assert.true(_.isSelector(foobar));
+
+	assert.true(_.isSelector(boo));
+
+	assert.true(_.isSelector(far));
+
+	assert.false(_.isSelector(boofar));
+
+	assert.false(_.isSelector(zzz));
+
+	assert.false(_.isSelector(null));
+
+	assert.false(_.isSelector(NaN));
 });
 
 
 
-test('isPotentialId', assert => {
-	assert.true(!!isPotentialId('666'));
-	assert.false(isPotentialId('0666'));
-	assert.is(isPotentialId('prefix-42', 'prefix-'), '42');
-	assert.true(!!isPotentialId('prefix-042', 'prefix-', '[0-9]+'));
-	assert.is(isPotentialId('prefix-042_postfix', 'prefix-', '[0-9]+', '_postfix'), '042');
-	assert.false(isPotentialId('prefix-042_postfix', 'prefix-', null, '_postfix'));
-	assert.true(!!isPotentialId('42_postfix', null, null, '_postfix'));
+test('getPotentialId', (assert:ExecutionContext):void => {
+	assert.is(
+		_.getPotentialId('0666'),
+		null
+	);
+
+	assert.is(
+		_.getPotentialId('prefix-42', 'prefix-'),
+		'42'
+	);
+
+	assert.is(
+		_.getPotentialId('prefix-042_postfix', 'prefix-', '[0-9]+', '_postfix'),
+		'042'
+	);
+
+	assert.is(
+		_.getPotentialId('prefix-042_postfix', 'prefix-', null, '_postfix'),
+		null
+	);
 });
 
 
 
-test('min', assert => {
+test('isPotentialId', (assert:ExecutionContext):void => {
+	assert.true(!!_.isPotentialId('666'));
+
+	assert.false(_.isPotentialId('0666'));
+
+	assert.true(!!_.isPotentialId('prefix-042', 'prefix-', '[0-9]+'));
+
+	assert.false(_.isPotentialId('prefix-042_postfix', 'prefix-', null, '_postfix'));
+
+	assert.true(!!_.isPotentialId('42_postfix', null, null, '_postfix'));
+});
+
+
+
+test('min', (assert:ExecutionContext):void => {
 	const
-		foo = min(1, 5),
-		bar = min(42.42, 666.66),
-		foobar = min('a', 'b'),
-		far = min(-150.5, -200),
-		boofar = min(13, 13),
-		brafoo = min(-42.42, 666)
+		foo:number = _.min(1, 5),
+		bar:number = _.min(42.42, 666.66),
+		foobar:string = _.min('a', 'b'),
+		far:number = _.min(-150.5, -200),
+		boofar:number = _.min(13, 13),
+		brafoo:number = _.min(-42.42, 666)
 	;
 
 	assert.is(foo, 5);
+
 	assert.is(bar, 666.66);
+
 	assert.is(foobar, 'b');
+
 	assert.is(far, -150.5);
+
 	assert.is(boofar, 13);
+
 	assert.is(brafoo, 666);
 });
 
 
 
-test('max', assert => {
+test('max', (assert:ExecutionContext):void => {
 	const
-		foo = max(10, 5),
-		bar = max(100000000000, 666.66),
-		foobar = max('zzz', 'b'),
-		far = max(-150.5, -3),
-		boofar = max(13, 13),
-		brafoo = max(666, -42.42)
+		foo:number = _.max(10, 5),
+		bar:number = _.max(100000000000, 666.66),
+		foobar:string = _.max('zzz', 'b'),
+		far:number = _.max(-150.5, -3),
+		boofar:number = _.max(13, 13),
+		brafoo:number = _.max(666, -42.42)
 	;
 
 	assert.is(foo, 5);
+
 	assert.is(bar, 666.66);
+
 	assert.is(foobar, 'b');
+
 	assert.is(far, -150.5);
+
 	assert.is(boofar, 13);
+
 	assert.is(brafoo, -42.42);
 });
 
 
 
-test('minMax', assert => {
+test('minMax', (assert:ExecutionContext):void => {
 	const
-		foo = minMax(1, 5, 10),
-		bar = minMax(42.42, 100000000000, 666.66),
-		foobar = minMax('a', 'zzz', 'b'),
-		boo = [-100, -150, -200],
-		far = minMax(-150.5, -200, -3),
-		boofar = minMax(13, 13, 13),
-		brafoo = minMax(-42.42, 666, -42.42)
+		foo:number = _.minMax(1, 5, 10),
+		bar:number = _.minMax(42.42, 100000000000, 666.66),
+		foobar:string = _.minMax('a', 'zzz', 'b'),
+		boo:Array<number> = [-100, -150, -200],
+		far:number = _.minMax(-150.5, -200, -3),
+		boofar:number = _.minMax(13, 13, 13),
+		brafoo:number = _.minMax(-42.42, 666, -42.42)
 	;
 
 	assert.is(foo, 5);
+
 	assert.is(bar, 666.66);
+
 	assert.is(foobar, 'b');
-	assert.throws(() => { minMax(boo[0], boo[1], boo[2]); });
+
+	assert.throws(():void => { _.minMax(boo[0], boo[1], boo[2]); });
+
 	assert.is(far, -150.5);
+
 	assert.is(boofar, 13);
+
 	assert.is(brafoo, -42.42);
 });
 
 
 
-test('round', assert => {
+test('round', (assert:ExecutionContext):void => {
 	const
-		foo = round(0.55555, 3),
-		bar = round(42.42, 2),
-		foobar = round(-42.42, 1),
-		far = round(-666.66),
-		boofar = round(0.55555, 10),
-		brafoo = round(0.1)
+		foo:number = _.round(0.55555, 3),
+		bar:number = _.round(42.42, 2),
+		foobar:number = _.round(-42.42, 1),
+		far:number = _.round(-666.66),
+		boofar:number = _.round(0.55555, 10),
+		brafoo:number = _.round(0.1)
 	;
 
 	assert.is(foo, 0.556);
+
 	assert.is(bar, 42.42);
+
 	assert.is(foobar, -42.4);
+
 	assert.is(far, -667);
+
 	assert.is(boofar, 0.55555);
+
 	assert.is(brafoo, 0);
 });
 
 
 
-test('Deferred', assert => {
-	return new Promise(function(resolve, reject){
+class Deferred<T> extends _.Deferred<T> {}
+test('Deferred', (assert:ExecutionContext):Promise<void> => {
+	return new Promise(function(resolve:() => void, reject:() => void):void{
 		const
-			foo = new Deferred(),
-			bar = new Deferred()
+			foo:Deferred<Record<string,number>> = new _.Deferred(),
+			bar = new _.Deferred(),
+			baz = new _.Deferred()
 		;
 
-		let endCount = 0;
-		function end(success){
+		let endCount:number = 0;
+		function end(success:boolean):void{
 			endCount++;
 
 			if( !success ){
 				reject();
-			} else if( endCount === 5 ){
+			} else if( endCount === 6 ){
 				resolve();
 			}
 		}
 
 		foo
-			.then(value => {
+			.then((value:Record<string,number>):void => {
 				assert.is(value.result, 42);
 				end(value.result === 42);
 			})
-			.catch(error => { end(false); })
-			.finally(() => {
+			.catch(():void => { end(false); })
+			.finally(():void => {
 				end(foo.status === 'fulfilled');
 			})
 		;
 
-		bar
-			.then(value => { end(false); })
-			.catch(error => {
-				assert.is(error.message, 'blimey!');
-				end(error.message === 'blimey!');
-			})
-			.finally(() => {
-				end(bar.status === 'rejected');
-			})
-		;
+		bar.catch((error:Error):void => {
+			assert.is(error.message, 'blimey!');
+			end(error.message === 'blimey!');
+		});
 
-		Promise.all([foo.promise]).then(() => { end(true); });
+		baz.then(
+			():void => {
+				end(false);
+			},
+			(reason:number):void => {
+				assert.is(reason, 42);
+				end(reason === 42);
+			}
+		);
+
+		Promise.all([foo.promise]).then(():void => { end(true); });
+		Promise.allSettled([foo.promise, baz.promise]).then(():void => { end(true); });
 
 		assert.false(bar.isSettled());
 		foo.resolve({result : 42});
 		bar.reject(new Error('blimey!'));
+		bar.resolve(true);
+		baz.reject(42);
 		assert.true(bar.isSettled());
 	});
 });
 
 
 
-test('Observable', assert => {
-	let changeCount = 0;
+class Observable<T> extends _.Observable<T> {}
+test('Observable', (assert:ExecutionContext):void => {
+	let changeCount:number = 0;
 
 	const
-		foo = new Observable(42),
-		fooSubscription = foo.subscribe(() => {
+		foo:Observable<number> = new _.Observable(42),
+		fooSubscription:(current?:number,old?:number) => void = foo.subscribe(():void => {
+			changeCount++;
+		}),
+		bar = new _.Observable({bar : 13}),
+		barSubscription:(current?:Record<string,number>,old?:Record<string,number>) => void = bar.subscribe(():void => {
 			changeCount++;
 		})
 	;
@@ -1136,15 +1311,23 @@ test('Observable', assert => {
 	foo.setValue(23);
 	assert.is(foo.getValue(), 23);
 
-	assert.throws(() => { foo.subscribe(42); }, {message : /must be function/});
+	assert.throws(
+		// @ts-ignore
+		():void => { foo.subscribe(42); },
+		{message : /must be function/}
+	);
 
-	foo.setValue({bar : 42});
-	assert.is(foo.getValue().bar, 42);
+	bar.setValue({bar : 42});
+	assert.is(bar.getValue().bar, 42);
 
 	foo.unsubscribe(fooSubscription);
 	foo.setValue(1);
 	foo.setValue(2);
 	foo.setValue(3);
 
-	assert.is(changeCount, 3);
-});*/
+	// @ts-ignore
+	bar.unsubscribe(fooSubscription);
+	bar.setValue({bar : 1});
+
+	assert.is(changeCount, 4);
+});

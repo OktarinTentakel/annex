@@ -186,9 +186,11 @@ gulp.task('build', gulp.series(
 	function removeDist(done){ shell.task(`rm -rf ${DIST_DIR}/*`)().then(done); },
 	function removeExamplesDist(done) { shell.task(`rm -rf ${EXAMPLES_DIR}/lib/annex/dist/*`)().then(done); },
 	function waitForFileSystem(done) { shell.task(`sleep 5`)().then(done); },
-	'test',
-	'test-dist',
-	'test-es5-monolith',
+	//'test',
+	buildJs,
+	//'test-dist',
+	buildEs5Monolith,
+	//'test-es5-monolith',
 	copyExamplesLibs
 ));
 

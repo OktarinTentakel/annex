@@ -12,7 +12,13 @@ const MODULE_NAME = 'Context';
 
 //###[ IMPORTS ]########################################################################################################
 
-import {hasValue, isFunction, isArray, orDefault, Observable} from './basic.js';
+import {
+	hasValue,
+	isFunction,
+	isArray,
+	orDefault,
+	Observable,
+} from './basic.js';
 import {throttle} from './functions.js';
 import {reschedule} from './timers.js';
 
@@ -57,10 +63,10 @@ export let CURRENT_INTERACTION_TYPE;
  */
 
 /**
- * Detects if the browser supports history manipulation, by checking the most common
- * methods for presence in the history-object.
+ * Detects if the browser supports history manipulation by checking the most common
+ * methods for presence in the window history object.
  *
- * @returns {Boolean} true if browser seems to support history manipulation
+ * @returns {boolean} true if browser seems to support history manipulation
  *
  * @memberof Context:browserSupportsHistoryManipulation
  * @alias browserSupportsHistoryManipulation
@@ -85,7 +91,7 @@ export function browserSupportsHistoryManipulation(){
 /**
  * Checks if the context would benefit from high DPI graphics.
  *
- * @returns {Boolean} true if device has high DPI, false if not or browser does not support media queries
+ * @returns {boolean} true if the device has high DPI, false if not or browser does not support media queries
  *
  * @memberof Context:contextHasHighDpi
  * @alias contextHasHighDpi
@@ -118,15 +124,15 @@ export function contextHasHighDpi(){
  */
 
 /**
- * Returns the current context's scrollbar width. Returns 0 if scrollbar is over content.
+ * Returns the current context's scrollbar width. Returns 0 if the scrollbar is over the content.
  * There are edge cases in which we might want to calculate positions in respect to the
- * actual width of the scrollbar. For example when working with elements with a 100vw width.
+ * actual width of the scrollbar. For example, when working with elements with a "100vw" width.
  *
  * This method temporarily inserts three elements into the body while forcing the body to
- * actually show scrollbars, measuring the difference between 100vw and 100% on the body and
+ * actually show scrollbars, measuring the difference between "100vw" and "100%" on the body and
  * returns the result.
  *
- * @returns {Number} the width of the body scrollbar in pixels
+ * @returns {number} the width of the body scrollbar in pixels
  *
  * @memberof Context:getBrowserScrollbarWidth
  * @alias getBrowserScrollbarWidth
@@ -143,7 +149,7 @@ export function getBrowserScrollbarWidth(){
 	sandbox.style.top = '0';
 	sandbox.style.right = '0';
 	sandbox.style.left = '0';
-	// firefox needs container to be at least 30px high to display scrollbar
+	// firefox needs a container to be at least 30px high to display a scrollbar
 	sandbox.style.height = '50px';
 
 	const scrollbarEnforcer = document.createElement('div');
@@ -170,19 +176,21 @@ export function getBrowserScrollbarWidth(){
  * Try to figure out the current type of interaction between the user and the document.
  * This is determined by the input device and is currently limited to either "pointer" or "touch".
  *
- * On call the function returns an educated guess about the fact what interaction type might be more
+ * On call, the function returns an educated guess about the fact what interaction type might be more
  * probable based on browser features and sets up event listeners to update Context module's CURRENT_INTERACTION_TYPE
- * observable (to which you may subscribe to be informed about updates), when interaction type should change while
- * the page is being interacted with. In case a touch occurs we determine touch interaction and
- * on mousemove we determine pointer interaction. If you use this observable to set up a class on your document for
- * example you can even relatively safely handle dual devices like a surface book.
+ * observable (to which you may subscribe to be informed about updates) when the interaction type should change while
+ * the page is being interacted with. In case a touch occurs, we determine touch interaction,
+ * and on mousemove we determine pointer interaction. If you use this observable to set up a class on your document,
+ * for example, you can even relatively safely handle dual devices like a surface book.
  *
- * Hint: because touch devices also emit a single mousemove after touchend with a single touch we have to block
+ * Hint: because touch devices also emit a single mousemove after touchend with a single touch, we have to block
  * mousemove detection for 1s after the last touchend. Therefore, it takes up to 1s after the last touch event until
  * we are able to detect the change to a pointer device.
  *
- * @param {?Boolean} [returnObservable=false] - if set to true, the call returns Context module's CURRENT_INTERACTION_TYPE observable
- * @returns {String|Basic.Observable} interaction type string "pointer" or "touch", or the CURRENT_INTERACTION_TYPE observable
+ * @param {boolean} [returnObservable=false] - if set to true, the call returns Context module's
+ *   CURRENT_INTERACTION_TYPE observable
+ * @returns {"pointer"|"touch"|Basic.Observable<"pointer"|"touch">} interaction type string "pointer" or "touch",
+ *   or the CURRENT_INTERACTION_TYPE observable, have one of that strings as value
  *
  * @memberof Context:detectInteractionType
  * @alias detectInteractionType
@@ -223,15 +231,17 @@ export function detectInteractionType(returnObservable=false){
  * Try to determine if the execution context is an Apple device and if so: which type.
  *
  * We use an escalating test starting with the user agent and then, as a fallback, checking the platform value
- * to determine the general device class (iPhone, iPad ,iPod ,Macintosh). If we get a Macintosh, we double check
+ * to determine the general device class (iPhone, iPad, iPod, Macintosh). If we get a Macintosh, we double-check
  * if the device might be a falsely reporting iPad with iPadOS13+.
  *
  * You can hook up additional tests by providing an "additionalTest" function as a function parameter,
  * that function takes the evaluated device type at the end of the function and expects a new device type to be
  * returned. Using this, you can tap into the process and handle edge cases yourself.
  *
- * @param {?Function} [additionalTest=null] - if set, is executed after determining the device type, takes the current device type as parameter and is expected to return a new one; use this to add edge case tests to overwrite the result in certain conditions
- * @returns {String} "ipad", "iphone", "ipod" or "mac"
+ * @param {?function(string):string} [additionalTest=null] - if set, is executed after determining the device type,
+ *   takes the current device type as parameter, and is expected to return a new one; use this to add edge case tests
+ *   to overwrite the result in certain conditions
+ * @returns {"ipad"|"iphone"|"ipod"|"mac"} the detected device type
  *
  * @memberof Context:detectAppleDevice
  * @alias detectAppleDevice
@@ -261,7 +271,7 @@ export function detectAppleDevice(additionalTest=null){
 	}
 
 	if( hasValue(family) ){
-		// If User-Agent reports Macintosh double check this against touch points, since the device might
+		// If User-Agent reports Macintosh, double-check this against touchpoints, since the device might
 		// be a disguised iPad with i(Pad)Os13+
 		if(
 			(family === 'Macintosh')
@@ -305,15 +315,16 @@ export function detectAppleDevice(additionalTest=null){
  * Since browsers could not agree on a uniform way to return language values yet, the returned language
  * will always be "lowercaselanguage-UPPERCASECOUNTRY" or just "lowercaselanguage", if we have no country.
  *
- * @param {?String} [fallbackLanguage=null] - fallback value to return if no language could be evaluated
- * @returns {String|null} the preferred browser language if available, null if no language can be detected and no fallback has been defined
+ * @param {?string} [fallbackLanguage=null] - fallback value to return if no language could be evaluated
+ * @returns {string|null} the preferred browser language if available,
+ *   null if no language can be detected and no fallback has been defined
  *
  * @memberof Context:getBrowserLanguage
  * @alias getBrowserLanguage
  * @see getBrowserLocale
  * @example
  * getBrowserLanguage()
- * => "en"
+ * // => "en"
  */
 export function getBrowserLanguage(fallbackLanguage=null){
 	let language = null;
@@ -353,6 +364,17 @@ export function getBrowserLanguage(fallbackLanguage=null){
  */
 
 /**
+ * @typedef {Object} TypeDef_LocaleInformation
+ *
+ * @property {string} code - the lang value, can be a language or a full locale
+ * @property {?string} country - the locale's lowercase country code, if there is one
+ * @property {string} language - the locale's lowercase language code
+ * @property {boolean} isFallback - true if the locale was determined by a fallback value
+ *
+ * @memberof Context
+ */
+
+/**
  * Evaluates the document's locale by having a look at the HTML element's lang-attribute.
  *
  * Since browsers could not agree on a uniform way to return locale values yet, the returned "code" will always be
@@ -360,28 +382,33 @@ export function getBrowserLanguage(fallbackLanguage=null){
  * browser returns the value, while "country" and "language" will always be lower case.
  *
  * @param {?HTMLElement} [element=document.documentElement] - the element holding the lang-attribute to evaluate
- * @param {?String} [fallbackLanguage=null] - if defined, a fallback lang value if element holds no lang information
- * @returns {Object} the locale as an object, having the lang value as "code", the split-up parts in "country" and "language" (if available) and "isFallback" to tell us if the fallback had to be used
+ * @param {?string} [fallbackLanguage=null] - if defined, a fallback lang value if the element holds no lang information
+ * @returns {TypeDef_LocaleInformation} the locale as an object, having the lang value as "code",
+ *   the split-up parts in "country" (if available) and "language"
+ *   and "isFallback" to tell us if the fallback had to be used
  *
  * @memberof Context:getLocale
  * @alias getLocale
+ * @see TypeDef_LocaleInformation
+ * @see Context.TypeDef_LocaleInformation
  * @see getBrowserLocale
  * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang
  * @example
  * getLocale()
- * => {
- *   code : 'en-GB',
- *   country : 'gb',
- *   language : 'en',
- *   isFallback : false
- * }
+ * // => {
+ * //   code : 'en-GB',
+ * //   country : 'gb',
+ * //   language : 'en',
+ * //   isFallback : false
+ * // }
+ *
  * getLocale(document.querySelector('p'), 'en-US')
- * => {
- *   code : 'en-US',
- *   country : 'us',
- *   language : 'en',
- *   isFallback : true
- * }
+ * // => {
+ * //   code : 'en-US',
+ * //   country : 'us',
+ * //   language : 'en',
+ * //   isFallback : true
+ * // }
  */
 export function getLocale(element=null, fallbackLanguage=null){
 	// document.documentElement not as function default to prevent errors in document-less context on import
@@ -404,7 +431,10 @@ export function getLocale(element=null, fallbackLanguage=null){
 		const localeParts = `${langAttr}`.split('-');
 		locale.country = localeParts?.[1]?.toLowerCase()?.trim();
 		locale.language = localeParts[0].toLowerCase().trim();
-		locale.code = hasValue(locale.country) ? `${locale.language}-${locale.country.toUpperCase()}` : locale.language;
+		locale.code = hasValue(locale.country)
+			? `${locale.language}-${locale.country.toUpperCase()}`
+			: locale.language
+		;
 	}
 
 	return locale;
@@ -417,34 +447,43 @@ export function getLocale(element=null, fallbackLanguage=null){
  */
 
 /**
- * Evaluates the browser's locale by having a look at the preferred browser language, as reported by `getBrowserLanguage`.
+ * Evaluates the browser's locale by having a look at the preferred browser language,
+ * as reported by `getBrowserLanguage`.
  *
  * Since browsers could not agree on a uniform way to return locale values yet, the returned "code" will always be
  * "lowercaselanguage-UPPERCASECOUNTRY" (or just "lowercaselanguage", if we have no country), regardless of how the
  * browser returns the value, while "country" and "language" will always be lower case.
  *
- * @param {?String} [fallbackLanguage=null] - if defined, a fallback lang value if browser reports no preferred language
- * @returns {Object} the locale as an object, having the in "country" and "language" (if available) and "isFallback" to tell us if the fallback had to be used
+ * @param {?string} [fallbackLanguage=null] - if defined, a fallback lang value if browser reports no preferred language
+ * @returns {TypeDef_LocaleInformation} the locale as an object, having the lang value as "code",
+ *   the split-up parts in "country" (if available) and "language"
+ *   and "isFallback" to tell us if the fallback had to be used
  *
  * @memberof Context:getBrowserLocale
  * @alias getBrowserLocale
+ * @see TypeDef_LocaleInformation
+ * @see Context.TypeDef_LocaleInformation
  * @see getBrowserLanguage
  * @example
  * getBrowserLocale()
- * => {
- *   code : 'en-GB',
- *   country : 'gb',
- *   language : 'en',
- *   isFallback : false
- * }
+ * // => {
+ * //   code : 'en-GB',
+ * //   country : 'gb',
+ * //   language : 'en',
+ * //   isFallback : false
+ * // }
+ *
  * getBrowserLocale('en-US')
- * => {
- *   code : 'en-US',
- *   country : 'us',
- *   language : 'en',
- *   isFallback : true
- * }
+ * // => {
+ * //   code : 'en-US',
+ * //   country : 'us',
+ * //   language : 'en',
+ * //   isFallback : true
+ * // }
  */
 export function getBrowserLocale(fallbackLanguage=null){
-	return getLocale({getAttribute(){ return getBrowserLanguage(fallbackLanguage); }}, fallbackLanguage);
+	return getLocale(
+		{getAttribute(){ return getBrowserLanguage(fallbackLanguage); }},
+		fallbackLanguage
+	);
 }

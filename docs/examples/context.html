@@ -10,22 +10,14 @@
 		<link rel="icon" type="image/png" sizes="16x16" href="./files/img/favicon-16x16.png"/>
 
 		<link rel="stylesheet" href="./main.css"/>
-		<style>
-
-		</style>
+		<style></style>
 
 		<script defer src="./lib/handle-version-switching.js"></script>
 		<script>
-			function setup(
-				browserSupportsHistoryManipulation,
-				contextHasHighDpi,
-				getBrowserScrollbarWidth,
-				detectInteractionType,
-				detectAppleDevice,
-				getBrowserLanguage,
-				getBrowserLocale,
-				getLocale
-			){
+			/**
+			 * @param {typeof import("./lib/annex/source/context.js")} _
+			 */
+			function setup(_){
 				var
 					context = document.querySelector('#context'),
 					interactionType
@@ -34,29 +26,29 @@
 				var fUpdateContext = function(){
 					var
 						infoMarkup = '',
-						browserLanguage = getBrowserLanguage(),
-						browserLocale = getBrowserLocale(),
-						pageLocale = getLocale(document.documentElement, 'de-DE'),
-						appleDevice = detectAppleDevice()
+						browserLanguage = _.getBrowserLanguage(),
+						browserLocale = _.getBrowserLocale(),
+						pageLocale = _.getLocale(document.documentElement, 'de-DE'),
+						appleDevice = _.detectAppleDevice()
 					;
 
 					infoMarkup = infoMarkup+'<tr><td>Browser Language</td><td>'+(browserLanguage ? browserLanguage : 'none')+'</td></tr>';
 					infoMarkup = infoMarkup+'<tr><td>Browser Locale</td><td>'+JSON.stringify(browserLocale)+'</td></tr>';
 					infoMarkup = infoMarkup+'<tr><td>Page Locale</td><td>'+JSON.stringify(pageLocale)+'</td></tr>';
 					infoMarkup = infoMarkup+'<tr><td>Interaction Type</td><td>'+interactionType+'</td></tr>';
-					infoMarkup = infoMarkup+'<tr><td>Context Has High DPI</td><td>'+(contextHasHighDpi() ? 'yes' : 'no')+'</td></tr>';
-					infoMarkup = infoMarkup+'<tr><td>Browser Supports History Manipulation</td><td>'+(browserSupportsHistoryManipulation() ? 'yes' : 'no')+'</td></tr>';
-					infoMarkup = infoMarkup+'<tr><td>Browser Scrollbar Width</td><td>'+getBrowserScrollbarWidth()+'px'+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Context Has High DPI</td><td>'+(_.contextHasHighDpi() ? 'yes' : 'no')+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Browser Supports History Manipulation</td><td>'+(_.browserSupportsHistoryManipulation() ? 'yes' : 'no')+'</td></tr>';
+					infoMarkup = infoMarkup+'<tr><td>Browser Scrollbar Width</td><td>'+_.getBrowserScrollbarWidth()+'px'+'</td></tr>';
 					infoMarkup = infoMarkup+'<tr><td>Apple Device Type</td><td>'+(appleDevice ? appleDevice : 'not an apple device')+'</td></tr>';
 
 					context.innerHTML = infoMarkup;
 				};
 
-				detectInteractionType(true).subscribe(function(changedInteractionType){
+				_.detectInteractionType(true).subscribe(function(changedInteractionType){
 					interactionType = changedInteractionType;
 					fUpdateContext();
 				});
-				interactionType = detectInteractionType();
+				interactionType = _.detectInteractionType();
 				fUpdateContext();
 				window.setInterval(fUpdateContext, 2500);
 			}
@@ -64,27 +56,8 @@
 		<script type="module">
 			if( window.__ANNEX_VERSION__ !== 'es5' ){
 				(async () => {
-					const {
-						browserSupportsHistoryManipulation,
-						contextHasHighDpi,
-						getBrowserScrollbarWidth,
-						detectInteractionType,
-						detectAppleDevice,
-						getBrowserLanguage,
-						getBrowserLocale,
-						getLocale
-					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/context.js`);
-
-					setup(
-						browserSupportsHistoryManipulation,
-						contextHasHighDpi,
-						getBrowserScrollbarWidth,
-						detectInteractionType,
-						detectAppleDevice,
-						getBrowserLanguage,
-						getBrowserLocale,
-						getLocale
-					);
+					const _ = await import(`./lib/annex/${window.__ANNEX_VERSION__}/context.js`);
+					setup(_);
 				})().catch(error => {
 					console.error(error);
 				});
@@ -98,16 +71,7 @@
 						window.clearInterval(annexPoll);
 
 						if( window.__ANNEX_VERSION__ === 'es5' ){
-							setup(
-								window.annex.context.browserSupportsHistoryManipulation,
-								window.annex.context.contextHasHighDpi,
-								window.annex.context.getBrowserScrollbarWidth,
-								window.annex.context.detectInteractionType,
-								window.annex.context.detectAppleDevice,
-								window.annex.context.getBrowserLanguage,
-								window.annex.context.getBrowserLocale,
-								window.annex.context.getLocale
-							);
+							setup(window.annex.context);
 						}
 					}
 				}, 250);

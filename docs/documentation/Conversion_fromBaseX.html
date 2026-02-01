@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="conversion.js.html">conversion.js</a>, <a href="conversion.js.html#line467">line 467</a>
+        <a href="conversion.js.html">conversion.js</a>, <a href="conversion.js.html#line476">line 476</a>
     </li></ul></dd>
     
 
@@ -106,7 +106,7 @@
 
     
 
-    <h4 class="name" id="fromBaseX"><span class="type-signature"></span>fromBaseX<span class="signature">(value, baseOrAlphabet<span class="signature-attributes">opt</span>, useCharacterMap<span class="signature-attributes">opt, nullable</span>, useChunks<span class="signature-attributes">opt, nullable</span>, valueIsNumber<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {String}</span></h4>
+    <h4 class="name" id="fromBaseX"><span class="type-signature"></span>fromBaseX<span class="signature">(value, baseOrAlphabet<span class="signature-attributes">opt</span>, useCharacterMap<span class="signature-attributes">opt, nullable</span>, useChunks<span class="signature-attributes">opt, nullable</span>, valueIsNumber<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {string|number}</span></h4>
 
     
 
@@ -115,13 +115,13 @@
 <div class="description">
     <p>This function converts a based representation back to its original number or string value.
 This is the mirror function to <code>toBaseX()</code> and expects a value encoded with that function. See that function
-for implementation details, modes and restrictions.</p>
+for implementation details, modes, and restrictions.</p>
 <p>The result of this function is always either a decimal number or a string, just as the input value. All numbers
-apart from decimal ones are returned as strings without prefix. So, decimal 5 will be the number 5, but the binary
+apart from decimal ones are returned as strings without a prefix. So, decimal 5 will be the number 5, but the binary
 version will be the string &quot;101&quot;.</p>
-<p>You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer based
+<p>You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer-based
 alphabets are generated using defined base alphabets, which are sliced if necessary. Custom alphabets are
-automatically sorted to match base64 are far as possible, pushing additional characters to the end, which are then
+automatically sorted to match base64 as far as possible, pushing additional characters to the end, which are then
 sorted ascending by character value.</p>
 <p>&quot;{&quot; and &quot;}&quot; are the only forbidden characters in a custom alphabet, since we need these to mark number values in
 <code>fromBaseX()</code>.</p>
@@ -171,10 +171,10 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 |
 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 
 
             
@@ -209,13 +209,13 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 |
 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 |
 
-<span class="param-type">Array.&lt;String></span>
+<span class="param-type">Array.&lt;string></span>
 
 
             
@@ -241,7 +241,9 @@ sorted ascending by character value.</p>
                 </td>
             
 
-            <td class="description last"><p>either the numerical base to convert to (64, 36, ...) or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)</p></td>
+            <td class="description last"><p>either the numerical base to convert to (64, 36, ...)
+or the alphabet of characters to use in encoding;
+numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)</p></td>
         </tr>
 
     
@@ -254,7 +256,7 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -282,7 +284,8 @@ sorted ascending by character value.</p>
                 </td>
             
 
-            <td class="description last"><p>set to true, to use a character map, based on btoa(), instead of numerical conversion</p></td>
+            <td class="description last"><p>set to true, to use a character map, based on btoa(),
+instead of numerical conversion</p></td>
         </tr>
 
     
@@ -295,7 +298,7 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -323,7 +326,8 @@ sorted ascending by character value.</p>
                 </td>
             
 
-            <td class="description last"><p>set to true, to add chunking to the numerical approach, converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet</p></td>
+            <td class="description last"><p>set to true, to add chunking to the numerical approach,
+converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet</p></td>
         </tr>
 
     
@@ -336,7 +340,7 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -364,7 +368,8 @@ sorted ascending by character value.</p>
                 </td>
             
 
-            <td class="description last"><p>if true, the given value is treated as a number for numerical conversion; this is necessary, since numbers such as binaries are defined as strings and are therefore not auto-detectable</p></td>
+            <td class="description last"><p>if true, the given value is treated as a number for numerical conversion;
+this is necessary, since numbers such as binaries are defined as strings and are therefore not auto-detectable</p></td>
         </tr>
 
     
@@ -405,7 +410,7 @@ sorted ascending by character value.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="conversion.js.html">conversion.js</a>, <a href="conversion.js.html#line516">line 516</a>
+        <a href="conversion.js.html">conversion.js</a>, <a href="conversion.js.html#line535">line 535</a>
     </li></ul></dd>
     
 
@@ -437,21 +442,55 @@ sorted ascending by character value.</p>
 <ul>
         <li>
 
-    <div class="param-desc">
-    
-        <p>error if baseOrAlphabet is not usable</p>
-    
-    </div>
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>if baseOrAlphabet is not usable</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
 
 </li>
     
         <li>
 
-    <div class="param-desc">
-    
-        <p>error character mapped decoding fails, due to missing token/unmatched alphabet</p>
-    
-    </div>
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>character mapped decoding fails, due to missing token/unmatched alphabet</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
 
 </li>
     </ul>
@@ -472,7 +511,10 @@ sorted ascending by character value.</p>
     </dt>
     <dd>
         
-<span class="param-type">String</span>
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
 
 
     </dd>
@@ -484,17 +526,22 @@ sorted ascending by character value.</p>
     <h5>Example</h5>
     
     <pre class="prettyprint"><code>fromBaseX('Zm9vYmFy')
-=> 'foobar'
+// => 'foobar'
+
 fromBaseX('16W33YPUS', 36)
-=> 'äす'
+// => 'äす'
+
 fromBaseX('{-3C3}', 13)
-=> -666
+// => -666
+
 fromBaseX('q', 64, false, false, true)
-=> 42
+// => 42
+
 fromBaseX('U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C', 36, true)
-=> 'too-long-for-number-conversion'
+// => 'too-long-for-number-conversion'
+
 fromBaseX('D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C', 16, false, true)
-=> 'too-long-for-number-conversion'</code></pre>
+// => 'too-long-for-number-conversion'</code></pre>
 
 
 
@@ -520,7 +567,7 @@ fromBaseX('D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sat Jan 31 2026 16:31:06 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sun Feb 01 2026 22:32:28 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

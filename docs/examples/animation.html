@@ -49,9 +49,10 @@
 
 		<script defer src="./lib/handle-version-switching.js"></script>
 		<script>
-			function setup(
-				transition
-			){
+			/**
+			 * @param {typeof import("./lib/annex/source/animation.js")} _
+			 */
+			function setup(_){
 				var transitionRunning = false;
 				document.getElementById('transition-test').addEventListener('click', function(e){
 					if( !transitionRunning ){
@@ -61,13 +62,13 @@
 
 						console.time();
 
-						transition(element, {add : 'test'}).then(function(element){
+						_.transition(element, {add : 'test'}).then(function(element){
 							console.log(1);
 							console.timeEnd();
 							console.time();
 							console.log(element.getAttribute('id'));
 
-							transition(element, {remove : 'test'}).then(function(element){
+							_.transition(element, {remove : 'test'}).then(function(element){
 								console.log(2);
 								console.timeEnd();
 								console.time();
@@ -76,7 +77,7 @@
 						});
 
 						window.setTimeout(function(){
-							transition(element, null, {
+							_.transition(element, null, {
 								top : 0,
 								left : 0,
 								background : 'pink',
@@ -88,7 +89,7 @@
 								console.log(element.getAttribute('id'));
 
 								element.removeAttribute('style');
-								return transition(element, null, {
+								return _.transition(element, null, {
 									top : 'calc(100vh - 150px)',
 									left : 'calc(100vw - 150px)',
 									background : 'yellow'
@@ -105,7 +106,7 @@
 						}, 3000);
 
 						window.setTimeout(function(){
-							transition(element, {add : 'test2'})
+							_.transition(element, {add : 'test2'})
 								.then(function(element){
 									console.log(5);
 									console.timeEnd()
@@ -123,7 +124,7 @@
 						}, 3000 + 3000);
 
 						window.setTimeout(function(){
-							transition(element, {remove : 'test2'}, null, true).then(function(element){
+							_.transition(element, {remove : 'test2'}, null, true).then(function(element){
 								console.log(6);
 								console.timeEnd();
 								console.log(element.getAttribute('id'));
@@ -137,13 +138,8 @@
 		<script type="module">
 			if( window.__ANNEX_VERSION__ !== 'es5' ){
 				(async () => {
-					const {
-						transition
-					} = await import(`./lib/annex/${window.__ANNEX_VERSION__}/animation.js`);
-
-					setup(
-						transition
-					);
+					const _ = await import(`./lib/annex/${window.__ANNEX_VERSION__}/animation.js`);
+					setup(_);
 				})().catch(error => {
 					console.error(error);
 				});
@@ -157,9 +153,7 @@
 						window.clearInterval(annexPoll);
 
 						if( window.__ANNEX_VERSION__ === 'es5' ){
-							setup(
-								window.annex.animation.transition
-							);
+							setup(window.annex.animation);
 						}
 					}
 				}, 250);

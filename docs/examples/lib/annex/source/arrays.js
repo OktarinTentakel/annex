@@ -68,8 +68,8 @@ import {
  * - Map (using the values as the list)
  * To remove these by reference from target, instead of iterating them, set "to" to true.
  *
- * @param {Array.<*>} target - the array to remove elements from
- * @param {*|Object.<string,*>|Array.<*>|Set.<*>|Map.<*,*>} from - numerical index to start removing from
+ * @param {Array} target - the array to remove elements from
+ * @param {number|string|Object.<string,*>|Array|Set|Map|*} from - numerical index to start removing from
  *   (can also be negative to start counting from back), a string to identify elements to remove by their string
  *   representation or any other value identifying elements to remove by identity, if this is an iterable
  *   collection, the collection is iterated instead of being treated as a reference, enforce treatment as
@@ -77,8 +77,8 @@ import {
  * @param {?number|boolean} [to=null] - index to end removing (can also be negative to start counting from back),
  *   if true, "from" defines a given iterable collection to be removed by reference, instead of removing the
  *   contained values, with this you can remove an array from an array for example
- * @returns {Array.<*>} new array without index/range/matches
- * @throws {Error} error if target is not an array‚
+ * @returns {Array} new array without index/range/matches
+ * @throws {Error} if target is not an array‚
  *
  * @memberof Arrays:removeFrom
  * @alias removeFrom
@@ -178,7 +178,7 @@ export function removeFrom(target, from, to=null){
  * @param {?number} [step=null] - the (positive) step length in the range to use between individual range values,
  *   if the step length does not hit "to" exactly, the range will end at the last possible value before "to"
  * @returns {Array.<number>|Array.<string>} new array with generated range
- * @throws {Error} error if "from" or "to" are empty strings
+ * @throws {Error} if "from" or "to" are empty strings
  *
  * @memberof Arrays:generateRange
  * @alias generateRange
@@ -188,7 +188,7 @@ export function removeFrom(target, from, to=null){
  *
  * generateRange(5, -5, 3.5)
  * // => [5, 1.5, -2]
- * 
+ *
  * generateRange('a', 'g', 3)
  * // => ['a', 'd', 'g']
  */

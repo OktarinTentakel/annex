@@ -41,7 +41,7 @@ const
 //###[ HELPERS ]########################################################################################################
 
 /**
- * Builds an alphabet string, based on an integer, an alphabet string or an array of strings containing the alphabet's
+ * Builds an alphabet string, based on an integer, an alphabet string, or an array of strings containing the alphabet's
  * chars. An integer uses BASE_ALPHABETS to select a base alphabet to slice the alphabet from. The first base alphabet
  * having enough chars is going be used. The configurations of the base alphabets are according to current base
  * practices.
@@ -145,7 +145,7 @@ function calculateNeededPages(base){
 
 /**
  * Returns an array of value prefixes used to map characters to different code pages, in cases where we need to encode
- * a base64 character above the base of our target alphabet, which means, that we have to repeat character usage, but
+ * a base64 character above the base of our target alphabet, which means that we have to repeat character usage, but
  * with a page prefix to multiply the value set by reducing the base alphabet for that purpose.
  *
  * @private
@@ -172,7 +172,7 @@ function buildPageMap(alphabet){
 
 /**
  * Returns a dictionary, mapping each base64 character to one or more characters of the target alphabet.
- * In cases, where the character to encode is beyond the target alphabet, page prefixes are prepended to
+ * In cases where the character to encode is beyond the target alphabet, page prefixes are prepended to
  * cover all characters by increasing length.
  *
  * @private
@@ -191,7 +191,7 @@ function buildCharMap(pageMap, alphabet){
 	for( let i in BASE64_ALPHABET.split('') ){
 		remainder = i % pagedBase;
 		quotient = Math.floor(i / pagedBase);
-		charMap[BASE64_ALPHABET[i]] = `${pageMap[quotient]}${pagedAlphabet[remainder]}`
+		charMap[BASE64_ALPHABET[i]] = `${pageMap[quotient]}${pagedAlphabet[remainder]}`;
 	}
 
 	return charMap;
@@ -200,9 +200,9 @@ function buildCharMap(pageMap, alphabet){
 
 
 /**
- * Converts a string to base64, while handling unicode characters correctly.
- * Be advised, that the result needs to be decoded with base64ToString() again, since
- * we also need to correctly handle unicode on the way back.
+ * Converts a string to base64 while handling Unicode characters correctly.
+ * Be advised that the result needs to be decoded with base64ToString() again, since
+ * we also need to correctly handle Unicode on the way back.
  *
  * @private
  */
@@ -214,10 +214,10 @@ function stringToBase64(value){
 
 /**
  * Decodes a base64-encoded string to its original value.
- * Be advised, that the base64 value has to be encoded using stringToBase64(), since unicode characters need
+ * Be advised that the base64 value has to be encoded using stringToBase64(), since Unicode characters need
  * special handling during en/decoding.
  *
- * This function will fail with an error, if the given value is not actually decodable with base64.
+ * This function will fail with an error if the given value is not decodable with base64.
  *
  * @private
  */
@@ -225,7 +225,7 @@ function base64ToString(value, __methodName__='base64ToString'){
 	let res = null;
 
 	try {
-		res = (new TextDecoder()).decode(Uint8Array.from(atob(`${value}`), char => char.codePointAt(0)))
+		res = (new TextDecoder()).decode(Uint8Array.from(atob(`${value}`), char => char.codePointAt(0)));
 	} catch(ex){
 		throw new Error(`${MODULE_NAME}:${__methodName__} | cannot decode "${value}"`);
 	}
@@ -295,49 +295,49 @@ function baseXToBase10(value, alphabet){
 
 /**
  * This function converts a value to a representation in a defined base between 2 and 64.
- * So this covers common use cases like binary, octal, hexadecimal, alphabetical, alphanumeric and of course base64.
+ * So this covers common use cases like binary, octal, hexadecimal, alphabetical, alphanumeric and, of course, base64.
  *
  * The result of this function is always either a decimal number or a string, just as the input value. All numbers
- * apart from decimal ones are returned as strings without prefix. So, decimal 5 will be the number 5, but the binary
+ * apart from decimal ones are returned as strings without a prefix. So, decimal 5 will be the number 5, but the binary
  * version will be the string "101". Positive and negative decimal integers are valid numbers here, but this
  * implementation does not support floats (multiply and divide if needed). Only numerical bases above 36 contain
  * lower case characters, so decimal 255 is "FF" in base 16 and not "ff".
  *
- * This function is unicode safe, by using byte conversion
+ * This function is Unicode safe, by using byte conversion
  * (see: https://developer.mozilla.org/en-US/docs/Glossary/Base64#the_unicode_problem).
- * Be aware, that this also means, that results of `btoa/atob()` and `toBaseX/fromBaseX()` are _not_ interchangeable,
+ * Be aware that this also means that results of `btoa/atob()` and `toBaseX/fromBaseX()` are _not_ interchangeable,
  * since they work with different values internally.
  *
  * There are three approaches to changing the base of a value in JavaScript:
  *
  * 1. Either you are taking the numerical/mathematical road, treating a value as a number in its alphabet being
- * interpreted as a number, where each character, counting from the back is the base to the power of the
+ * interpreted as a number, where each character counting from the back is the base to the power of the
  * character index. This is the approach you'd expect, when, for instance, you'd want to convert the decimal number 5
- * to binary 101. The downside of this approach is, that the relatively small max safe integer in JavaScript makes
+ * to binary 101. The downside of this approach is that the relatively small max safe integer in JavaScript makes
  * converting large numbers, such as longer strings, impossible.
  *
- * 2. Therefore, the second approach takes the numeric approach, but combines it with chunking, splitting the value into
- * pieces, which are, by themselves, safely convertible. The downside is, that we need an extra character to delimit
- * chunks in the result, since values have non-uniform lengths. This means, that this does not work with the basic
+ * 2. Therefore, the second approach takes the numeric approach but combines it with chunking, splitting the value into
+ * pieces, which are, by themselves, safely convertible. The downside is that we need an extra character to delimit
+ * chunks in the result, since values have non-uniform lengths. This means that this does not work with the basic
  * binary base, and we need at least 3 alphabet characters.
  *
  * 3. The last approach uses the native base64 string encoding with `btoa()` as a safe translation layer, mapping the
  * resulting string to the target base, using a generated (and possibly paged) character map. This way treats all
- * values as strings and is not compatible to numerical conversion anymore, but uses the same characters. The result
- * of this approach can encode every string of every length without structural tricks, but has the longest results.
+ * values as strings and is not compatible with numerical conversion anymore but uses the same characters. The result
+ * of this approach can encode every string of every length without structural tricks but has the longest results.
  *
- * This function is capable of all three approaches, which are equally safe for unicode values. The numerical
+ * This function is capable of all three approaches, which are equally safe for Unicode values. The numerical
  * approach is the default. If you want to encode large numbers or strings longer than ~6 characters, select
  * a different approach using the `useCharacterMap` or `useChunks` parameters. Character mapping has preference, while
  * chunks have no effect in character mapping.
  *
  * Each encoding process ends with a self-test, checking if the result is actually decodable using
- * `fromBaseX()`, using the same settings again. This ensures, that every result is valid and retrievable in the future,
+ * `fromBaseX()`, using the same settings again. This ensures that every result is valid and retrievable in the future,
  * preventing any undiscovered errors, which would make it impossible to work with the original value again.
  *
- * You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer based
+ * You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer-based
  * alphabets are generated using defined base alphabets, which are sliced if necessary. Custom alphabets are
- * automatically sorted to match base64 are far as possible, pushing additional characters to the end, which are then
+ * automatically sorted to match base64 as far as possible, pushing additional characters to the end, which are then
  * sorted ascending by character value.
  *
  * "{" and "}" are the only forbidden characters in a custom alphabet, since we need these to mark number values in
@@ -347,14 +347,19 @@ function baseXToBase10(value, alphabet){
  *
  * Hint: if you want to genrate codes to be presented to the user, see `Random:randomUserCode`.
  *
- * @param {Number|String} value - value to be encoded
- * @param {?Number|String|Array<String>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...) or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)
- * @param {?Boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(), instead of numerical conversion
- * @param {?Boolean} [useChunks=false] - set to true, to add chunking to the numerical approach, converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet
- * @param {?Number} [chunkSize=6] - define a different chunks size; only change this, if 6 seems too big in your context, going higher is not advisable
- * @throws error if baseOrAlphabet is not usable
- * @throws error if result is not decodable again using the same settings
- * @returns {String} the encoded value
+ * @param {number|string} value - value to be encoded
+ * @param {?number|string|Array.<string>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...)
+ *   or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64
+ *   (if the result is chunked, we need a base 3)
+ * @param {?boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(),
+ *   instead of numerical conversion
+ * @param {?boolean} [useChunks=false] - set to true, to add chunking to the numerical approach,
+ *   converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet
+ * @param {?number} [chunkSize=6] - define a different chunk size;
+ *   only change this, if 6 seems too big in your context, going higher is not advisable
+ * @returns {string} the encoded value
+ * @throws {Error} if baseOrAlphabet is not usable
+ * @throws {Error} if the result is not decodable again using the same settings
  *
  * @memberof Conversion:toBaseX
  * @alias toBaseX
@@ -363,15 +368,19 @@ function baseXToBase10(value, alphabet){
  * @see Random:randomUserCode
  * @example
  * toBaseX('foobar')
- * => 'Zm9vYmFy'
+ * // => 'Zm9vYmFy'
+ *
  * toBaseX(-5, 2)
- * => '-101'
+ * // => '-101'
+ *
  * toBaseX(42, 'abcdefghij')
- * => 'ec'
+ * // => 'ec'
+ *
  * toBaseX('too-long-for-number-conversion', 36, true)
- * => 'U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C'
+ * // => 'U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C'
+ *
  * toBaseX('too-long-for-number-conversion', 16, false, true)
- * => 'D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C'
+ * // => 'D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C'
  */
 export function toBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChunks=false, chunkSize=6){
 	const __methodName__ = 'toBaseX';
@@ -388,7 +397,7 @@ export function toBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChun
 
 	const alphabet = buildAlphabet(__methodName__, baseOrAlphabet, useChunks);
 	if( alphabet.includes('{') || alphabet.includes('}') ){
-		throw new Error(`${MODULE_NAME}:${__methodName__} | invalid alphabet, must not contain "{" or "}"`)
+		throw new Error(`${MODULE_NAME}:${__methodName__} | invalid alphabet, must not contain "{" or "}"`);
 	}
 
 	let
@@ -471,15 +480,15 @@ export function toBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChun
 /**
  * This function converts a based representation back to its original number or string value.
  * This is the mirror function to `toBaseX()` and expects a value encoded with that function. See that function
- * for implementation details, modes and restrictions.
+ * for implementation details, modes, and restrictions.
  *
  * The result of this function is always either a decimal number or a string, just as the input value. All numbers
- * apart from decimal ones are returned as strings without prefix. So, decimal 5 will be the number 5, but the binary
+ * apart from decimal ones are returned as strings without a prefix. So, decimal 5 will be the number 5, but the binary
  * version will be the string "101".
  *
- * You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer based
+ * You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer-based
  * alphabets are generated using defined base alphabets, which are sliced if necessary. Custom alphabets are
- * automatically sorted to match base64 are far as possible, pushing additional characters to the end, which are then
+ * automatically sorted to match base64 as far as possible, pushing additional characters to the end, which are then
  * sorted ascending by character value.
  *
  * "{" and "}" are the only forbidden characters in a custom alphabet, since we need these to mark number values in
@@ -487,31 +496,41 @@ export function toBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChun
  *
  * Numerical conversion keeps negative numbers negative and marks the result with a preceding "-".
  *
- * @param {Number|String} value - value to be decoded
- * @param {?Number|String|Array<String>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...) or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)
- * @param {?Boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(), instead of numerical conversion
- * @param {?Boolean} [useChunks=false] - set to true, to add chunking to the numerical approach, converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet
- * @param {?Boolean} [valueIsNumber=false] - if true, the given value is treated as a number for numerical conversion; this is necessary, since numbers such as binaries are defined as strings and are therefore not auto-detectable
- * @throws error if baseOrAlphabet is not usable
- * @throws error character mapped decoding fails, due to missing token/unmatched alphabet
- * @returns {String} the decoded value
+ * @param {number|string} value - value to be decoded
+ * @param {?number|string|Array.<string>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...)
+ *   or the alphabet of characters to use in encoding;
+ *   numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)
+ * @param {?boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(),
+ *   instead of numerical conversion
+ * @param {?boolean} [useChunks=false] - set to true, to add chunking to the numerical approach,
+ *   converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet
+ * @param {?boolean} [valueIsNumber=false] - if true, the given value is treated as a number for numerical conversion;
+ *   this is necessary, since numbers such as binaries are defined as strings and are therefore not auto-detectable
+ * @returns {string|number} the decoded value
+ * @throws {Error} if baseOrAlphabet is not usable
+ * @throws {Error} character mapped decoding fails, due to missing token/unmatched alphabet
  *
  * @memberof Conversion:fromBaseX
  * @alias fromBaseX
  * @see toBaseX
  * @example
  * fromBaseX('Zm9vYmFy')
- * => 'foobar'
+ * // => 'foobar'
+ *
  * fromBaseX('16W33YPUS', 36)
- * => 'äす'
+ * // => 'äす'
+ *
  * fromBaseX('{-3C3}', 13)
- * => -666
+ * // => -666
+ *
  * fromBaseX('q', 64, false, false, true)
- * => 42
+ * // => 42
+ *
  * fromBaseX('U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C', 36, true)
- * => 'too-long-for-number-conversion'
+ * // => 'too-long-for-number-conversion'
+ *
  * fromBaseX('D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C', 16, false, true)
- * => 'too-long-for-number-conversion'
+ * // => 'too-long-for-number-conversion'
  */
 export function fromBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChunks=false, valueIsNumber=false){
 	const __methodName__ = 'fromBaseX';
@@ -541,7 +560,7 @@ export function fromBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useCh
 
 	const alphabet = buildAlphabet(__methodName__, baseOrAlphabet, useChunks);
 	if( alphabet.includes('{') || alphabet.includes('}') ){
-		throw new Error(`${MODULE_NAME}:${__methodName__} | invalid alphabet, must not contain "{" or "}"`)
+		throw new Error(`${MODULE_NAME}:${__methodName__} | invalid alphabet, must not contain "{" or "}"`);
 	}
 
 	let
@@ -609,7 +628,7 @@ export function fromBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useCh
 		}
 
 		if( decodedValue === '' ){
-			decodedValue = base64ToString(base64Value, __methodName__)
+			decodedValue = base64ToString(base64Value, __methodName__);
 			if( valueIsNegativeNumber ){
 				decodedValue = `-${decodedValue}`;
 			}

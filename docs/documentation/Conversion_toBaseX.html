@@ -106,7 +106,7 @@
 
     
 
-    <h4 class="name" id="toBaseX"><span class="type-signature"></span>toBaseX<span class="signature">(value, baseOrAlphabet<span class="signature-attributes">opt</span>, useCharacterMap<span class="signature-attributes">opt, nullable</span>, useChunks<span class="signature-attributes">opt, nullable</span>, chunkSize<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {String}</span></h4>
+    <h4 class="name" id="toBaseX"><span class="type-signature"></span>toBaseX<span class="signature">(value, baseOrAlphabet<span class="signature-attributes">opt</span>, useCharacterMap<span class="signature-attributes">opt, nullable</span>, useChunks<span class="signature-attributes">opt, nullable</span>, chunkSize<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {string}</span></h4>
 
     
 
@@ -114,48 +114,48 @@
 
 <div class="description">
     <p>This function converts a value to a representation in a defined base between 2 and 64.
-So this covers common use cases like binary, octal, hexadecimal, alphabetical, alphanumeric and of course base64.</p>
+So this covers common use cases like binary, octal, hexadecimal, alphabetical, alphanumeric and, of course, base64.</p>
 <p>The result of this function is always either a decimal number or a string, just as the input value. All numbers
-apart from decimal ones are returned as strings without prefix. So, decimal 5 will be the number 5, but the binary
+apart from decimal ones are returned as strings without a prefix. So, decimal 5 will be the number 5, but the binary
 version will be the string &quot;101&quot;. Positive and negative decimal integers are valid numbers here, but this
 implementation does not support floats (multiply and divide if needed). Only numerical bases above 36 contain
 lower case characters, so decimal 255 is &quot;FF&quot; in base 16 and not &quot;ff&quot;.</p>
-<p>This function is unicode safe, by using byte conversion
+<p>This function is Unicode safe, by using byte conversion
 (see: https://developer.mozilla.org/en-US/docs/Glossary/Base64#the_unicode_problem).
-Be aware, that this also means, that results of <code>btoa/atob()</code> and <code>toBaseX/fromBaseX()</code> are <em>not</em> interchangeable,
+Be aware that this also means that results of <code>btoa/atob()</code> and <code>toBaseX/fromBaseX()</code> are <em>not</em> interchangeable,
 since they work with different values internally.</p>
 <p>There are three approaches to changing the base of a value in JavaScript:</p>
 <ol>
 <li>
 <p>Either you are taking the numerical/mathematical road, treating a value as a number in its alphabet being
-interpreted as a number, where each character, counting from the back is the base to the power of the
+interpreted as a number, where each character counting from the back is the base to the power of the
 character index. This is the approach you'd expect, when, for instance, you'd want to convert the decimal number 5
-to binary 101. The downside of this approach is, that the relatively small max safe integer in JavaScript makes
+to binary 101. The downside of this approach is that the relatively small max safe integer in JavaScript makes
 converting large numbers, such as longer strings, impossible.</p>
 </li>
 <li>
-<p>Therefore, the second approach takes the numeric approach, but combines it with chunking, splitting the value into
-pieces, which are, by themselves, safely convertible. The downside is, that we need an extra character to delimit
-chunks in the result, since values have non-uniform lengths. This means, that this does not work with the basic
+<p>Therefore, the second approach takes the numeric approach but combines it with chunking, splitting the value into
+pieces, which are, by themselves, safely convertible. The downside is that we need an extra character to delimit
+chunks in the result, since values have non-uniform lengths. This means that this does not work with the basic
 binary base, and we need at least 3 alphabet characters.</p>
 </li>
 <li>
 <p>The last approach uses the native base64 string encoding with <code>btoa()</code> as a safe translation layer, mapping the
 resulting string to the target base, using a generated (and possibly paged) character map. This way treats all
-values as strings and is not compatible to numerical conversion anymore, but uses the same characters. The result
-of this approach can encode every string of every length without structural tricks, but has the longest results.</p>
+values as strings and is not compatible with numerical conversion anymore but uses the same characters. The result
+of this approach can encode every string of every length without structural tricks but has the longest results.</p>
 </li>
 </ol>
-<p>This function is capable of all three approaches, which are equally safe for unicode values. The numerical
+<p>This function is capable of all three approaches, which are equally safe for Unicode values. The numerical
 approach is the default. If you want to encode large numbers or strings longer than ~6 characters, select
 a different approach using the <code>useCharacterMap</code> or <code>useChunks</code> parameters. Character mapping has preference, while
 chunks have no effect in character mapping.</p>
 <p>Each encoding process ends with a self-test, checking if the result is actually decodable using
-<code>fromBaseX()</code>, using the same settings again. This ensures, that every result is valid and retrievable in the future,
+<code>fromBaseX()</code>, using the same settings again. This ensures that every result is valid and retrievable in the future,
 preventing any undiscovered errors, which would make it impossible to work with the original value again.</p>
-<p>You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer based
+<p>You may define the base as an integer between 2 and 64 or as a custom alphabet in the same range. Integer-based
 alphabets are generated using defined base alphabets, which are sliced if necessary. Custom alphabets are
-automatically sorted to match base64 are far as possible, pushing additional characters to the end, which are then
+automatically sorted to match base64 as far as possible, pushing additional characters to the end, which are then
 sorted ascending by character value.</p>
 <p>&quot;{&quot; and &quot;}&quot; are the only forbidden characters in a custom alphabet, since we need these to mark number values in
 <code>fromBaseX()</code>.</p>
@@ -206,10 +206,10 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 |
 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 
 
             
@@ -244,13 +244,13 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 |
 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 |
 
-<span class="param-type">Array.&lt;String></span>
+<span class="param-type">Array.&lt;string></span>
 
 
             
@@ -276,7 +276,9 @@ sorted ascending by character value.</p>
                 </td>
             
 
-            <td class="description last"><p>either the numerical base to convert to (64, 36, ...) or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)</p></td>
+            <td class="description last"><p>either the numerical base to convert to (64, 36, ...)
+or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64
+(if the result is chunked, we need a base 3)</p></td>
         </tr>
 
     
@@ -289,7 +291,7 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -317,7 +319,8 @@ sorted ascending by character value.</p>
                 </td>
             
 
-            <td class="description last"><p>set to true, to use a character map, based on btoa(), instead of numerical conversion</p></td>
+            <td class="description last"><p>set to true, to use a character map, based on btoa(),
+instead of numerical conversion</p></td>
         </tr>
 
     
@@ -330,7 +333,7 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -358,7 +361,8 @@ sorted ascending by character value.</p>
                 </td>
             
 
-            <td class="description last"><p>set to true, to add chunking to the numerical approach, converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet</p></td>
+            <td class="description last"><p>set to true, to add chunking to the numerical approach,
+converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet</p></td>
         </tr>
 
     
@@ -371,7 +375,7 @@ sorted ascending by character value.</p>
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">number</span>
 
 
             
@@ -399,7 +403,8 @@ sorted ascending by character value.</p>
                 </td>
             
 
-            <td class="description last"><p>define a different chunks size; only change this, if 6 seems too big in your context, going higher is not advisable</p></td>
+            <td class="description last"><p>define a different chunk size;
+only change this, if 6 seems too big in your context, going higher is not advisable</p></td>
         </tr>
 
     
@@ -440,7 +445,7 @@ sorted ascending by character value.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="conversion.js.html">conversion.js</a>, <a href="conversion.js.html#line376">line 376</a>
+        <a href="conversion.js.html">conversion.js</a>, <a href="conversion.js.html#line385">line 385</a>
     </li></ul></dd>
     
 
@@ -476,21 +481,55 @@ sorted ascending by character value.</p>
 <ul>
         <li>
 
-    <div class="param-desc">
-    
-        <p>error if baseOrAlphabet is not usable</p>
-    
-    </div>
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>if baseOrAlphabet is not usable</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
 
 </li>
     
         <li>
 
-    <div class="param-desc">
-    
-        <p>error if result is not decodable again using the same settings</p>
-    
-    </div>
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>if the result is not decodable again using the same settings</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
 
 </li>
     </ul>
@@ -511,7 +550,7 @@ sorted ascending by character value.</p>
     </dt>
     <dd>
         
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 
 
     </dd>
@@ -523,15 +562,19 @@ sorted ascending by character value.</p>
     <h5>Example</h5>
     
     <pre class="prettyprint"><code>toBaseX('foobar')
-=> 'Zm9vYmFy'
+// => 'Zm9vYmFy'
+
 toBaseX(-5, 2)
-=> '-101'
+// => '-101'
+
 toBaseX(42, 'abcdefghij')
-=> 'ec'
+// => 'ec'
+
 toBaseX('too-long-for-number-conversion', 36, true)
-=> 'U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C'
+// => 'U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C'
+
 toBaseX('too-long-for-number-conversion', 16, false, true)
-=> 'D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C'</code></pre>
+// => 'D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C'</code></pre>
 
 
 
@@ -557,7 +600,7 @@ toBaseX('too-long-for-number-conversion', 16, false, true)
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sat Jan 31 2026 16:31:06 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sun Feb 01 2026 22:32:28 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

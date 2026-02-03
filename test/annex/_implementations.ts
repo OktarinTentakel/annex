@@ -7,12 +7,16 @@ import * as __basic from '../../dist/basic.js';
 import * as _conversion from '../../source/conversion.js';
 import * as __conversion from '../../dist/conversion.js';
 
+import * as _cookies from '../../source/cookies.js';
+import * as __cookies from '../../dist/cookies.js';
+
 
 
 let
 	arrays:typeof _arrays,
 	basic:typeof _basic,
-	conversion:typeof _conversion
+	conversion:typeof _conversion,
+	cookies:typeof _cookies
 ;
 
 if (process.env.SOURCE === 'es5-monolith') {
@@ -20,6 +24,7 @@ if (process.env.SOURCE === 'es5-monolith') {
 	arrays = global.annex.arrays;
 	basic = global.annex.basic;
 	conversion = global.annex.conversion;
+	cookies = global.annex.cookies;
 } else if (process.env.SOURCE === 'dist') {
 	// @ts-ignore
 	arrays = __arrays;
@@ -27,10 +32,13 @@ if (process.env.SOURCE === 'es5-monolith') {
 	basic = __basic;
 	// @ts-ignore
 	conversion = __conversion;
+	// @ts-ignore
+	cookies = __cookies;
 } else {
 	arrays = _arrays;
 	basic = _basic;
 	conversion = _conversion;
+	cookies = _cookies;
 }
 
 
@@ -39,4 +47,5 @@ export {
 	arrays,
 	basic,
 	conversion,
+	cookies,
 };

@@ -113,7 +113,7 @@ Besides just downloading the zip file and dropping the package in your project (
 may easily use NPM or Yarn.
 
 Currently, I'm publishing to Github packages and not the central NPM registry. If you want to directly install the
-package, not using the repository URL, , you'll have to tell NPM/Yarn, that `@oktarintentakel` can be found at GitHub
+package, not using the repository URL, you'll have to tell NPM/Yarn, that `@oktarintentakel` can be found at GitHub
 packages and not at the central NPM registry and add an access token to use for installing. To do this, add or edit a
 `.npmrc` file (either globally in your home folder or next to the `package.json` to your project) and add
 `@oktarintentakel:registry=https://npm.pkg.github.com` to the file (following GitHub's

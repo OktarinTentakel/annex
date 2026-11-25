@@ -106,18 +106,18 @@
 
     
 
-    <h4 class="name" id="formatDates"><span class="type-signature"></span>format<span class="signature">(date, definition<span class="signature-attributes">opt, nullable</span>, locale<span class="signature-attributes">opt</span>, type<span class="signature-attributes">opt, nullable</span>, options<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {String}</span></h4>
+    <h4 class="name" id="formatDates"><span class="type-signature"></span>format<span class="signature">(date, definition<span class="signature-attributes">opt</span>, locale<span class="signature-attributes">opt</span>, type<span class="signature-attributes">opt</span>, options<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {string}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Returns a formatted string, describing the date in a verbose, non-technical way.</p>
+    <p>Returns a formatted string, representing the date in a verbose, non-technical or custom way.</p>
 <p>Under the hood, this uses Intl.DateTimeFormat, which is widely supported and convenient to use
 for most widely used locales.</p>
-<p>&quot;definition&quot; may be a format shortcut for &quot;dateStyle&quot; (and &quot;timeStyle&quot; if type is &quot;datetime&quot;) or a format string,
-for a custom format, using these tokens:</p>
+<p>The &quot;definition&quot; may be a format shortcut (&quot;full&quot;, &quot;long&quot;, &quot;medium&quot; or &quot;short&quot;) for &quot;dateStyle&quot;
+(and &quot;timeStyle&quot; if the &quot;type&quot; is &quot;datetime&quot;) or a format string, for a custom format, using these tokens:</p>
 <p>YY      18         two-digit year;
 YYYY    2018       four-digit year;
 M       1-12       the month, beginning at 1;
@@ -221,7 +221,22 @@ format styles for localized dates, based on the given locale(s).</p>
             <td class="type">
             
                 
-<span class="param-type">String</span>
+<span class="param-type">"full"</span>
+|
+
+<span class="param-type">"long"</span>
+|
+
+<span class="param-type">"medium"</span>
+|
+
+<span class="param-type">"short"</span>
+|
+
+<span class="param-type">"none"</span>
+|
+
+<span class="param-type">string</span>
 
 
             
@@ -233,8 +248,6 @@ format styles for localized dates, based on the given locale(s).</p>
                     &lt;optional><br>
                 
 
-                
-                    &lt;nullable><br>
                 
 
                 
@@ -249,7 +262,10 @@ format styles for localized dates, based on the given locale(s).</p>
                 </td>
             
 
-            <td class="description last"><p>either a preset style to quickly define a format style, by setting shortcuts for dateStyle and timeStyle (if type is &quot;datetime&quot;), set to &quot;none&quot; or nullish value to skip quick format; alternatively, define this as a format string to use a custom format</p></td>
+            <td class="description last"><p>either a preset style to quickly define
+a format style, by setting shortcuts for dateStyle and timeStyle (if type is &quot;datetime&quot;),
+set to &quot;none&quot; or nullish value to skip formatting;
+alternatively, define this as a format string to use a custom format</p></td>
         </tr>
 
     
@@ -262,10 +278,10 @@ format styles for localized dates, based on the given locale(s).</p>
             <td class="type">
             
                 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 |
 
-<span class="param-type">Array.&lt;String></span>
+<span class="param-type">Array.&lt;string></span>
 
 
             
@@ -291,7 +307,8 @@ format styles for localized dates, based on the given locale(s).</p>
                 </td>
             
 
-            <td class="description last"><p>locale to use for date format and text generation, use an array to define fallback; always falls back to en-US if nothing else works</p></td>
+            <td class="description last"><p>locale to use for date format and text generation,
+use an array to define fallback; always falls back to &quot;en-US&quot; if nothing else works</p></td>
         </tr>
 
     
@@ -304,7 +321,13 @@ format styles for localized dates, based on the given locale(s).</p>
             <td class="type">
             
                 
-<span class="param-type">String</span>
+<span class="param-type">"datetime"</span>
+|
+
+<span class="param-type">"date"</span>
+|
+
+<span class="param-type">"time"</span>
 
 
             
@@ -316,8 +339,6 @@ format styles for localized dates, based on the given locale(s).</p>
                     &lt;optional><br>
                 
 
-                
-                    &lt;nullable><br>
                 
 
                 
@@ -332,7 +353,7 @@ format styles for localized dates, based on the given locale(s).</p>
                 </td>
             
 
-            <td class="description last"><p>set to 'datetime', 'date' or 'time' to define which parts should be rendered</p></td>
+            <td class="description last"><p>defines which parts should be rendered</p></td>
         </tr>
 
     
@@ -345,7 +366,7 @@ format styles for localized dates, based on the given locale(s).</p>
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">DateTimeFormatOptions</span>
 
 
             
@@ -373,7 +394,8 @@ format styles for localized dates, based on the given locale(s).</p>
                 </td>
             
 
-            <td class="description last"><p>options to pass to the Intl.DateTimeFormat constructor, is applied last, so should override anything predefined, if key is reset</p></td>
+            <td class="description last"><p>options to pass to the Intl.DateTimeFormat constructor;
+is applied last, so should override anything defined before</p></td>
         </tr>
 
     
@@ -414,7 +436,7 @@ format styles for localized dates, based on the given locale(s).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dates.js.html">dates.js</a>, <a href="dates.js.html#line160">line 160</a>
+        <a href="dates.js.html">dates.js</a>, <a href="dates.js.html#line166">line 166</a>
     </li></ul></dd>
     
 
@@ -461,7 +483,7 @@ format styles for localized dates, based on the given locale(s).</p>
     </dt>
     <dd>
         
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 
 
     </dd>
@@ -473,9 +495,10 @@ format styles for localized dates, based on the given locale(s).</p>
     <h5>Example</h5>
     
     <pre class="prettyprint"><code>format(new Date(), 'de-DE', 'long', 'datetime', {timeZone : 'UTC'})
-=> '12. Dezember 2023 um 02:00:00 UTC'
+//=> '12. Dezember 2023 um 02:00:00 UTC'
+
 format(new Date(), 'YYYY-MM-DDTHH:mm:ss.SSSZ')
-=> '2023-12-12T02:00:00'</code></pre>
+//=> '2023-12-12T02:00:00'</code></pre>
 
 
 
@@ -501,7 +524,7 @@ format(new Date(), 'YYYY-MM-DDTHH:mm:ss.SSSZ')
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sun Feb 01 2026 22:32:28 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Fri Mar 27 2026 09:01:51 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

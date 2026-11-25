@@ -255,9 +255,10 @@ test('orDefault', (assert:ExecutionContext):void => {
 		barfoo:boolean = _.orDefault(0, true, 'bool') as boolean,
 		boo:Array<string|number> = _.orDefault('a', [1, 2, 3], 'array') as Array<string|number>,
 		far:number = _.orDefault(42, 1.1, 'float') as number,
-		baz:Date = _.orDefault(null, '1983-03-16', (val:string):Date => {
+		baz:Date = _.orDefault('1983-03-16', '1970-01-01', (val:string):Date => {
 			return new Date(val);
-		}) as Date
+		}) as Date,
+		faz:number = _.orDefault(null, 42, 'str') as number
 	;
 
 	assert.is(foo, 'kittens!');
@@ -273,6 +274,8 @@ test('orDefault', (assert:ExecutionContext):void => {
 	assert.is(far, 42.0);
 
 	assert.is(baz.getFullYear(), 1983);
+
+	assert.is(faz, 42);
 });
 
 

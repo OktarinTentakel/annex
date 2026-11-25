@@ -78,16 +78,16 @@ function decodeCookieName(name){
 /**
  * @typedef {Object} TypeDef_CookieOptions
  *
- * @property {?Date|number} [expires=null] - expiry time of the cookie, either as a Date object or time in days
- * @property {?number} [max-age=null] - max age of the cookie in seconds
- * @property {?string} [path='/'] - the cookie path, setting this to "auto" or an empty string defines auto-mode,
+ * @property {?Date|number} expires=null - expiry time of the cookie, either as a Date object or time in days
+ * @property {?number} max-age=null - max age of the cookie in seconds
+ * @property {?string} path='/' - the cookie path, setting this to "auto" or an empty string defines auto-mode,
  *   which targets the current site path, which usually is the default, but we use '/' to set a cookie for whole site,
  *   this being the common use-case
- * @property {?boolean} [secure=false] - define if the cookie should only be transmitted via https
+ * @property {?boolean} secure=false - define if the cookie should only be transmitted via https
  *   (see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)
- * @property {?boolean} [httponly=false] - define this, if cookie should only be sent to servers and not be accessible
+ * @property {?boolean} httponly=false - define this, if cookie should only be sent to servers and not be accessible
  *   to JavaScript (see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)
- * @property {?string} [samesite=null] - define if this cookie should be included in cross-site requests,
+ * @property {?string} samesite=null - define if this cookie should be included in cross-site requests,
  *   may be either "strict" (will only ever transmit same-site),
  *   "lax" (usual browser default, transmits same-site and top-level GET)
  *   or "none" (no restrictions, will always be sent)
@@ -118,20 +118,14 @@ function normalizeCookieOptions(options){
 		options.expires = null;
 	}
 
-	options['max-age'] = hasValue(options['max-age'])
-		? parseInt(options['max-age'], 10)
-		: null
-	;
+	options['max-age'] = orDefault(options['max-age'], null, 'int');
 
 	options.path = orDefault(options.path, '/', 'str');
 	if( options.path === 'auto' ){
 		options.path = '';
 	}
 
-	options.domain = hasValue(options.domain)
-		? `${options.domain}`
-		: null
-	;
+	options.domain = orDefault(options.domain, null, 'str');
 
 	options.httponly = orDefault(options.httponly, false, 'bool');
 
@@ -171,13 +165,13 @@ function normalizeCookieOptions(options){
  * @see removeCookie
  * @example
  * getCookie('foobar')
- * // => 'value'
+ * //=> 'value'
  *
  * getCookie(['foobar', 'boofar'])
- * // => {foobar : 'value', boofar : 'value'}
+ * //=> {foobar : 'value', boofar : 'value'}
  *
  * getCookie()
- * // => all available cookies
+ * //=> all available cookies
  */
 export function getCookie(name=null){
 	const
@@ -186,9 +180,9 @@ export function getCookie(name=null){
 	;
 
 	let res = (names.size === 0) ? {} : null;
-	if( !hasValue(document.cookie) ) return res;
+	if( !hasValue(globalThis.document.cookie) ) return res;
 
-	const cookies = document.cookie.split(';');
+	const cookies = globalThis.document.cookie.split(';');
 	for( let i in cookies ){
 		try {
 			const
@@ -249,13 +243,13 @@ export function getCookie(name=null){
  * @see removeCookie
  * @example
  * getCookies(['foobar', 'boofar'])
- * // => {foobar : 'value', boofar : 'value'}
+ * //=> {foobar : 'value', boofar : 'value'}
  *
  * getCookies('foobar', 'boofar')
- * // => {foobar : 'value', boofar : 'value'}
+ * //=> {foobar : 'value', boofar : 'value'}
  *
  * getCookie()
- * // => all available cookies
+ * //=> all available cookies
  */
 export function getCookies(...names){
 	return getCookie(names);
@@ -315,7 +309,7 @@ export function setCookie(name, value=null, options=null){
 	}
 
 	if( hasValue(value) ){
-		document.cookie = `${encodeCookieName(name)}=${value}${cookieOptions}`;
+		globalThis.document.cookie = `${encodeCookieName(name)}=${value}${cookieOptions}`;
 	} else {
 		removeCookie(name, options);
 	}

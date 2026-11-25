@@ -7,15 +7,9 @@ import {cookies as _} from './_implementations.ts';
 
 
 test('setCookie & getCookie(s) & removeCookie', (assert:ExecutionContext):void => {
-	assert.is(
-		_.setCookie('kittencookie', 'fluffy', {httponly : true}),
-		null
-	);
+	assert.is(_.setCookie('kittencookie', 'fluffy', {httponly : true}),	null);
 
-	assert.is(
-		_.getCookie('kittencookie'),
-		null
-	);
+	assert.is(_.getCookie('kittencookie'), null);
 
 	assert.is(
 		_.setCookie(
@@ -26,10 +20,7 @@ test('setCookie & getCookie(s) & removeCookie', (assert:ExecutionContext):void =
 		'fluffy'
 	);
 
-	assert.is(
-		_.getCookie('kittencookie'),
-		'fluffy'
-	);
+	assert.is(_.getCookie('kittencookie'), 'fluffy');
 
 	assert.is(
 		_.setCookie(
@@ -40,10 +31,7 @@ test('setCookie & getCookie(s) & removeCookie', (assert:ExecutionContext):void =
 		null
 	);
 
-	assert.is(
-		_.getCookie('foobarcookie([ #ü ])'),
-		null
-	);
+	assert.is(_.getCookie('foobarcookie([ #ü ])'), null);
 
 	assert.is(
 		_.setCookie(
@@ -79,15 +67,9 @@ test('setCookie & getCookie(s) & removeCookie', (assert:ExecutionContext):void =
 		boofarcookie : '{"json" : [true, false, "test"]}'
 	});
 
-	assert.is(
-		_.setCookie('foobarcookie([ #ü ])', null),
-		null
-	);
+	assert.is(_.setCookie('foobarcookie([ #ü ])', null), null);
 
-	assert.is(
-		_.getCookie('foobarcookie([ #ü ])'),
-		null
-	);
+	assert.is(_.getCookie('foobarcookie([ #ü ])'), null);
 
 	assert.true(_.removeCookie('kittencookie'));
 
@@ -95,10 +77,7 @@ test('setCookie & getCookie(s) & removeCookie', (assert:ExecutionContext):void =
 
 	assert.true(_.removeCookie('boofarcookie'));
 
-	assert.is(
-		_.getCookie('foobarcookie([ #ü ])'),
-		null
-	);
+	assert.is(_.getCookie('foobarcookie([ #ü ])'), null);
 
 	assert.deepEqual(_.getCookies(), {});
 });

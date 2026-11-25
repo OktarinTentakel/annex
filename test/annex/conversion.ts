@@ -6,7 +6,7 @@ import {conversion as _} from './_implementations.ts';
 
 
 
-const WORST_CASE = {
+const WORST_CASE:Record<string,string> = {
 	value : `
 		this is absurdly long test content which will be encoded using a special charset made for readability
 

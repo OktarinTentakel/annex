@@ -84,22 +84,22 @@ import {
  * @alias removeFrom
  * @example
  * removeFrom([1, 2, 3, 4, 5], 0, 2);
- * // => [4, 5]
+ * //=> [4, 5]
  *
  * removeFrom([1, 2, 3, 4, 5], -3, -1);
- * // => [1, 2]
+ * //=> [1, 2]
  *
  * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], 'b');
- * // => [b, 1]
+ * //=> [b, 1]
  *
  * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1], b);
- * // => [{a : 'b', toString(){ return 'b'; }}, 'b', 1]
+ * //=> [{a : 'b', toString(){ return 'b'; }}, 'b', 1]
  *
  * removeFrom([true, true, false, true, true], true)
- * // => [false]
+ * //=> [false]
  *
  * removeFrom([{a : 'b', toString(){ return 'b'; }}, 'b', b, 1, 2], ['b', b, 2]);
- * // => [1]
+ * //=> [1]
  */
 export function removeFrom(target, from, to=null){
 	const __methodName__ = 'removeFrom';
@@ -175,7 +175,7 @@ export function removeFrom(target, from, to=null){
  * @param {number|string} to - the end of the range, may also be negative,
  *   if smaller than "from", the range is created in reverse,
  *   as a string, this can be a single character
- * @param {?number} [step=null] - the (positive) step length in the range to use between individual range values,
+ * @param {?number} [step=1] - the (positive) step length in the range to use between individual range values,
  *   if the step length does not hit "to" exactly, the range will end at the last possible value before "to"
  * @returns {Array.<number>|Array.<string>} new array with generated range
  * @throws {Error} if "from" or "to" are empty strings
@@ -184,13 +184,13 @@ export function removeFrom(target, from, to=null){
  * @alias generateRange
  * @example
  * generateRange(0, 10, 2)
- * // => [0, 2, 4, 6, 8, 10]
+ * //=> [0, 2, 4, 6, 8, 10]
  *
  * generateRange(5, -5, 3.5)
- * // => [5, 1.5, -2]
+ * //=> [5, 1.5, -2]
  *
  * generateRange('a', 'g', 3)
- * // => ['a', 'd', 'g']
+ * //=> ['a', 'd', 'g']
  */
 export function generateRange(from, to, step=1){
 	const

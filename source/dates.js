@@ -24,7 +24,7 @@ import {
 	isNaN,
 	isObject,
 	isPlainObject,
-	isFunction
+	isFunction,
 } from './basic.js';
 
 import {pad} from './strings.js';
@@ -105,13 +105,13 @@ const DATE_PART_SETTERS_AND_GETTERS = {
  */
 
 /**
- * Returns a formatted string, describing the date in a verbose, non-technical way.
+ * Returns a formatted string, representing the date in a verbose, non-technical or custom way.
  *
  * Under the hood, this uses Intl.DateTimeFormat, which is widely supported and convenient to use
  * for most widely used locales.
  *
- * "definition" may be a format shortcut for "dateStyle" (and "timeStyle" if type is "datetime") or a format string,
- * for a custom format, using these tokens:
+ * The "definition" may be a format shortcut ("full", "long", "medium" or "short") for "dateStyle"
+ * (and "timeStyle" if the "type" is "datetime") or a format string, for a custom format, using these tokens:
  *
  * YY      18         two-digit year;
  * YYYY    2018       four-digit year;
@@ -140,11 +140,16 @@ const DATE_PART_SETTERS_AND_GETTERS = {
  * format styles for localized dates, based on the given locale(s).
  *
  * @param {Date} date - the date to format
- * @param {?String} [definition='long'] - either a preset style to quickly define a format style, by setting shortcuts for dateStyle and timeStyle (if type is "datetime"), set to "none" or nullish value to skip quick format; alternatively, define this as a format string to use a custom format
- * @param {?String|Array<String>} [locale='en-US'] - locale to use for date format and text generation, use an array to define fallback; always falls back to en-US if nothing else works
- * @param {?String} [type='datetime'] - set to 'datetime', 'date' or 'time' to define which parts should be rendered
- * @param {?Object} [options=null] - options to pass to the Intl.DateTimeFormat constructor, is applied last, so should override anything predefined, if key is reset
- * @returns {String} - the formatted date/time string
+ * @param {?"full"|"long"|"medium"|"short"|"none"|string} [definition='long'] - either a preset style to quickly define
+ *   a format style, by setting shortcuts for dateStyle and timeStyle (if type is "datetime"),
+ *   set to "none" or nullish value to skip formatting;
+ *   alternatively, define this as a format string to use a custom format
+ * @param {string|Array.<string>} [locale='en-US'] - locale to use for date format and text generation,
+ *   use an array to define fallback; always falls back to "en-US" if nothing else works
+ * @param {"datetime"|"date"|"time"} [type='datetime'] - defines which parts should be rendered
+ * @param {?DateTimeFormatOptions} [options=null] - options to pass to the Intl.DateTimeFormat constructor;
+ *   is applied last, so should override anything defined before
+ * @returns {string} - the formatted date/time string
  *
  * @memberof Dates:format
  * @alias format
@@ -153,9 +158,10 @@ const DATE_PART_SETTERS_AND_GETTERS = {
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#style_shortcuts
  * @example
  * format(new Date(), 'de-DE', 'long', 'datetime', {timeZone : 'UTC'})
- * => '12. Dezember 2023 um 02:00:00 UTC'
+ * //=> '12. Dezember 2023 um 02:00:00 UTC'
+ *
  * format(new Date(), 'YYYY-MM-DDTHH:mm:ss.SSSZ')
- * => '2023-12-12T02:00:00'
+ * //=> '2023-12-12T02:00:00'
  */
 export function format(date, definition='long', locale='en-US', type='datetime', options=null){
 	const
@@ -258,12 +264,49 @@ export function format(date, definition='long', locale='en-US', type='datetime',
  **/
 
 /**
+ * @typedef {Object} TypeDef_DateLike
+ *
+ * @property {function():string} [toISOString] - Returns the value as an ISO string (one version has to be implemented).
+ * @property {function():string} [toIsoString] - Returns the value as an ISO string (one version has to be implemented).
+ * @property {function():string} [getISOString] - Returns the value as an ISO string (one version has to be implemented).
+ * @property {function():string} [getIsoString] - Returns the value as an ISO string (one version has to be implemented).
+ *
+ * @memberof Dates
+ */
+
+/**
+ * @typedef {Object} TypeDef_TimeOffset
+ *
+ * @property {?number} [years=null] - negative or positive integer defining the offset from the current date in years
+ * @property {?number} [months=null] - negative or positive integer defining the offset from the current date in months
+ * @property {?number} [days=null] - negative or positive integer defining the offset from the current date in days
+ * @property {?number} [hours=null] - negative or positive integer defining the offset from the current date in hours
+ * @property {?number} [minutes=null] - negative or positive integer defining the offset from the current date in minutes
+ * @property {?number} [seconds=null] - negative or positive integer defining the offset from the current date in seconds
+ * @property {?number} [milliseconds=null] - negative or positive integer defining the offset from the current date in milliseconds
+ *
+ * @memberof Dates
+ */
+
+/**
+ * @typedef {Object} TypeDef_TimeDelta
+ *
+ * @property {?number} [days=null] - negative or positive integer defining the offset from the current date in days
+ * @property {?number} [hours=null] - negative or positive integer defining the offset from the current date in hours
+ * @property {?number} [minutes=null] - negative or positive integer defining the offset from the current date in minutes
+ * @property {?number} [seconds=null] - negative or positive integer defining the offset from the current date in seconds
+ * @property {?number} [milliseconds=null] - negative or positive integer defining the offset from the current date in milliseconds
+ *
+ * @memberof Dates
+ */
+
+/**
  * SaneDate is a reimplementation of JavaScript date objects, trying to iron out all the small fails
  * which make you want to pull your hair while keeping the cool stuff in a streamlined manner.
  *
  * SaneDates operate between the years 0 and 9999.
- * If you create a new SaneDate, it starts off in local mode, always working and returning local information, but
- * you may activate UTC mode by defining `.utc = true;`.
+ * If you create a new SaneDate, it starts off in local mode, always working in and returning local information, but
+ * you may activate UTC mode by defining `utc = true`.
  *
  * Parsing an ISO string creates a local SaneDate if no timezone is defined, if you define "Z" or an offset, the
  * given string is interpreted as UTC info, so "2012-12-12T12:00:00" will set all parts as local information,
@@ -279,26 +322,26 @@ export function format(date, definition='long', locale='en-US', type='datetime',
  *
  * Additionally, set UTC mode, using the "utc" property.
  *
- * SaneDates are very exception-happy and won't allow anything, that changes or produces a date in an unexpected
- * manner. All automagic behaviour of JS dates is an error here, so setting a month to 13 and expecting a year jump
+ * SaneDates are very exception-happy and won't allow anything that changes or produces a date with implicit magic.
+ * All automagic behavior of JS dates is an error here, so setting a month to 13 and expecting a year jump
  * will not work. Dates are very sensitive information and often used for contractual stuff, so anything coming out
  * differently than you defined it in the first place is very problematic. Every change to any single property triggers
- * a check, if any side effects occurred at all and if the change exactly results in the exact info being represented.
+ * a check if any side effects occurred at all and if the change results in the exact info being represented.
  * Any side effect or misrepresentation results in an exception, since something happened we did not expect or define.
  *
  * Months and week days are not zero based in SaneDates but begin with 1. Week days are not an attribute
  * (and not settable), but accessible via .getWeekDay().
  *
- * This whole implementation is heavily built around iso strings, so building a date with one and getting one
- * to transfer should be forgiving, easy and robust. Something like '1-2-3 4:5:6.7' is a usable iso string
+ * This whole implementation is heavily built around ISO strings, so building a date with one and getting one
+ * to transfer should be forgiving, easy, and robust. Something like '1-2-3 4:5:6.7' is a usable ISO string
  * for SaneDate, but getIsoString() will return correctly formatted '0001-02-03T04:05:06.700'.
  *
- * See class documentation below for details.
+ * For details, see implementation and class documentation.
  *
  * @memberof Dates:SaneDate
  * @name SaneDate
- *
  * @see SaneDate
+ * @see Dates.SaneDate
  * @example
  * let date = new SaneDate('1-2-3 4:5:6.7');
  * date = new SaneDate('2016-4-7');
@@ -307,33 +350,125 @@ export function format(date, definition='long', locale='en-US', type='datetime',
  * date = new SaneDate(2016, 4, 7, 13, 37, 0, 999);
  * date.year = 2000;
  * date.forward('hours', 42);
+ * date.utc = true;
  */
 class SaneDate {
 
 	#__className__ = 'SaneDate';
-	#invalidDateMessage = 'invalid date, please check parameters - SaneDate only accepts values that result in a valid date, where the given value is reflected exactly (e.g.: setting hours to 25 will not work)';
+	#invalidDateMessage = 'invalid date, please check parameters - '
+		+'SaneDate only accepts values that result in a valid date '
+		+'(e.g.: setting hours to 25 will not work)'
+	;
 	#paramInvalidOrOutOfRangeMessage = 'invalid or out of range';
 	#date = null;
 	#utc = false;
 
 	/**
-	 * Creates a new SaneDate, either based on Date.now(), a given initial value or given date parts.
+	 * Defines if the date should behave as a UTC date instead of a local date (which is the default).
 	 *
-	 * @param {?Date|SaneDate|String|Number|Object} [initialValueOrYear=null] - something, that can be used to construct an initial value, this may be a vanilla Date, a SaneDate, a parsable string, a unix timestamp or an object implementing a method toISOString/toIsoString/getISOString/getIsoString; if this is a number, it will be treated as the year, if any other parameter is set as well; if nullish and all other parameters are not set either, the initial value is Date.now()
-	 * @param {?Number} [month=null] - month between 1 and 12, to set in initial value
-	 * @param {?Number} [date=null] - date between 1 and 31, to set in initial value
-	 * @param {?Number} [hours=null] - hours between 0 and 23, to set in initial value
-	 * @param {?Number} [minutes=null] - minutes between 0 and 59, to set in initial value
-	 * @param {?Number} [seconds=null] - seconds between 0 and 59, to set in initial value
-	 * @param {?Number} [milliseconds=null] - milliseconds between 0 and 999, to set in initial value
-	 * @throws error if created date is invalid
+	 * @type {boolean}
 	 */
-	constructor(initialValueOrYear=null, month=null, date=null, hours=null, minutes=null, seconds=null, milliseconds=null){
+	utc = false;
+
+	/**
+	 * The date's year in the range of 0 to 9999.
+	 *
+	 * Throws an Error if the year is invalid or out of range.
+	 *
+	 * @type {number}
+	 */
+	year;
+
+	/**
+	 * The date's month in the range of 1 to 12.
+	 *
+	 * Throws an Error if the month is invalid or out of range.
+	 *
+	 * @type {number}
+	 */
+	month;
+
+	/**
+	 * The date's day of the month in the range of 1 to 31.
+	 *
+	 * Throws an Error if the date is invalid or out of range.
+	 *
+	 * @type {number}
+	 */
+	date;
+
+	/**
+	 * The date's hours in the range of 0 to 23.
+	 *
+	 * Throws an Error if the hours are invalid or out of range.
+	 *
+	 * @type {number}
+	 */
+	hours;
+
+	/**
+	 * The date's minutes in the range of 0 to 59.
+	 *
+	 * Throws an Error if the minutes are invalid or out of range.
+	 *
+	 * @type {number}
+	 */
+	minutes;
+
+	/**
+	 * The date's seconds in the range of 0 to 59.
+	 *
+	 * Throws an Error if the seconds are invalid or out of range.
+	 *
+	 * @type {number}
+	 */
+	seconds;
+
+	/**
+	 * The date's milliseconds in the range of 0 to 999.
+	 *
+	 * Throws an Error if the milliseconds are invalid or out of range.
+	 *
+	 * @type {number}
+	 */
+	milliseconds;
+
+	/**
+	 * Creates a new SaneDate, either based on Date.now(), a given initial value, or given date parts.
+	 *
+	 * @param {?Date|SaneDate|TypeDef_DateLike|string|number} [initialValueOrYear=null] - something, that can be used
+	 *   to construct an initial value, this may be a vanilla JS Date, a SaneDate, a parsable string, a unix timestamp
+	 *   or an object implementing a "toISOString"/"toIsoString"/"getISOString"/"getIsoString" method;
+	 *   if this is a number, it will be treated as the year between 0 and 9999, if any other parameter is set as well;
+	 *   if nullish and all other parameters are not set either, the initial value is Date.now()
+	 * @param {?number} [month=null] - month between 1 and 12, to set in initial value
+	 * @param {?number} [date=null] - date between 1 and 31, to set in initial value
+	 * @param {?number} [hours=null] - hours between 0 and 23, to set in initial value
+	 * @param {?number} [minutes=null] - minutes between 0 and 59, to set in initial value
+	 * @param {?number} [seconds=null] - seconds between 0 and 59, to set in initial value
+	 * @param {?number} [milliseconds=null] - milliseconds between 0 and 999, to set in initial value
+	 * @param {boolean} [utc=false] - define if the date should be created as a UTC date instead of a local one
+	 * @throws {Error} if created date is invalid
+	 */
+	constructor(
+		initialValueOrYear=null,
+		month=null,
+		date=null,
+		hours=null,
+		minutes=null,
+		seconds=null,
+		milliseconds=null,
+		utc=false
+	){
 		const __methodName__ = 'constructor';
 
 		let year = null;
 		const definedIndividualDateParts = {year, month, date, hours, minutes, seconds, milliseconds};
-		let hasDefinedIndividualDateParts = Object.values(definedIndividualDateParts).filter(part => isNumber(part)).length >= 1;
+		let hasDefinedIndividualDateParts = Object
+			.values(definedIndividualDateParts)
+			.filter(part => isNumber(part))
+			.length >= 1
+		;
 
 		if( initialValueOrYear instanceof SaneDate ){
 			this.#date = initialValueOrYear.getVanillaDate();
@@ -378,18 +513,20 @@ class SaneDate {
 
 		if( hasDefinedIndividualDateParts ){
 			Object.entries(definedIndividualDateParts)
-				.filter(([_, value]) => isNumber(value))
+				.filter(([, value]) => isNumber(value))
 				.forEach(([part, value]) => {
 					this[part] = value;
 				})
 			;
 		}
+
+		this.utc = utc;
 	}
 
 
 
 	/**
-	 * Creates getters and setters to leisurely access and change date properties by using property assignments
+	 * Creates getters and setters to easily access and change date properties by using property assignments
 	 * instead of method calls. This method provides most of the public interface of every SaneDate object.
 	 *
 	 * @private
@@ -399,10 +536,6 @@ class SaneDate {
 			enumerable : true
 		};
 
-		/**
-		 * @name SaneDate#utc
-		 * @property {Boolean} - defines if the date should behave as a UTC date instead of a local date (which is the default)
-		 */
 		Object.defineProperty(this, 'utc', {
 			...propertyConfig,
 			set(utc){
@@ -413,10 +546,6 @@ class SaneDate {
 			}
 		});
 
-		/**
-		 * @name SaneDate#year
-		 * @property {Number} - the date's year in the range of 0 to 9999
-		 */
 		Object.defineProperty(this, 'year', {
 			...propertyConfig,
 			set(year){
@@ -440,10 +569,6 @@ class SaneDate {
 			}
 		});
 
-		/**
-		 * @name SaneDate#month
-		 * @property {Number} - the date's month in the range of 1 to 12
-		 */
 		Object.defineProperty(this, 'month', {
 			...propertyConfig,
 			set(month){
@@ -467,10 +592,6 @@ class SaneDate {
 			}
 		});
 
-		/**
-		 * @name SaneDate#date
-		 * @property {Number} - the date's day of the month in the range of 1 to 31
-		 */
 		Object.defineProperty(this, 'date', {
 			...propertyConfig,
 			set(date){
@@ -494,10 +615,6 @@ class SaneDate {
 			}
 		});
 
-		/**
-		 * @name SaneDate#hours
-		 * @property {Number} - the date's hours in the range of 0 to 23
-		 */
 		Object.defineProperty(this, 'hours',{
 			set(hours){
 				const __methodName__ = 'set hours';
@@ -520,13 +637,9 @@ class SaneDate {
 			}
 		});
 
-		/**
-		 * @name SaneDate#minutes
-		 * @property {Number} - the date's minutes in the range of 0 to 59
-		 */
 		Object.defineProperty(this, 'minutes', {
 			set(minutes){
-				const __methodName__ = 'set hours';
+				const __methodName__ = 'set minutes';
 
 				minutes = parseInt(minutes, 10);
 				assert(
@@ -546,10 +659,6 @@ class SaneDate {
 			}
 		});
 
-		/**
-		 * @name SaneDate#seconds
-		 * @property {Number} - the date's seconds in the range of 0 to 59
-		 */
 		Object.defineProperty(this, 'seconds', {
 			set(seconds){
 				const __methodName__ = 'set seconds';
@@ -572,10 +681,6 @@ class SaneDate {
 			}
 		});
 
-		/**
-		 * @name SaneDate#milliseconds
-		 * @property {Number} - the date's milliseconds in the range of 0 to 999
-		 */
 		Object.defineProperty(this, 'milliseconds', {
 			set(milliseconds){
 				const __methodName__ = 'set milliseconds';
@@ -602,13 +707,15 @@ class SaneDate {
 
 
 	/**
-	 * Returns the current day of the week as a number between 1 and 7 or an english day name.
-	 * This method counts days the European way, starting with monday, but you can change this
-	 * behaviour using the first parameter (if your week starts with sunday or friday for example).
+	 * Returns the current day of the week as a number between 1 and 7 or an English day name.
+	 * This method counts days the European way, starting with Monday, but you can change this
+	 * behavior using the first parameter (if your week starts with Sunday or Friday, for example).
 	 *
-	 * @param {?String} [startingWith='monday'] - set to the english day, which is the first day of the week (monday, tuesday, wednesday, thursday, friday, saturday, sunday)
-	 * @param {?Boolean} [asName=false] - set to true, if you'd like the method to return english day names instead of an index
-	 * @returns {Number|String} weekday index between 1 and 7 or english name of the day
+	 * @param {"monday"|"tuesday"|"wednesday"|"thursday"|"friday"|"saturday"|"sunday"} [startingWith='monday'] - set to
+	 *   the english day, which is the first day of the week
+	 * @param {boolean} [asName=false] - set to true, if you'd like the method to return
+	 *   english day names instead of an index
+	 * @returns {number|string} weekday index between 1 and 7 or english name of the day
 	 *
 	 * @example
 	 * const d = new SaneDate();
@@ -642,16 +749,16 @@ class SaneDate {
 
 
 	/**
-	 * Returns the date's current timezone, like it would occur in an ISO-string ("Z", "+06:00", "-02:30").
+	 * Returns the date's current timezone, like it would occur in an ISO string ("Z", "+06:00", "-02:30").
 	 *
 	 * If you need the raw offset, use the vanilla date's getTimezoneOffset() method.
 	 *
-	 * @returns {String} - the timezone string
+	 * @returns {string} - the timezone string
 	 *
 	 * @example
 	 * const d = new SaneDate()
 	 * d.getTimezone()
-	 * => "+09:30"
+	 * //=> "+09:30"
 	 */
 	getTimezone(){
 		if( this.#utc ) return 'Z';
@@ -672,13 +779,13 @@ class SaneDate {
 
 
 	/**
-	 * Returns the representation of the date's current date parts (year, month, day) as an ISO-string.
+	 * Returns the representation of the date's current date parts (year, month, day) as an ISO string.
 	 *
-	 * A difference to the vanilla implementation is, that this method respects UTC mode and does not always
+	 * A difference to the vanilla implementation is that this method respects UTC mode and does not always
 	 * coerce the date to UTC automatically. So, this will return a local ISO representation if not in UTC mode
 	 * and the UTC representation in UTC mode.
 	 *
-	 * @returns {String} date ISO-string of the format "2016-04-07"
+	 * @returns {string} date ISO string of the format "2016-04-07"
 	 *
 	 * @example
 	 * const d = new SaneDate();
@@ -697,15 +804,16 @@ class SaneDate {
 
 
 	/**
-	 * Returns the representation of the date's current time parts (hours, minutes, seconds, milliseconds) as an
-	 * ISO-string.
+	 * Returns the representation of the date's current time parts (hours, minutes, seconds, milliseconds)
+	 * as an ISO string.
 	 *
-	 * A difference to the vanilla implementation is, that this method respects UTC mode and does not always
+	 * A difference to the vanilla implementation is that this method respects UTC mode and does not always
 	 * coerce the date to UTC automatically. So, this will return a local ISO representation (optionally with
 	 * timezone information in relation to UTC) if not in UTC mode and the UTC representation in UTC mode.
 	 *
-	 * @param {?Boolean} [withTimezone=true] - defines if the ISO string should end with timezone information, such as "Z" or "+02:00"
-	 * @returns {String} time ISO-string of the format "12:59:00.123Z"
+	 * @param {boolean} [withTimezone=true] - defines if the ISO string should end with timezone information,
+	 *   such as "Z" or "+02:00"
+	 * @returns {string} time ISO string of the format "12:59:00.123Z"
 	 *
 	 * @example
 	 * const d = new SaneDate();
@@ -722,21 +830,26 @@ class SaneDate {
 			timezone = this.getTimezone()
 		;
 
-		return `${hours}:${minutes}:${seconds}${(milliseconds > 0) ? '.'+milliseconds : ''}${withTimezone ? timezone : ''}`;
+		return `${hours}:${minutes}:${seconds}${
+			(milliseconds > 0) ? '.'+milliseconds : ''
+		}${
+			withTimezone ? timezone : ''
+		}`;
 	}
 
 
 
 	/**
-	 * Returns the date as an ISO-string.
+	 * Returns the date as an ISO string.
 	 *
-	 * A difference to the vanilla implementation is, that this method respects UTC mode and does not always
+	 * A difference to the vanilla implementation is that this method respects UTC mode and does not always
 	 * coerce the date to UTC automatically. So, this will return a local ISO representation (optionally with
 	 * timezone information in relation to UTC) if not in UTC mode and the UTC representation in UTC mode.
 	 *
-	 * @param {?Boolean} [withSeparator=true] - defines if date and time should be separated with a "T"
-	 * @param {?Boolean} [withTimezone=true] - defines if the ISO string should end with timezone information, such as "Z" or "+02:00"
-	 * @returns {String} ISO-string of the format "2016-04-07T13:37:00.222Z"
+	 * @param {boolean} [withSeparator=true] - defines if date and time should be separated with a "T"
+	 * @param {boolean} [withTimezone=true] - defines if the ISO string should end with timezone information,
+	 *   such as "Z" or "+02:00"
+	 * @returns {string} ISO string of the format "2016-04-07T13:37:00.222Z"
 	 *
 	 * @example
 	 * const d = new SaneDate();
@@ -751,10 +864,13 @@ class SaneDate {
 
 
 	/**
-	 * Returns a formatted string, describing the current date in a verbose, human-readable, non-technical way.
+	 * Returns a formatted string, representing the date in a verbose, non-technical or custom way.
 	 *
-	 * "definition" may be a format shortcut for "dateStyle" (and "timeStyle" if type is "datetime") or a format string,
-	 * for a custom format, using these tokens:
+	 * Under the hood, this uses Intl.DateTimeFormat, which is widely supported and convenient to use
+	 * for most widely used locales.
+	 *
+	 * The "definition" may be a format shortcut ("full", "long", "medium" or "short") for "dateStyle"
+	 * (and "timeStyle" if the "type" is "datetime") or a format string, for a custom format, using these tokens:
 	 *
 	 * YY      18         two-digit year;
 	 * YYYY    2018       four-digit year;
@@ -782,21 +898,26 @@ class SaneDate {
 	 * If you use "full", "long", "medium" or "short" instead, you'll use the DateTimeFormatters built-in, preset
 	 * format styles for localized dates, based on the given locale(s).
 	 *
-	 * @param {?String} [definition='long'] - either a preset style to quickly define a format style, by setting shortcuts for dateStyle and timeStyle (if type is "datetime"), set to "none" or nullish value to skip quick format; alternatively, define this as a format string to use a custom format
-	 * @param {?String|Array<String>} [locale='en-US'] - locale to use for date format and text generation, use array to define fallback; always falls back to en-US if nothing else works
-	 * @param {?String} [type='datetime'] - set to 'datetime', 'date' or 'time' to define which parts should be rendered
-	 * @param {?Object} [options=null] - options to pass to the Intl.DateTimeFormat constructor, is applied last, so should override anything predefined, if key is reset
-	 * @returns {String} - the formatted date/time string
+	 * @param {?"full"|"long"|"medium"|"short"|"none"|string} [definition='long'] - either a preset style to quickly
+	 *   define a format style, by setting shortcuts for dateStyle and timeStyle (if type is "datetime"),
+	 *   set to "none" or nullish value to skip formatting;
+	 *   alternatively, define this as a format string to use a custom format
+	 * @param {string|Array.<string>} [locale='en-US'] - locale to use for date format and text generation,
+	 *   use an array to define fallback; always falls back to "en-US" if nothing else works
+	 * @param {"datetime"|"date"|"time"} [type='datetime'] - defines which parts should be rendered
+	 * @param {?DateTimeFormatOptions} [options=null] - options to pass to the Intl.DateTimeFormat constructor;
+	 *   is applied last, so should override anything defined before
+	 * @returns {string} - the formatted date/time string
 	 *
-	 * @see format(Dates)
+	 * @see format
 	 * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat
 	 * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#style_shortcuts
 	 * @example
 	 * const d = new SaneDate();
 	 * d.format('de-DE', 'long', 'datetime', {timeZone : 'UTC'})
-	 * => '12. Dezember 2023 um 02:00:00 UTC'
+	 * //=> '12. Dezember 2023 um 02:00:00 UTC'
 	 * d.format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-	 * => '2023-12-12T02:00:00'
+	 * //=> '2023-12-12T02:00:00'
 	 */
 	format(definition='long', locale='en-US', type='datetime', options=null){
 		options = orDefault(options, {});
@@ -830,13 +951,14 @@ class SaneDate {
 	 * Compares the date to another date in terms of placement on the time axis.
 	 *
 	 * Returns a classical comparator value (-1/0/1), being -1 if the date is earlier than the parameter.
-	 * Normally checks date and time. Set type to "date" to only check date.
+	 * Normally checks date and time. Set "type" to "date" to only check date.
 	 *
-	 * @param {?Date|SaneDate|String|Number|Object|SaneDate} initialValueOrSaneDate - anything compatible to the SaneDate constructor or a SaneDate instance
-	 * @param {?String} [type='datetime'] - either "datetime" or "date", telling the method if time should be considered
-	 * @param {?Boolean} [withMilliseconds=true] - tells the method if milliseconds should be considered if type is "datetime"
-	 * @throws error if compare date is not usable
-	 * @returns {Number} -1 if this date is smaller/earlier, 0 if identical, 1 if this date is bigger/later
+	 * @param {Date|SaneDate|TypeDef_DateLike|string|number} initialValueOrSaneDate - anything compatible to
+	 *   the SaneDate constructor or a SaneDate instance
+	 * @param {"datetime"|"date"} [type='datetime'] - defines if time should be considered
+	 * @param {boolean} [withMilliseconds=true] - defines if milliseconds should be considered if type is "datetime"
+	 * @returns {number} -1 if this date is smaller/earlier, 0 if identical, 1 if this date is bigger/later
+	 * @throws {Error} if compare date is not usable
 	 *
 	 * @example
 	 * const d = new SaneDate();
@@ -893,19 +1015,20 @@ class SaneDate {
 	/**
 	 * Returns if the SaneDate is earlier on the time axis than the comparison value.
 	 *
-	 * @param {?Date|SaneDate|String|Number|Object|SaneDate} initialValueOrSaneDate - anything compatible to the SaneDate constructor or a SaneDate instance
-	 * @param {?String} [type='datetime'] - either "datetime" or "date", telling the method if time should be considered
-	 * @param {?Boolean} [withMilliseconds=true] - tells the method if milliseconds should be considered if type is "datetime"
-	 * @throws error if compare date is not usable
-	 * @returns {Boolean} true if SaneDate is earlier than compare value
+	 * @param {Date|SaneDate|TypeDef_DateLike|string|number} initialValueOrSaneDate - anything compatible to the
+	 *   SaneDate constructor or a SaneDate instance
+	 * @param {"datetime"|"date"} [type='datetime'] - defines if time should be considered
+	 * @param {boolean} [withMilliseconds=true] - defines if milliseconds should be considered if type is "datetime"
+	 * @returns {boolean} true if SaneDate is earlier than compare value
+	 * @throws {Error} if compare date is not usable
 	 *
 	 * @example
 	 * const now = new SaneDate();
 	 * const theFuture = now.clone().forward({days : 1, hours : 2, minutes : 3, seconds : 4, milliseconds : 5});
 	 * now.isBefore(theFuture)
-	 * => true
+	 * //=> true
 	 * theFuture.isBefore(now)
-	 * => false
+	 * //=> false
 	 */
 	isBefore(initialValueOrSaneDate, type='datetime', withMilliseconds=true){
 		return this.compareTo(initialValueOrSaneDate, type, withMilliseconds) === -1;
@@ -916,19 +1039,20 @@ class SaneDate {
 	/**
 	 * Returns if the SaneDate is later on the time axis than the comparison value.
 	 *
-	 * @param {?Date|SaneDate|String|Number|Object|SaneDate} initialValueOrSaneDate - anything compatible to the SaneDate constructor or a SaneDate instance
-	 * @param {?String} [type='datetime'] - either "datetime" or "date", telling the method if time should be considered
-	 * @param {?Boolean} [withMilliseconds=true] - tells the method if milliseconds should be considered if type is "datetime"
-	 * @throws error if compare date is not usable
-	 * @returns {Boolean} true if SaneDate is later than compare value
+	 * @param {Date|SaneDate|TypeDef_DateLike|string|number} initialValueOrSaneDate - anything compatible to the
+	 *   SaneDate constructor or a SaneDate instance
+	 * @param {"datetime"|"date"} [type='datetime'] - defines if time should be considered
+	 * @param {boolean} [withMilliseconds=true] - defines if milliseconds should be considered if type is "datetime"
+	 * @returns {boolean} true if SaneDate is later than compare value
+	 * @throws {Error} if compare date is not usable
 	 *
 	 * @example
 	 * const now = new SaneDate();
 	 * const theFuture = now.clone().forward({days : 1, hours : 2, minutes : 3, seconds : 4, milliseconds : 5});
 	 * now.isAfter(theFuture)
-	 * => false
+	 * //=> false
 	 * theFuture.isAfter(now)
-	 * => true
+	 * //=> true
 	 */
 	isAfter(initialValueOrSaneDate, type='datetime', withMilliseconds=true){
 		return this.compareTo(initialValueOrSaneDate, type, withMilliseconds) === 1;
@@ -937,22 +1061,23 @@ class SaneDate {
 
 
 	/**
-	 * Returns if the SaneDate is at the same time as comparison value.
+	 * Returns if the SaneDate is at the same time as the comparison value.
 	 *
-	 * @param {?Date|SaneDate|String|Number|Object|SaneDate} initialValueOrSaneDate - anything compatible to the SaneDate constructor or a SaneDate instance
-	 * @param {?String} [type='datetime'] - either "datetime" or "date", telling the method if time should be considered
-	 * @param {?Boolean} [withMilliseconds=true] - tells the method if milliseconds should be considered if type is "datetime"
-	 * @throws error if compare date is not usable
-	 * @returns {Boolean} true if SaneDate is at the same time as compare value
+	 * @param {Date|SaneDate|TypeDef_DateLike|string|number} initialValueOrSaneDate - anything compatible to the
+	 *   SaneDate constructor or a SaneDate instance
+	 * @param {"datetime"|"date"} [type='datetime'] - defines if time should be considered
+	 * @param {boolean} [withMilliseconds=true] - defines if milliseconds should be considered if type is "datetime"
+	 * @returns {boolean} true if SaneDate is at the same time as the compare value
+	 * @throws {Error} if compare date is not usable
 	 *
 	 * @example
 	 * const now = new SaneDate();
 	 * const theFuture = now.clone();
 	 * now.isSame(theFuture)
-	 * => true
+	 * //=> true
 	 * theFuture.forward({days : 1, hours : 2, minutes : 3, seconds : 4, milliseconds : 5});
 	 * theFuture.isSame(now)
-	 * => false
+	 * //=> false
 	 */
 	isSame(initialValueOrSaneDate, type='datetime', withMilliseconds=true){
 		return this.compareTo(initialValueOrSaneDate, type, withMilliseconds) === 0;
@@ -963,10 +1088,11 @@ class SaneDate {
 	/**
 	 * Move the date a defined offset to the past or the future.
 	 *
-	 * @param {String|Object} part - the name of the date part to change, one of "years", "months", "days", "hours", "minutes", "seconds" and "milliseconds" or a dictionary of part/amount pairs ({hours : -1, seconds : 30})
-	 * @param {?Number} [amount=0] - negative or positive integer defining the offset from the current date
-	 * @throws error on invalid part name
+	 * @param {"years"|"months"|"days"|"hours"|"minutes"|"seconds"|"milliseconds"|TypeDef_TimeOffset} part - the name
+	 *   of the date part to change, or a dictionary of part/amount pairs ({hours : -1, seconds : 30})
+	 * @param {number} [amount=0] - negative or positive integer defining the offset from the current date
 	 * @returns {SaneDate} the SaneDate instance
+	 * @throws {Error} on invalid part name
 	 *
 	 * @example
 	 * let d = new SaneDate();
@@ -1036,10 +1162,12 @@ class SaneDate {
 	/**
 	 * Moves the date's time forward a certain offset.
 	 *
-	 * @param {String|Object} part - the name of the date part to change, one of "years", "months", "days", "hours", "minutes", "seconds" and "milliseconds" or a dictionary of part/amount pairs ({hours : 1, seconds : 30})
-	 * @param {?Number} [amount=0] - integer defining the positive offset from the current date, negative value is treated as an error
-	 * @throws error on invalid part name or negative amount
+	 * @param {"years"|"months"|"days"|"hours"|"minutes"|"seconds"|"milliseconds"|TypeDef_TimeOffset} part - the name
+	 *   of the date part to change or a dictionary of part/amount pairs ({hours : 1, seconds : 30})
+	 * @param {number} [amount=0] - integer defining the positive offset from the current date,
+	 *   a negative value is treated as an error
 	 * @returns {SaneDate} the SaneDate instance
+	 * @throws {Error} on invalid part name or negative amount
 	 *
 	 * @example
 	 * let d = new SaneDate();
@@ -1081,10 +1209,12 @@ class SaneDate {
 	/**
 	 * Moves the date's time backward a certain offset.
 	 *
-	 * @param {String|Object} part - the name of the date part to change, one of "years", "months", "days", "hours", "minutes", "seconds" and "milliseconds" or a dictionary of part/amount pairs ({hours : 1, seconds : 30})
-	 * @param {?Number} [amount=0] - integer defining the negative offset from the current date, negative value is treated as an error
-	 * @throws error on invalid part name or negative amount
+	 * @param {"years"|"months"|"days"|"hours"|"minutes"|"seconds"|"milliseconds"|TypeDef_TimeOffset} part - the name
+	 *   of the date part to change or a dictionary of part/amount pairs ({hours : 1, seconds : 30})
+	 * @param {number} [amount=0] - integer defining the negative offset from the current date,
+	 *   a negative value is treated as an error
 	 * @returns {SaneDate} the SaneDate instance
+	 * @throws {Error} on invalid part name or negative amount
 	 *
 	 * @example
 	 * let d = new SaneDate();
@@ -1127,26 +1257,30 @@ class SaneDate {
 	 *
 	 * The result is a plain object with the delta's units up to the defined "largestUnit". All values are integers.
 	 * The largest unit is days, since above neither months nor years are calculable via a fixed divisor and therefore
-	 * useless (since month vary from 28 to 31 days and years vary between 365 and 366 days, so both are not a fixed
+	 * useless (since months vary from 28 to 31 days and years vary between 365 and 366 days, so both are not a fixed
 	 * unit).
 	 *
-	 * By default, the order does not matter and only the absolute value is used, but you can change this
+	 * By default, the order does not matter, and only the absolute value is used, but you can change this
 	 * through the parameter "relative", which by setting this to true, will include "-", if the comparison value
 	 * is in the future.
 	 *
-	 * @param {?Date|SaneDate|String|Number|Object|SaneDate} initialValueOrSaneDate - anything compatible to the SaneDate constructor or a SaneDate instance
-	 * @param {?String} [largestUnit='days'] - the largest time unit to differentiate in the result
-	 * @param {?Boolean} [relative=false] - if true, returns negative values if first parameter is later than this date (this adheres to the order defined by compareTo)
-	 * @throws error on unknown largestUnit or incompatible comparison value
-	 * @returns {Object} time delta object in the format {days : 1, hours : 2, minutes : 3, seconds : 4, milliseconds : 5} (keys depending on largestUnit)
+	 * @param {Date|SaneDate|TypeDef_DateLike|string|number} initialValueOrSaneDate - anything compatible to the
+	 *   SaneDate constructor or a SaneDate instance
+	 * @param {string} [largestUnit='days'] - the largest time unit to differentiate in the result
+	 * @param {boolean} [relative=false] - if true, returns negative values if first parameter is later than this date
+	 *   (this adheres to the order defined by compareTo)
+	 * @returns {TypeDef_TimeDelta} time delta object in the format
+	 *   {days : 1, hours : 2, minutes : 3, seconds : 4, milliseconds : 5} (keys depending on "largestUnit")
+	 * @throws {Error} on unknown "largestUnit" or incompatible comparison value
 	 *
+	 * @see compareTo
 	 * @example
 	 * const now = new SaneDate();
 	 * const theFuture = now.clone().forward({days : 1, hours : 2, minutes : 3, seconds : 4, milliseconds : 5});
 	 * now.getDelta(theFuture)
-	 * => {days : 1, hours : 2, minutes : 3, seconds : 4, milliseconds : 5}
+	 * //=> {days : 1, hours : 2, minutes : 3, seconds : 4, milliseconds : 5}
 	 * now.getDelta(theFuture, 'hours', true)
-	 * => {hours : -26, minutes : -3, seconds : -4, milliseconds : -5}
+	 * //=> {hours : -26, minutes : -3, seconds : -4, milliseconds : -5}
 	 */
 	getDelta(initialValueOrSaneDate, largestUnit='days', relative=false){
 		const __methodName__ = 'getDelta';
@@ -1208,7 +1342,7 @@ class SaneDate {
 
 	/**
 	 * Returns a copy of the current SaneDate.
-	 * Might be very handy for creating dates based on another with an offset for example.
+	 * Can be very handy for creating dates based on another with an offset.
 	 * Keeps UTC mode.
 	 *
 	 * @returns {SaneDate} copy of current SaneDate instance
@@ -1228,17 +1362,17 @@ class SaneDate {
 	/**
 	 * Adds leading zeroes to values, which are not yet of a defined expected length.
 	 *
-	 * @param {*} value - the value to pad
-	 * @param {?Number} [digitCount=2] - the number of digits, the result has to have at least
-	 * @returns {String} the padded value, will always be cast to a string
+	 * @param {string|number} value - the value to pad
+	 * @param {number} [digitCount=2] - the number of digits, the result has to have at least
+	 * @returns {string} the padded value
 	 *
 	 * @private
 	 * @example
 	 * this.#padWithZero(1, 4)
-	 * => '0001'
+	 * //=> '0001'
 	 */
 	#padWithZero(value, digitCount=2){
-		return pad(value, '0', digitCount);
+		return pad(`${value}`, '0', digitCount);
 	}
 
 
@@ -1246,12 +1380,12 @@ class SaneDate {
 	/**
 	 * Tries to parse an ISO string (or at least, something resembling an ISO string) into a date.
 	 *
-	 * The basic idea of this method is, that it is supposed to be fairly forgiving, as long as the info is there,
+	 * The basic idea of this method is that it is supposed to be fairly forgiving, as long as the info is there,
 	 * even in a little wonky notation, this should result in a successfully created SaneDate.
 	 *
-	 * @param {String} isoString - something resembling an ISO string, that we can create a date from
-	 * @throws error if isoString is not usable
-	 * @returns {Date} the date create from the given ISO string
+	 * @param {string} isoString - something resembling an ISO string, that we can create a date from
+	 * @returns {Date} the date created from the given ISO string
+	 * @throws {Error} if isoString is not usable
 	 *
 	 * @private
 	 * @example
@@ -1299,6 +1433,7 @@ class SaneDate {
 		// time parts
 
 		if( isoStringParts.length >= 2 ){
+
 			// timezone
 
 			let	isoStringTimezoneParts = isoStringParts[1].split('Z');
@@ -1337,6 +1472,7 @@ class SaneDate {
 
 
 			// hours and minutes
+
 			const isoStringTimeParts = isoStringTimezoneParts[0].split(':');
 			hours = isoStringTimeParts[0];
 			if( isoStringTimeParts.length >= 2 ){
@@ -1378,7 +1514,7 @@ class SaneDate {
 			saneDate.minutes = minutes;
 			saneDate.seconds = seconds;
 			saneDate.milliseconds = milliseconds;
-		} catch(ex){
+		} catch {
 			throw Error(`${MODULE_NAME}:${this.#__className__}.${__methodName__} | ${unparsableIsoStringMessage} "${isoString}"`);
 		}
 		saneDate.move('minutes', timezoneOffset);
@@ -1389,11 +1525,11 @@ class SaneDate {
 
 
 	/**
-	 * Tries to change a part of the date and makes sure, that this change does not trigger automagic and only
-	 * leads to exactly the change, we wanted to do and nothing else.
+	 * Tries to change a part of the date and makes sure that this change does not trigger automagic and only
+	 * leads to exactly the change we wanted to do and nothing else.
 	 *
-	 * @param {String} part - the date part to change, one of: year, month, date, hours, minutes, seconds or milliseconds
-	 * @param {Number} value - the new value to set
+	 * @param {"year"|"month"|"date"|"hours"|"minutes"|"seconds"|"milliseconds"} part - the date part to change
+	 * @param {number} value - the new value to set
 	 * @returns {SaneDate} the SaneDate instance
 	 *
 	 * @private

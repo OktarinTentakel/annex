@@ -76,9 +76,9 @@ export let CURRENT_INTERACTION_TYPE;
  * }
  */
 export function browserSupportsHistoryManipulation(){
-	return hasValue(window.history)
-		&& isFunction(window.history.pushState)
-		&& isFunction(window.history.replaceState)
+	return hasValue(globalThis.history)
+		&& isFunction(globalThis.history.pushState)
+		&& isFunction(globalThis.history.replaceState)
 	;
 }
 
@@ -103,8 +103,8 @@ export function browserSupportsHistoryManipulation(){
  * }
  */
 export function contextHasHighDpi(){
-	if( window.matchMedia ){
-		return window.matchMedia(
+	if( globalThis.matchMedia ){
+		return globalThis.matchMedia(
 			'only screen and (-webkit-min-device-pixel-ratio: 1.5),'
 			+'only screen and (-o-min-device-pixel-ratio: 3/2),'
 			+'only screen and (min--moz-device-pixel-ratio: 1.5),'
@@ -140,7 +140,7 @@ export function contextHasHighDpi(){
  * foobarElement.style.width = `calc(100vw - ${getBrowserScrollbarWidth()}px)`;
  */
 export function getBrowserScrollbarWidth(){
-	const sandbox = document.createElement('div');
+	const sandbox = globalThis.document.createElement('div');
 	sandbox.style.visibility = 'hidden';
 	sandbox.style.opacity = '0';
 	sandbox.style.pointerEvents = 'none';
@@ -152,16 +152,16 @@ export function getBrowserScrollbarWidth(){
 	// firefox needs a container to be at least 30px high to display a scrollbar
 	sandbox.style.height = '50px';
 
-	const scrollbarEnforcer = document.createElement('div');
+	const scrollbarEnforcer = globalThis.document.createElement('div');
 	scrollbarEnforcer.style.width = '100%';
 	scrollbarEnforcer.style.height = '100px';
 
 	sandbox.appendChild(scrollbarEnforcer);
-	document.body.appendChild(sandbox);
+	globalThis.document.body.appendChild(sandbox);
 
 	const scrollbarWidth = sandbox.offsetWidth - scrollbarEnforcer.offsetWidth;
 
-	document.body.removeChild(sandbox);
+	globalThis.document.body.removeChild(sandbox);
 
 	return scrollbarWidth;
 }
@@ -206,16 +206,20 @@ export function detectInteractionType(returnObservable=false){
 
 	if( !hasValue(CURRENT_INTERACTION_TYPE) ){
 		CURRENT_INTERACTION_TYPE = new Observable('');
-		if( ('ontouchstart' in document) && ('ontouchend' in document) && (window.navigator.maxTouchPoints > 0) ){
+		if(
+			('ontouchstart' in globalThis.document)
+			&& ('ontouchend' in globalThis.document)
+			&& (globalThis.navigator.maxTouchPoints > 0)
+		){
 			CURRENT_INTERACTION_TYPE.setValue('touch');
 		} else {
 			CURRENT_INTERACTION_TYPE.setValue('pointer');
 		}
 
-		document.addEventListener('touchstart', INTERACTION_TYPE_DETECTION.touchStartHandler);
-		document.addEventListener('touchend', INTERACTION_TYPE_DETECTION.touchEndHandler);
-		window.addEventListener('blur', INTERACTION_TYPE_DETECTION.blurHandler);
-		document.addEventListener('mousemove', INTERACTION_TYPE_DETECTION.mouseMoveHandler);
+		globalThis.document.addEventListener('touchstart', INTERACTION_TYPE_DETECTION.touchStartHandler);
+		globalThis.document.addEventListener('touchend', INTERACTION_TYPE_DETECTION.touchEndHandler);
+		globalThis.addEventListener('blur', INTERACTION_TYPE_DETECTION.blurHandler);
+		globalThis.document.addEventListener('mousemove', INTERACTION_TYPE_DETECTION.mouseMoveHandler);
 	}
 
 	return returnObservable ? CURRENT_INTERACTION_TYPE : CURRENT_INTERACTION_TYPE.getValue();
@@ -250,14 +254,14 @@ export function detectInteractionType(returnObservable=false){
  */
 export function detectAppleDevice(additionalTest=null){
 	let
-		family = /iPhone|iPad|iPod|Macintosh/.exec(window.navigator.userAgent),
+		family = /iPhone|iPad|iPod|Macintosh/.exec(globalThis.navigator.userAgent),
 		deviceType = null
 	;
 
 	if( Array.isArray(family) && (family.length > 0) ){
 		family = family[0];
 	} else {
-		family = /^(iPhone|iPad|iPod|Mac)/.exec(window.navigator.platform);
+		family = /^(iPhone|iPad|iPod|Mac)/.exec(globalThis.navigator.platform);
 
 		if( Array.isArray(family) && (family.length > 0) ){
 			family = family[0];
@@ -275,7 +279,7 @@ export function detectAppleDevice(additionalTest=null){
 		// be a disguised iPad with i(Pad)Os13+
 		if(
 			(family === 'Macintosh')
-			&& (window.navigator.maxTouchPoints > 1)
+			&& (globalThis.navigator.maxTouchPoints > 1)
 		){
 			family = 'iPad';
 		}
@@ -324,13 +328,13 @@ export function detectAppleDevice(additionalTest=null){
  * @see getBrowserLocale
  * @example
  * getBrowserLanguage()
- * // => "en"
+ * //=> "en"
  */
 export function getBrowserLanguage(fallbackLanguage=null){
 	let language = null;
 
-	if( hasValue(window.navigator.languages) ){
-		const browserLanguages = Array.from(window.navigator.languages);
+	if( hasValue(globalThis.navigator.languages) ){
+		const browserLanguages = Array.from(globalThis.navigator.languages);
 		if( isArray(browserLanguages) && (browserLanguages.length > 0) ){
 			language = `${browserLanguages[0]}`;
 		}
@@ -339,7 +343,7 @@ export function getBrowserLanguage(fallbackLanguage=null){
 	if( !hasValue(language) ){
 		['language', 'browserLanguage', 'userLanguage', 'systemLanguage'].forEach(browserLanguagePropertyKey => {
 			if( !hasValue(language) ){
-				const browserLanguage = window.navigator[browserLanguagePropertyKey];
+				const browserLanguage = globalThis.navigator[browserLanguagePropertyKey];
 				language = hasValue(browserLanguage) ? `${browserLanguage}` : null;
 			}
 		});
@@ -367,9 +371,9 @@ export function getBrowserLanguage(fallbackLanguage=null){
  * @typedef {Object} TypeDef_LocaleInformation
  *
  * @property {string} code - the lang value, can be a language or a full locale
- * @property {?string} country - the locale's lowercase country code, if there is one
+ * @property {?string} country=null - the locale's lowercase country code, if there is one
  * @property {string} language - the locale's lowercase language code
- * @property {boolean} isFallback - true if the locale was determined by a fallback value
+ * @property {boolean} isFallback=false - true if the locale was determined by a fallback value
  *
  * @memberof Context
  */
@@ -395,7 +399,7 @@ export function getBrowserLanguage(fallbackLanguage=null){
  * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang
  * @example
  * getLocale()
- * // => {
+ * //=> {
  * //   code : 'en-GB',
  * //   country : 'gb',
  * //   language : 'en',
@@ -403,7 +407,7 @@ export function getBrowserLanguage(fallbackLanguage=null){
  * // }
  *
  * getLocale(document.querySelector('p'), 'en-US')
- * // => {
+ * //=> {
  * //   code : 'en-US',
  * //   country : 'us',
  * //   language : 'en',
@@ -412,7 +416,7 @@ export function getBrowserLanguage(fallbackLanguage=null){
  */
 export function getLocale(element=null, fallbackLanguage=null){
 	// document.documentElement not as function default to prevent errors in document-less context on import
-	element = orDefault(element, document.documentElement);
+	element = orDefault(element, globalThis.document.documentElement);
 
 	const locale = {
 		code : null,
@@ -429,7 +433,7 @@ export function getLocale(element=null, fallbackLanguage=null){
 
 	if( hasValue(langAttr) ){
 		const localeParts = `${langAttr}`.split('-');
-		locale.country = localeParts?.[1]?.toLowerCase()?.trim();
+		locale.country = localeParts?.[1]?.toLowerCase()?.trim() ?? null;
 		locale.language = localeParts[0].toLowerCase().trim();
 		locale.code = hasValue(locale.country)
 			? `${locale.language}-${locale.country.toUpperCase()}`
@@ -466,7 +470,7 @@ export function getLocale(element=null, fallbackLanguage=null){
  * @see getBrowserLanguage
  * @example
  * getBrowserLocale()
- * // => {
+ * //=> {
  * //   code : 'en-GB',
  * //   country : 'gb',
  * //   language : 'en',
@@ -474,7 +478,7 @@ export function getLocale(element=null, fallbackLanguage=null){
  * // }
  *
  * getBrowserLocale('en-US')
- * // => {
+ * //=> {
  * //   code : 'en-US',
  * //   country : 'us',
  * //   language : 'en',

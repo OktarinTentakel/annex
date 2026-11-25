@@ -207,7 +207,9 @@ function buildCharMap(pageMap, alphabet){
  * @private
  */
 function stringToBase64(value){
-	return btoa(String.fromCodePoint(...((new TextEncoder()).encode(`${value}`)))).replaceAll('=', '');
+	return globalThis.btoa(
+		String.fromCodePoint(...((new globalThis.TextEncoder()).encode(`${value}`)))
+	).replaceAll('=', '');
 }
 
 
@@ -225,8 +227,15 @@ function base64ToString(value, __methodName__='base64ToString'){
 	let res = null;
 
 	try {
-		res = (new TextDecoder()).decode(Uint8Array.from(atob(`${value}`), char => char.codePointAt(0)));
-	} catch(ex){
+		res = (new globalThis.TextDecoder())
+			.decode(
+				Uint8Array.from(
+					globalThis.atob(`${value}`),
+					char => char.codePointAt(0)
+				)
+			)
+		;
+	} catch {
 		throw new Error(`${MODULE_NAME}:${__methodName__} | cannot decode "${value}"`);
 	}
 
@@ -348,14 +357,14 @@ function baseXToBase10(value, alphabet){
  * Hint: if you want to genrate codes to be presented to the user, see `Random:randomUserCode`.
  *
  * @param {number|string} value - value to be encoded
- * @param {?number|string|Array.<string>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...)
+ * @param {number|string|Array.<string>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...)
  *   or the alphabet of characters to use in encoding; numerical bases must be between 2 and 64
  *   (if the result is chunked, we need a base 3)
- * @param {?boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(),
+ * @param {boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(),
  *   instead of numerical conversion
- * @param {?boolean} [useChunks=false] - set to true, to add chunking to the numerical approach,
+ * @param {boolean} [useChunks=false] - set to true, to add chunking to the numerical approach,
  *   converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet
- * @param {?number} [chunkSize=6] - define a different chunk size;
+ * @param {number} [chunkSize=6] - define a different chunk size;
  *   only change this, if 6 seems too big in your context, going higher is not advisable
  * @returns {string} the encoded value
  * @throws {Error} if baseOrAlphabet is not usable
@@ -368,19 +377,19 @@ function baseXToBase10(value, alphabet){
  * @see Random:randomUserCode
  * @example
  * toBaseX('foobar')
- * // => 'Zm9vYmFy'
+ * //=> 'Zm9vYmFy'
  *
  * toBaseX(-5, 2)
- * // => '-101'
+ * //=> '-101'
  *
  * toBaseX(42, 'abcdefghij')
- * // => 'ec'
+ * //=> 'ec'
  *
  * toBaseX('too-long-for-number-conversion', 36, true)
- * // => 'U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C'
+ * //=> 'U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C'
  *
  * toBaseX('too-long-for-number-conversion', 16, false, true)
- * // => 'D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C'
+ * //=> 'D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C'
  */
 export function toBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChunks=false, chunkSize=6){
 	const __methodName__ = 'toBaseX';
@@ -497,14 +506,14 @@ export function toBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChun
  * Numerical conversion keeps negative numbers negative and marks the result with a preceding "-".
  *
  * @param {number|string} value - value to be decoded
- * @param {?number|string|Array.<string>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...)
+ * @param {number|string|Array.<string>} [baseOrAlphabet=64] - either the numerical base to convert to (64, 36, ...)
  *   or the alphabet of characters to use in encoding;
  *   numerical bases must be between 2 and 64 (if the result is chunked, we need a base 3)
- * @param {?boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(),
+ * @param {boolean} [useCharacterMap=true] - set to true, to use a character map, based on btoa(),
  *   instead of numerical conversion
- * @param {?boolean} [useChunks=false] - set to true, to add chunking to the numerical approach,
+ * @param {boolean} [useChunks=false] - set to true, to add chunking to the numerical approach,
  *   converting the value in groups separated by a delimiter, which is the first letter of the base's alphabet
- * @param {?boolean} [valueIsNumber=false] - if true, the given value is treated as a number for numerical conversion;
+ * @param {boolean} [valueIsNumber=false] - if true, the given value is treated as a number for numerical conversion;
  *   this is necessary, since numbers such as binaries are defined as strings and are therefore not auto-detectable
  * @returns {string|number} the decoded value
  * @throws {Error} if baseOrAlphabet is not usable
@@ -515,22 +524,22 @@ export function toBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChun
  * @see toBaseX
  * @example
  * fromBaseX('Zm9vYmFy')
- * // => 'foobar'
+ * //=> 'foobar'
  *
  * fromBaseX('16W33YPUS', 36)
- * // => 'äす'
+ * //=> 'äす'
  *
  * fromBaseX('{-3C3}', 13)
- * // => -666
+ * //=> -666
  *
  * fromBaseX('q', 64, false, false, true)
- * // => 42
+ * //=> 42
  *
  * fromBaseX('U70R0DCN0F0DS04T0BQ040R0GCN0N0JSNA03TZ0J01S0K0N0KQOA0HRN0R0C', 36, true)
- * // => 'too-long-for-number-conversion'
+ * //=> 'too-long-for-number-conversion'
  *
  * fromBaseX('D3EF5D81F026D9DFDA970BBF17222402A47D5AD650CF6C2FE2102A494BCBDD0A2864C', 16, false, true)
- * // => 'too-long-for-number-conversion'
+ * //=> 'too-long-for-number-conversion'
  */
 export function fromBaseX(value, baseOrAlphabet=64, useCharacterMap=false, useChunks=false, valueIsNumber=false){
 	const __methodName__ = 'fromBaseX';

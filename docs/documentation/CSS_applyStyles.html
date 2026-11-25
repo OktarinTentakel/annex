@@ -70,7 +70,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="css.js.html">css.js</a>, <a href="css.js.html#line22">line 22</a>
+        <a href="css.js.html">css.js</a>, <a href="css.js.html#line30">line 30</a>
     </li></ul></dd>
     
 
@@ -106,15 +106,15 @@
 
     
 
-    <h4 class="name" id="applyStyles"><span class="type-signature"></span>applyStyles<span class="signature">(element, styles, crossBrowser<span class="signature-attributes">opt, nullable</span>, returnCssStyleDeclaration<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Object|CSSStyleDeclaration}</span></h4>
+    <h4 class="name" id="applyStyles"><span class="type-signature"></span>applyStyles<span class="signature">(element, styles, crossBrowser<span class="signature-attributes">opt</span>, returnCssStyleDeclaration<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object.&lt;string, (string|number)>|CSSStyleDeclaration}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Applies CSS definitions to an HTMLElement, by providing a plain object of property-value-pairs.
-Properties may be written as default CSS kebab-case properties such as &quot;margin-left&quot; or as JS
+    <p>Applies CSS definitions to an HTMLElement by providing a plain object of property-value-pairs.</p>
+<p>Properties may be written as default CSS kebab-case properties such as &quot;margin-left&quot; or as JS
 camel-cased versions such as &quot;marginLeft&quot;.</p>
 <p>Providing a real JS number without a unit will be treated as a pixel value, so defining &quot;'line-height' : 0&quot; will
 actually result in a 1px line-height. To actually set a unit-less value, just set the value as a string:
@@ -208,7 +208,7 @@ properties might be refused. If you really need to set something out of spec, us
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">Object.&lt;string, (string|number)></span>
 
 
             
@@ -230,7 +230,8 @@ properties might be refused. If you really need to set something out of spec, us
                 </td>
             
 
-            <td class="description last"><p>the styles to apply, provided as a plain object, defining property-value-pairs</p></td>
+            <td class="description last"><p>the styles to apply, provided as a plain object,
+defining property-value-pairs</p></td>
         </tr>
 
     
@@ -243,7 +244,7 @@ properties might be refused. If you really need to set something out of spec, us
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -255,8 +256,6 @@ properties might be refused. If you really need to set something out of spec, us
                     &lt;optional><br>
                 
 
-                
-                    &lt;nullable><br>
                 
 
                 
@@ -271,7 +270,8 @@ properties might be refused. If you really need to set something out of spec, us
                 </td>
             
 
-            <td class="description last"><p>set this to true, to automatically generate vendor-prefixed versions of all provided properties</p></td>
+            <td class="description last"><p>set this to true, to automatically generate vendor-prefixed
+versions of all provided properties</p></td>
         </tr>
 
     
@@ -284,7 +284,7 @@ properties might be refused. If you really need to set something out of spec, us
             <td class="type">
             
                 
-<span class="param-type">Boolean</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -296,8 +296,6 @@ properties might be refused. If you really need to set something out of spec, us
                     &lt;optional><br>
                 
 
-                
-                    &lt;nullable><br>
                 
 
                 
@@ -312,7 +310,9 @@ properties might be refused. If you really need to set something out of spec, us
                 </td>
             
 
-            <td class="description last"><p>set this to true, return the CSSStyleDeclaration of the element after the style application, rather than the plain object</p></td>
+            <td class="description last"><p>set this to true, return the CSSStyleDeclaration
+of the element after the style application, rather than the plain object, which may contain changes from the
+function execution, like vendor additions</p></td>
         </tr>
 
     
@@ -353,7 +353,7 @@ properties might be refused. If you really need to set something out of spec, us
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="css.js.html">css.js</a>, <a href="css.js.html#line61">line 61</a>
+        <a href="css.js.html">css.js</a>, <a href="css.js.html#line75">line 75</a>
     </li></ul></dd>
     
 
@@ -378,21 +378,55 @@ properties might be refused. If you really need to set something out of spec, us
 <ul>
         <li>
 
-    <div class="param-desc">
-    
-        <p>error if element is not an HTMLElement</p>
-    
-    </div>
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>if element is not an HTMLElement</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
 
 </li>
     
         <li>
 
-    <div class="param-desc">
-    
-        <p>error if styles is not a plain object</p>
-    
-    </div>
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>if styles is not a plain object</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
 
 </li>
     </ul>
@@ -413,7 +447,7 @@ properties might be refused. If you really need to set something out of spec, us
     </dt>
     <dd>
         
-<span class="param-type">Object</span>
+<span class="param-type">Object.&lt;string, (string|number)></span>
 |
 
 <span class="param-type">CSSStyleDeclaration</span>
@@ -428,6 +462,7 @@ properties might be refused. If you really need to set something out of spec, us
     <h5>Example</h5>
     
     <pre class="prettyprint"><code>applyStyles(document.body, {backgroundColor : red, transition : 'all 200ms'}, true);
+
 applyStyles(document.querySelector('main'), {'font-family' : 'serif'}, false, true);</code></pre>
 
 
@@ -454,7 +489,7 @@ applyStyles(document.querySelector('main'), {'font-family' : 'serif'}, false, tr
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Sun Feb 01 2026 22:32:28 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Fri Mar 27 2026 09:01:51 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

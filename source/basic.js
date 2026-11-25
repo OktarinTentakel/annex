@@ -77,7 +77,7 @@ export function attempt(closure){
 
 	try {
 		closure();
-	} catch(ex){
+	} catch {
 		return false;
 	}
 
@@ -111,9 +111,7 @@ export function hasValue(...args){
 	let res = true;
 
 	args.forEach(value => {
-		// jshint ignore:start
 		res &&= ((value !== undefined) && (value !== null));
-		// jshint ignore:end
 	});
 
 	return res;
@@ -146,34 +144,34 @@ export function hasValue(...args){
  * @alias size
  * @example
  * size('日本国💩👻');
- * // => 5
+ * //=> 5
  *
  * size('日本国💩👻', false);
- * // => 7
+ * //=> 7
  *
  * size({a : 1, b : new Date(), c : [1, 2, 3]});
- * // => 3
+ * //=> 3
  *
  * size(['test', 'test', 'test']);
- * // => 3
+ * //=> 3
  *
  * size(new Set(['test1', 'test2', 'test3']));
- * // => 3
+ * //=> 3
  *
  * size(new Set(['test1', 'test2', 'test3']).values());
- * // => 3
+ * //=> 3
  *
  * size(new Map([[1, 1], [new Date(), new Date()], ['foo', 'bar']]));
- * // => 3
+ * //=> 3
  *
  * size(new Map([[1, 1], [new Date(), new Date()], ['foo', 'bar']]).values());
- * // => 3
+ * //=> 3
  *
  * size(null);
- * // => null
+ * //=> null
  *
  * size(undefined);
- * // => null
+ * //=> null
  */
 export function size(target, countStringCharacters=true){
 	if( isFunction(target?.values) ) return Array.from(target.values()).length;
@@ -376,7 +374,7 @@ export function hasMembers(obj, memberNames, verbose=false){
  *     |"arr"|"array"
  *     |function(*):*
  *   } [caster=null] - either a default caster by (string) name or a function getting the value and returning the
- *   transformed value (the caster will also be applied to the default value)
+ *   transformed value
  * @param {?Array.<*>} [additionalEmptyValues=null] - if set, provides a list of additional values to be
  *   considered empty, apart from undefined and null
  * @returns {*} (cast) value or defaultValue
@@ -428,7 +426,7 @@ export function orDefault(value, defaultValue, caster=null, additionalEmptyValue
 	}
 
 	if( isNullish(value, {__nullish__ : additionalEmptyValues}) ){
-		return caster(defaultValue);
+		return defaultValue;
 	} else {
 		return caster(value);
 	}
@@ -733,7 +731,7 @@ export function isNaN(value, checkForIdentity=true){
 	if( checkForIdentity ){
 		return value !== value;
 	} else {
-		return window.isNaN(value);
+		return globalThis.isNaN(value);
 	}
 }
 
@@ -1367,11 +1365,11 @@ export function isSelector(value){
 	value = isNaN(value) ? 0 : value;
 	value = orDefault(value, 0, 'str');
 
-	const fragment = document.createDocumentFragment();
+	const fragment = globalThis.document.createDocumentFragment();
 
 	try {
 		fragment.querySelector(value);
-	} catch(ex){
+	} catch {
 		return false;
 	}
 
@@ -1415,7 +1413,7 @@ export function getPotentialId(value, prefix='', idRex='[1-9][0-9]*', postfix=''
 	postfix = orDefault(postfix, '', 'str');
 	maskFixes = orDefault(maskFixes, true, 'bool');
 
-	const mask = str => `${str}`.replace(/([\-\[\]\/{}()*+?.\\^$|])/g, "\\$&");
+	const mask = str => `${str}`.replace(/([-[\]/{}()*+?.\\^$|])/g, "\\$&");
 
 	let rex;
 	if( maskFixes ){
@@ -1560,10 +1558,10 @@ export function minMax(minValue, value, maxValue){
  * @alias round
  * @example
  * let roundedValue = round(666.66);
- * // => 667
+ * //=> 667
  *
  * let roundedValue = round(0.5555555, 3);
- * // => 0.556
+ * //=> 0.556
  */
 export function round(value, precision=0){
 	value = parseFloat(value);
@@ -1599,10 +1597,10 @@ export function round(value, precision=0){
  *   and returns its result.
  * @property {function(function():*):Promise<T>} finally - Defines a "settled" handler for the wrapped promise
  *   and returns its result.
- * @property {TypeDef_DeferredStatus} status - Holds the current resolution status,
+ * @property {TypeDef_DeferredStatus} status="pending" - Holds the current resolution status,
  *   can either be "pending", "fulfilled" or "rejected"
  * @property {function():boolean} isSettled - Returns true, if the Deferred is either "fulfilled" or "rejected".
- * @property {?T} [provision=null] - May contain (a) provisional value(s) to use for a newly instantiated Deferred,
+ * @property {?T} provision=null - May contain (a) provisional value(s) to use for a newly instantiated Deferred,
  *   before it has resolved to the actual value(s).
  * @property {Promise<T>} promise - The wrapped promise.
  *
@@ -1627,7 +1625,7 @@ export function round(value, precision=0){
  *
  * Keep in mind that Promises might need a polyfill such as core-js.
  *
- * For details, see implementation.
+ * For details, see implementation and class documentation.
  *
  * @class
  * @template T
@@ -1807,7 +1805,6 @@ export class Deferred {
  * status.setValue('oh noez');
  * status.unsubscribe(subscription);
  */
-// jshint ignore:start
 export class Observable {
 
 	#__className__ = 'Observable';
@@ -1898,4 +1895,3 @@ export class Observable {
 	}
 
 }
-// jshint ignore:end

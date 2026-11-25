@@ -82,7 +82,7 @@ function buildEs5Monolith(){
 					['@babel/preset-env', {
 						corejs : 3,
 						targets : PACKAGE_CONFIG.browserslist,
-						useBuiltIns : 'usage'
+						useBuiltIns : 'usage',
 					}]
 				]
 			}),

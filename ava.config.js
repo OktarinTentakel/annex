@@ -26,7 +26,7 @@ console.log(`> testing "${SOURCE}"`);
 
 export default {
 	files : [
-		['arrays', 'basic', 'conversion', 'cookies'].includes(topic)
+		['arrays', 'basic', 'conversion', 'cookies', 'css', 'dates'].includes(topic)
 			? `./test/annex/${topic}.ts`
 			: `./test/annex/${topic}.js`
 	],

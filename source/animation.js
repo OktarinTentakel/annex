@@ -66,7 +66,6 @@ const RUNNING_TRANSITIONS = new WeakMap();
  * @example
  * scrollTo(window, 1000, 0, EasingFunctions.easeInOutQuint);
  */
-// jshint ignore:start
 export const EasingFunctions = {
 	// no easing, no acceleration
 	linear : t => t,
@@ -95,7 +94,6 @@ export const EasingFunctions = {
 	// acceleration until halfway, then deceleration
 	easeInOutQuint : t => t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t
 };
-// jshint ignore:end
 
 
 
@@ -265,7 +263,7 @@ export function transition(element, classChanges=null, styleChanges=null, reject
 	}
 
 	waitForRepaint(() => {
-		const elementStyles = getComputedStyle(element);
+		const elementStyles = globalThis.getComputedStyle(element);
 		timingProperties.forEach(timingProperty => {
 			if( !hasValue(transitionDefinition.value) && hasValue(elementStyles[timingProperty]) ){
 				transitionDefinition.property = timingProperty;

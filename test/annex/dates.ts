@@ -1,58 +1,97 @@
+import type {ExecutionContext} from 'ava';
+
 import test from 'ava';
 
-let pkg;
-
-if( global.__AVA_SOURCE__ === 'es5-monolith' ){
-	await import(`../../dist/es5-monolith.js`);
-	pkg = global.annex.dates;
-} else {
-	pkg = await import(`../../${global.__AVA_SOURCE__}/dates.js`);
-}
-
-const {
-	format,
-	SaneDate
-} = pkg;
+import {dates as _} from './_implementations.ts';
 
 
 
-test('format', assert => {
+test('format', (assert:ExecutionContext):void => {
 	const foo = new Date('2016-02-28T18:35:06.700Z');
 
-	assert.is(format(foo, 'short', 'de-DE'), '29.02.16, 04:05');
-	assert.is(format(foo), 'February 29, 2016 at 4:05:06 AM GMT+9:30');
-	assert.is(format(foo, 'long', null, 'date'), 'February 29, 2016');
-	assert.is(format(foo, 'full', 'xx-XX', 'datetime', {timeZone : 'Europe/Berlin'}), 'Sunday, February 28, 2016 at 7:35:06 PM Central European Standard Time');
-	assert.is(format(foo, 'long', 'de-DE', 'datetime', {timeZone : 'UTC'}), '28. Februar 2016 um 18:35:06 UTC');
-	assert.is(format(foo, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), '2016-02-29T04:05:06.700+09:30');
-	assert.is(format(foo, 'YYYY-MM-DDTHH:mm:ss.SSSZ', null, null, {timeZone : 'Australia/Darwin'}), '2016-02-29T04:05:06.700+09:30');
-	assert.is(format(foo, 'YYMDHms', 'en-GB', 'date', {timeZone : 'Europe/Berlin'}), '16229456');
-	assert.is(format(new Date('2016-02-28T00:59:06+09:30'), 'h:mm A'), '12:59 AM');
-	assert.is(format(new Date('2016-02-28T01:59:06+09:30'), 'h:mm A'), '1:59 AM');
-	assert.is(format(new Date('2016-02-28T12:59:06+09:30'), 'h:mm:ssa'), '12:59:06pm');
-	assert.is(format(new Date('2016-02-28T13:59:06+09:30'), 'h:mm:ssa'), '1:59:06pm');
+	assert.is(
+		_.format(foo, 'short', 'de-DE'),
+		'29.02.16, 04:05'
+	);
+
+	assert.is(
+		_.format(foo),
+		'February 29, 2016 at 4:05:06 AM GMT+9:30'
+	);
+
+	assert.is(
+		_.format(foo, 'long', null, 'date'),
+		'February 29, 2016'
+	);
+
+	assert.is(
+		_.format(foo, 'full', 'xx-XX', 'datetime', {timeZone : 'Europe/Berlin'}),
+		'Sunday, February 28, 2016 at 7:35:06 PM Central European Standard Time'
+	);
+
+	assert.is(
+		_.format(foo, 'long', 'de-DE', 'datetime', {timeZone : 'UTC'}),
+		'28. Februar 2016 um 18:35:06 UTC'
+	);
+
+	assert.is(
+		_.format(foo, 'YYYY-MM-DDTHH:mm:ss.SSSZ'),
+		'2016-02-29T04:05:06.700+09:30'
+	);
+
+	assert.is(
+		_.format(foo, 'YYYY-MM-DDTHH:mm:ss.SSSZ', null, null, {timeZone : 'Australia/Darwin'}),
+		'2016-02-29T04:05:06.700+09:30'
+	);
+
+	assert.is(
+		_.format(foo, 'YYMDHms', 'en-GB', 'date', {timeZone : 'Europe/Berlin'}),
+		'16229456'
+	);
+
+	assert.is(
+		_.format(new Date('2016-02-28T00:59:06+09:30'), 'h:mm A'),
+		'12:59 AM'
+	);
+
+	assert.is(
+		_.format(new Date('2016-02-28T01:59:06+09:30'), 'h:mm A'),
+		'1:59 AM'
+	);
+
+	assert.is(
+		_.format(new Date('2016-02-28T12:59:06+09:30'), 'h:mm:ssa'),
+		'12:59:06pm'
+	);
+
+	assert.is(
+		_.format(new Date('2016-02-28T13:59:06+09:30'), 'h:mm:ssa'),
+		'1:59:06pm'
+	);
 });
 
 
-
-test('SaneDate', assert => {
+// todo: überarbeiten, testen, doku checken
+// todo: optional vs. nullable params überall angleichen; ist nicht das gleiche
+class SaneDate extends _.SaneDate {}
+test('SaneDate', (assert:ExecutionContext):void => {
 	const
-		foo = new SaneDate('1-2-3 4:5:6.7'),
-		bar = new SaneDate('2018-02-28 13:37:00'),
-		foobar = new SaneDate('2016-4-7'),
-		boo = new SaneDate(2016, 4, 7),
-		far = new SaneDate(bar, 7, 30, null, 38),
-		boofar = new SaneDate(null, null, null, null, null, null, 999),
-		barfoo = new SaneDate({toIsoString(){ return '1999T23-2'; }})
+		foo:SaneDate = new _.SaneDate('1-2-3 4:5:6.7'),
+		bar:SaneDate = new _.SaneDate('2018-02-28 13:37:00'),
+		foobar:SaneDate = new _.SaneDate('2016-4-7'),
+		boo:SaneDate = new _.SaneDate(2016, 4, 7),
+		far:SaneDate = new _.SaneDate(bar, 7, 30, null, 38),
+		boofar:SaneDate = new _.SaneDate(null, null, null, null, null, null, 999),
+		barfoo:SaneDate = new _.SaneDate({toIsoString():string{ return '1999T23-2'; }})
 	;
 	let tmp;
 
-	assert.throws(() => new SaneDate(2016, 13, 33, 13, 37, 0, 999));
+	assert.throws(():void => { new _.SaneDate(2016, 13, 33, 13, 37, 0, 999); });
 	assert.is(foo.year, 1);
 	assert.is(foo.date, 3);
 	assert.is(foo.milliseconds, 700);
-	assert.throws(() => { foo.date = 32; });
-	assert.throws(() => { foo.year = 10001; });
+	assert.throws(():void => { foo.date = 32; });
+	assert.throws(():void => { foo.year = 10001; });
 
 	assert.is(far.month, 7);
 	assert.is(far.date, 30);
@@ -77,8 +116,8 @@ test('SaneDate', assert => {
 
 	foo.year = 2012;
 	foo.date = 29;
-	assert.throws(() => { foo.year = 2013; });
-	assert.notThrows(() => { foo.year = 2016; });
+	assert.throws(():void => { foo.year = 2013; });
+	assert.notThrows(():void => { foo.year = 2016; });
 	assert.is(foo.year, 2016);
 	assert.is(foo.date, 29);
 
@@ -97,7 +136,7 @@ test('SaneDate', assert => {
 		milliseconds : 300
 	});
 	assert.is(foo.getIsoString(), '2016-02-29T04:05:07+09:30');
-	assert.throws(() => {
+	assert.throws(():void => {
 		foo.move({
 			days : 1,
 			hours : 1,
@@ -107,8 +146,8 @@ test('SaneDate', assert => {
 	});
 	assert.is(foo.milliseconds, 0);
 	assert.is(foo.seconds, 7);
-	assert.throws(() => { foo.forward('milliseconds', -1); });
-	assert.throws(() => { foo.backward('milliseconds', -1); });
+	assert.throws(():void => { foo.forward('milliseconds', -1); });
+	assert.throws(():void => { foo.backward('milliseconds', -1); });
 	foo.backward('milliseconds', 300);
 	assert.is(foo.milliseconds, 700);
 	assert.is(foo.seconds, 6);

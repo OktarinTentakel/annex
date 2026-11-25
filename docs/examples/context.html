@@ -19,7 +19,7 @@
 			 */
 			function setup(_){
 				var
-					context = document.querySelector('#context'),
+					context = window.document.querySelector('#context'),
 					interactionType
 				;
 
@@ -28,7 +28,7 @@
 						infoMarkup = '',
 						browserLanguage = _.getBrowserLanguage(),
 						browserLocale = _.getBrowserLocale(),
-						pageLocale = _.getLocale(document.documentElement, 'de-DE'),
+						pageLocale = _.getLocale(window.document.documentElement, 'de-DE'),
 						appleDevice = _.detectAppleDevice()
 					;
 
